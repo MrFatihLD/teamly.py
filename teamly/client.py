@@ -15,26 +15,27 @@ CoroT = TypeVar('CoroT', bound = Callable[..., Coro[Any]]) # Coroutine döndüre
 class Client:
 
     def __init__(self):
-        self.token = None
         self.http = HTTPClient()
 
     def run(self, token: str):
-        _log.debug("started \"run()\"") #Debug
 
         async def runner():
             _log.debug("started \"runner()\"") #Debug
             async with self:
-                await self.start()
+                await self.start(token)
+
+        self.setup_logging()
 
         _log.debug("running \"asyncio.run(runner())\"") #Debug
+
         try:
             asyncio.run(runner())
         except KeyboardInterrupt:
             pass        
 
-    async def start(self):
+    async def start(self, token: str):
         _log.debug("Started \"start()\"...") #Debug
-        await self.http.static_login(self.token)
+        await self.http.static_login(token)
         await self.test_request()
 
     async def close(self):
@@ -43,9 +44,13 @@ class Client:
     async def test_request(self):
         await self.http.test_request()
 
+    def setup_logging(self): #temp
+        _log.setLevel(logging.DEBUG)
+        
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.DEBUG)
 
-
-
+        _log.addHandler(console_handler)
 
 
 

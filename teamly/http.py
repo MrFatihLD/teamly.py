@@ -43,7 +43,7 @@ class HTTPClient:
 
 
     #Websocket ile baglanmayi saglayacak fonksiyon
-    async def ws_connect(self):
+    async def ws_connect(self) -> aiohttp.ClientWebSocketResponse:
         kwargs = {
             "timeout": 30,
             "autoclose": False,
@@ -51,7 +51,7 @@ class HTTPClient:
                 "Authorization": f"Bot {self.token}" #Buraya botun tokeni gelecek
             }
         }
-        await self.__session.ws_connect('wss://api.teamly.one/api/v1/ws',**kwargs)
+        return await self.__session.ws_connect('wss://api.teamly.one/api/v1/ws',**kwargs)
 
     async def static_login(self, token: str): #ClientSessionu baslatacak fonksiyon
         if self.connector is None:
