@@ -5,7 +5,6 @@ import logging
 
 from typing import Optional, ClassVar, Any
 
-from .gateway import TeamlyWebSocket
 from urllib.parse import quote
 
 
@@ -59,7 +58,6 @@ class HTTPClient:
 
         self.__session = aiohttp.ClientSession(
             connector=self.connector,
-            ws_response_class=TeamlyWebSocket
         )
 
         self.token = token
@@ -92,7 +90,4 @@ class HTTPClient:
                 print(json.dumps(data,indent=4))
         except:
             _log.debug("could not send a request!!!") #Debug
-
-    async def test_request(self):
-        await self.request(Route("GET","/me"))
 

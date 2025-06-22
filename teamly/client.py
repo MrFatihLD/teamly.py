@@ -36,13 +36,9 @@ class Client:
     async def start(self, token: str):
         _log.debug("Started \"start()\"...") #Debug
         await self.http.static_login(token)
-        await self.test_request()
 
     async def close(self):
         await self.http.close()
-
-    async def test_request(self):
-        await self.http.test_request()
 
     def setup_logging(self): #temp
         _log.setLevel(logging.DEBUG)
