@@ -2,7 +2,9 @@ import asyncio
 import aiohttp
 import logging
 
+
 from .http import HTTPClient
+from .gateway import *
 
 from typing import Coroutine, Callable, TypeVar, Any
 
@@ -16,6 +18,7 @@ class Client:
 
     def __init__(self):
         self.http = HTTPClient()
+        self.ws: TeamlyWebSocket = None
 
     def run(self, token: str):
 
@@ -36,6 +39,15 @@ class Client:
     async def start(self, token: str):
         _log.debug("Started \"start()\"...") #Debug
         await self.http.static_login(token)
+        await self.connect()
+
+    async def connect(self):
+        try:
+            coro = TeamlyWebSocket.from_client(self)
+            self.ws = await asyncio.wait_for(coro,timeout=60)
+            await self.ws.poll_event()
+        except:
+            print("didnt work")
 
     async def close(self):
         await self.http.close()
