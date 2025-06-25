@@ -3,10 +3,11 @@ from __future__ import annotations
 import asyncio
 import aiohttp
 import json
-
-
+import logging
 
 from typing import TYPE_CHECKING, Self
+
+_log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from .client import Client
@@ -29,9 +30,15 @@ class TeamlyWebSocket():
         try:
             msg = await self.socket.receive()
             if msg.type == aiohttp.WSMsgType.TEXT:
-                if msg.data is not None:
-                    data = json.loads(msg.data)
-                    print(json.dumps(data,indent=4))
-                    await self.socket.close()
+                await self.received_message()
+            elif msg.type == aiohttp.WSMsgType.BINARY:
+                await self.received_message()
+            elif msg.type == aiohttp.WSMsgType.ERROR:
+                _log.debug("Received error %s", msg)
+            elif msg.type in (aiohttp.WSMsgType.CLOSE,aiohttp.WSMsgType.CLOSED,aiohttp.WSMsgType.CLOSING):
+                _log.debug("Received %s", msg)
         except:
             print("Could not poll event!!!")
+
+    async def received_message(self):
+        pass
