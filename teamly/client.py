@@ -5,6 +5,7 @@ import logging
 
 from .http import HTTPClient
 from .gateway import *
+from .utils import MISSING
 
 from typing import Coroutine, Callable, TypeVar, Any
 
@@ -18,7 +19,7 @@ class Client:
 
     def __init__(self):
         self.http = HTTPClient()
-        self.ws: TeamlyWebSocket = None
+        self.ws: TeamlyWebSocket = MISSING
 
     def run(self, token: str):
 
@@ -34,14 +35,14 @@ class Client:
         try:
             asyncio.run(runner())
         except KeyboardInterrupt:
-            pass        
+            pass
 
     async def start(self, token: str):
         _log.debug("Started \"start()\"...") #Debug
         await self.http.static_login(token)
         await self.connect()
 
-    async def connect(self):
+    async def connect(self): #temp
         try:
             coro = TeamlyWebSocket.from_client(self)
             self.ws = await asyncio.wait_for(coro,timeout=60)
@@ -54,7 +55,7 @@ class Client:
 
     def setup_logging(self): #temp
         _log.setLevel(logging.DEBUG)
-        
+
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.DEBUG)
 
@@ -68,9 +69,9 @@ class Client:
         pass
 
     async def __aexit__(
-            self, 
-            exc_type, 
-            exc_val, 
+            self,
+            exc_type,
+            exc_val,
             exc_tb
     ):
         _log.debug("closing HTTP client...")
