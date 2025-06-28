@@ -1,83 +1,50 @@
 import asyncio
-import aiohttp
-import logging
 
-
-from .http import HTTPClient
-from .gateway import *
-from .utils import MISSING
-
-from typing import Coroutine, Callable, TypeVar, Any
-
-_log = logging.getLogger(__name__)
-
-T = TypeVar('T') # 'T' Herhangi bit tipi temsil eder
-Coro = Coroutine[Any,Any,T] #asenkron bir fonksiyonu temsil eder
-CoroT = TypeVar('CoroT', bound = Callable[..., Coro[Any]]) # Coroutine döndüren herhangi bir fonksiyon tipi
+from loguru import logger
+from .http import HTTPclient
 
 class Client:
 
-    def __init__(self):
-        self.http = HTTPClient()
-        self.ws: TeamlyWebSocket = MISSING
+    def __init__(self) -> None:
+        self.token: str = None
+        self.http: HTTPclient = HTTPclient()
 
+    # run() fonksiyonu içinde async runner() fonksiyonunu tanımlıyoruz.
+    # runner() fonksiyonunda, async with self ifadesiyle, self nesnesinin asenkron bağlam yöneticisi metodları (__aenter__ ve __aexit__) çalıştırılır.
+    # Bu bağlamda, self.start(token) metodunu await ile bekleyerek çalıştırıyoruz.
+    # Bu yapı, kaynakların (bağlantı, oturum vb.) doğru bir şekilde açılmasını ve iş bittikten sonra düzgünce kapanmasını sağlar.
     def run(self, token: str):
 
         async def runner():
-            _log.debug("started \"runner()\"") #Debug
+            logger.debug("runner() started")
             async with self:
                 await self.start(token)
 
-        self.setup_logging()
-
-        _log.debug("running \"asyncio.run(runner())\"") #Debug
-
+        # asyncio.run(runner()) komutu ile runner() adlı asenkron fonksiyon çalıştırılıyor.
+        # try-except bloğu sayesinde kullanıcı Ctrl+C ile programı durdurduğunda
+        # KeyboardInterrupt hatası yakalanıyor ve program sessizce kapanıyor.
+        # Bu, programın ani kesintilerde düzgün şekilde kapanmasını sağlar.
         try:
             asyncio.run(runner())
         except KeyboardInterrupt:
             pass
 
+    # start() fonksiyonu async bir fonksiyondur.
+    # Bu fonksiyon içinde self.http.static_login await ile çağrılarak,
+    # uygulamanın çalışma süresi boyunca geçerli olacak statik bir aiohttp ClientSession nesnesi oluşturulur.
     async def start(self, token: str):
-        _log.debug("Started \"start()\"...") #Debug
         await self.http.static_login(token)
-        await self.connect()
+
+    # close() fonksiyonu async bir fonksiyondur.
+    # Fonksiyon içinde self.http.close() metodu await ile çağrılarak,
+    # daha önce açılmış olan aiohttp ClientSession bağlantısı düzgün bir şekilde kapatılır.
+    async def close(self):
+        logger.debug("closing ClientSession...")
+        await self.http.close()
+
 
     async def __aenter__(self):
-        pass
+        return self
 
-    async def __aexit__(
-            self,
-            exc_type,
-            exc_val,
-            exc_tb
-    ):
-        _log.debug("closing HTTP client...")
-        await self.http.close()
-
-    async def connect(self): #temp
-        try:
-            coro = TeamlyWebSocket.from_client(self)
-            self.ws = await asyncio.wait_for(coro,timeout=60)
-            await self.ws.poll_event()
-        except:
-            print("didnt work")
-
-    async def close(self):
-        await self.http.close()
-
-    def setup_logging(self): #temp
-        _log.setLevel(logging.DEBUG)
-
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.DEBUG)
-
-        _log.addHandler(console_handler)
-
-    def event(self, coro: CoroT, /):
-
-        if not asyncio.iscoroutinefunction(coro):
-            raise TypeError('event registered must be a coroutine function')
-        
-        setattr(self, coro.__name__, coro)
-        _log.debug('%s has successfully been registered as an event', coro.__name__)
-        return coro
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.close()
