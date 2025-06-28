@@ -42,6 +42,18 @@ class Client:
         await self.http.static_login(token)
         await self.connect()
 
+    async def __aenter__(self):
+        pass
+
+    async def __aexit__(
+            self,
+            exc_type,
+            exc_val,
+            exc_tb
+    ):
+        _log.debug("closing HTTP client...")
+        await self.http.close()
+
     async def connect(self): #temp
         try:
             coro = TeamlyWebSocket.from_client(self)
@@ -61,18 +73,11 @@ class Client:
 
         _log.addHandler(console_handler)
 
+    def event(self, coro: CoroT, /):
 
-
-
-
-    async def __aenter__(self):
-        pass
-
-    async def __aexit__(
-            self,
-            exc_type,
-            exc_val,
-            exc_tb
-    ):
-        _log.debug("closing HTTP client...")
-        await self.http.close()
+        if not asyncio.iscoroutinefunction(coro):
+            raise TypeError('event registered must be a coroutine function')
+        
+        setattr(self, coro.__name__, coro)
+        _log.debug('%s has successfully been registered as an event', coro.__name__)
+        return coro

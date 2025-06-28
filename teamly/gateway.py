@@ -47,6 +47,7 @@ class TeamlyWebSocket():
     
     def __init__(self,socket: aiohttp.ClientWebSocketResponse):
         self.socket: aiohttp.ClientWebSocketResponse = socket
+        self._ratelimit: GatewayRatelimiter = GatewayRatelimiter()
 
     @classmethod
     async def from_client(cls, client: Client) -> Self:
@@ -71,16 +72,16 @@ class TeamlyWebSocket():
         except:
             print("Could not poll event!!!")
 
-    async def received_message(self, msg: Any, /):
+    async def received_message(self, msg, /):
         if type(msg) is bytes:
             msg = msg.decode('utf-8')
 
         if msg is None:
             return
-        
+
         msg = json.loads(msg)
 
-        print(json.dumps(msg,indent=4))
+        print(json.dumps(msg,indent=4,ensure_ascii=False))
 
         event_t = msg['t']
         data = msg['d']
@@ -89,3 +90,7 @@ class TeamlyWebSocket():
     
     async def close(self):
         await self.socket.close()
+
+    async def send(self, data: str, /):
+        await self._ratelimit.block()
+        await self.socket.send_str(data)
