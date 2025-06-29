@@ -1,9 +1,15 @@
+from __future__ import annotations
+
 import asyncio
 import aiohttp
 
 from typing import Any, Callable, Coroutine, Self, TypeVar
 from loguru import logger
+
+from teamly.gateway import TeamlyWebSocket
+
 from .http import HTTPclient
+from .gateway import *
 
 T  = TypeVar('T')
 Coro = Coroutine[Any, Any, T]
@@ -13,8 +19,9 @@ class Client:
 
     def __init__(self) -> None:
         self.token: str = None
-        self.http: HTTPclient = HTTPclient()
         self.loop: asyncio.AbstractEventLoop() = None
+        self.http: HTTPclient = HTTPclient(loop=self.loop)
+        self.ws: TeamlyWebSocket = None
 
     # run() fonksiyonu içinde async runner() fonksiyonunu tanımlıyoruz.
     # runner() fonksiyonunda, async with self ifadesiyle, self nesnesinin asenkron bağlam yöneticisi metodları (__aenter__ ve __aexit__) çalıştırılır.
@@ -44,9 +51,14 @@ class Client:
         await self.connect()
 
     async def connect(self) -> None:
-        while True:
-            await asyncio.sleep(1)
-            print("Loop is running")
+        try:
+            coro = TeamlyWebSocket.from_client(self)
+            self.ws = await asyncio.wait_for(coro, timeout=60)
+            while True:
+                await asyncio.sleep(0.5)
+                await self.ws.poll_event()
+        except Exception as e:
+            logger.debug("Error received {}",e)
 
 
     # close() fonksiyonu async bir fonksiyondur.
