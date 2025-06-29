@@ -1,3 +1,4 @@
+import asyncio
 import aiohttp
 import json
 
@@ -50,7 +51,8 @@ class Route:
 
 class HTTPclient:
 
-    def __init__(self) -> None:
+    def __init__(self, loop: asyncio.AbstractEventLoop) -> None:
+        self.loop: asyncio.AbstractEventLoop = loop
         self._session: aiohttp.ClientSession = None
         self.token: str = None
 
