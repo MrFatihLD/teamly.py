@@ -95,7 +95,7 @@ class HTTPclient:
 
                 return data
         except:
-            logger.debug("request could not be sended!!!")
+            logger.debug("request could not sended!!!")
 
     async def close(self):
         await self._session.close()

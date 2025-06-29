@@ -1,19 +1,26 @@
 import asyncio
+import aiohttp
 
+from typing import Any, Callable, Coroutine, Self, TypeVar
 from loguru import logger
 from .http import HTTPclient
+
+T  = TypeVar('T')
+Coro = Coroutine[Any, Any, T]
+CoroT = TypeVar('CoroT', bound=Callable[..., Coro[Any]])
 
 class Client:
 
     def __init__(self) -> None:
         self.token: str = None
         self.http: HTTPclient = HTTPclient()
+        self.loop: asyncio.AbstractEventLoop() = None
 
     # run() fonksiyonu içinde async runner() fonksiyonunu tanımlıyoruz.
     # runner() fonksiyonunda, async with self ifadesiyle, self nesnesinin asenkron bağlam yöneticisi metodları (__aenter__ ve __aexit__) çalıştırılır.
     # Bu bağlamda, self.start(token) metodunu await ile bekleyerek çalıştırıyoruz.
     # Bu yapı, kaynakların (bağlantı, oturum vb.) doğru bir şekilde açılmasını ve iş bittikten sonra düzgünce kapanmasını sağlar.
-    def run(self, token: str):
+    def run(self, token: str) -> None:
 
         async def runner():
             logger.debug("runner() started")
@@ -32,19 +39,40 @@ class Client:
     # start() fonksiyonu async bir fonksiyondur.
     # Bu fonksiyon içinde self.http.static_login await ile çağrılarak,
     # uygulamanın çalışma süresi boyunca geçerli olacak statik bir aiohttp ClientSession nesnesi oluşturulur.
-    async def start(self, token: str):
+    async def start(self, token: str) -> None:
         await self.http.static_login(token)
+        await self.connect()
+
+    async def connect(self) -> None:
+        while True:
+            await asyncio.sleep(1)
+            print("Loop is running")
+
 
     # close() fonksiyonu async bir fonksiyondur.
     # Fonksiyon içinde self.http.close() metodu await ile çağrılarak,
     # daha önce açılmış olan aiohttp ClientSession bağlantısı düzgün bir şekilde kapatılır.
-    async def close(self):
+    async def close(self) -> None:
         logger.debug("closing ClientSession...")
         await self.http.close()
 
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> Self:
+        await self._async_start_hook()
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         await self.close()
+
+    async def _async_start_hook(self) -> None:
+        loop = asyncio.get_running_loop()
+        self.loop = loop
+
+    def event(self, coro: CoroT, /) -> CoroT: #For WebSocket events
+
+        if not asyncio.iscoroutinefunction(coro):
+            raise TypeError('event registered must be a coroutine function')
+
+        setattr(self, coro.__name__, coro)
+        logger.debug("\"{coroutine}\" has successfully been registered as an event",coroutine = coro.__name__)
+        return coro
