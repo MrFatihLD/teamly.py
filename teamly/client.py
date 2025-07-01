@@ -1,6 +1,7 @@
 import asyncio
 
 from .http import HTTPClient
+from .gateway import TeamlyWebSocket
 
 from loguru import logger
 from typing import (
@@ -37,6 +38,7 @@ class Client:
     def __init__(self) -> None:
         self.loop: asyncio.AbstractEventLoop = _loop
         self.http: HTTPClient = HTTPClient(self.loop)
+        self.ws: TeamlyWebSocket = None #type: ignore
 
     def run(self, token: str) -> None:
         """
@@ -64,9 +66,15 @@ class Client:
 
     async def start(self, token: str) -> None:
         await self.http.static_login(token)
+        await self.connect()
 
     async def connect(self) -> None:
-        pass
+        try:
+            coro = TeamlyWebSocket.from_client(self)
+            self.ws = await asyncio.wait_for(coro,timeout=30)
+            #await self.ws.poll_event()
+        except Exception as e:
+            logger.error("Exception error: {}",e)
 
     def event(self, coro: CoroT,) -> CoroT:
         """
