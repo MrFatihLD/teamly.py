@@ -8,6 +8,10 @@ from typing import (
     Any
 )
 
+__all__ = (
+    'Client',
+)
+
 T = TypeVar('T')
 Coro = Coroutine[Any,Any, T]
 CoroT = TypeVar('CoroT', bound=Callable[..., Coro[Any]])
@@ -55,6 +59,12 @@ class Client:
         except KeyboardInterrupt:
             pass
 
+    async def start(self) -> None:
+        pass
+
+    async def connect(self) -> None:
+        pass
+
     def event(self, coro: CoroT,) -> CoroT:
         """
             The `event` decorator registers a coroutine function as an event handler.
@@ -98,7 +108,7 @@ class Client:
         event_name: str,
         *arg,
         **kwargs
-    ):
+    ) -> asyncio.Task:
         wrapper = self._run_event(coro, event_name, *arg, **kwargs)
         #scheduls event
         return self.loop.create_task(wrapper, name=f"Teamly.py: {event_name}")
