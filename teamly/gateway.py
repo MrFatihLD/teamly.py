@@ -25,6 +25,15 @@ class TeamlyWebSocket:
         return ws
 
     async def poll_event(self):
+        '''
+            Continuously polls the WebSocket connection for incoming messages.
+
+            Depending on the message type (text, binary, error, or close),
+            it delegates the message to the appropriate handler or logs it.
+
+            This function is meant to be run in an event loop (e.g., inside a task).
+        '''
+
         try:
             msg = await self.socket.receive()
             if msg.type is aiohttp.WSMsgType.TEXT:

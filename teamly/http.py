@@ -8,6 +8,21 @@ from urllib.parse import quote
 from loguru import logger
 
 class Route:
+    '''
+        Represents an API route with a method and path, used to build full request URLs
+        for the Teamly API.
+
+        Example:
+            Route("GET", "/channels/{channel_id}", channel_id="1234")
+            → https://api.teamly.one/api/v1/channels/1234
+
+        Attributes:
+            BASE_URL (str): The base URL for all API requests.
+            method (str): The HTTP method (e.g., "GET", "POST").
+            path (str): The API path, possibly containing placeholders.
+            url (str): The fully constructed request URL.
+    '''
+
     BASE_URL = "https://api.teamly.one/api/v1"
 
     def __init__(self, method:str, path: str, **params: Any) -> None:
