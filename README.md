@@ -1,24 +1,26 @@
 # Teamly.py
 
-Teamly API ile etkileşim kurmak için modern, asenkron bir Python kütüphanesi.
+A modern, asynchronous Python library for interacting with the Teamly API.
 
-> 🚧 Bu proje halen geliştirme aşamasındadır ve tüm özellikler henüz tamamlanmamıştır.
+> 🚧 **This project is still under development, and not all features are implemented yet.**
 
-## ✨ Özellikler (Planlanan ve Mevcut)
+---
 
-- ✅ HTTP API ile veri alma ve gönderme
-- ✅ Asenkron WebSocket bağlantısı ile gerçek zamanlı olay dinleme
-- ⏳ Otomatik yeniden bağlantı ve hata yönetimi
-- ⏳ Rate limit yönetimi
-- ⏳ Komut sistemi / Bot mimarisi
-- ⏳ Tip güvenliği ve otomatik JSON dönüşümleri
-- ⏳ Daha fazlası yolda...
+## ✨ Features (Planned and Available)
 
-## 🔧 Kurulum
+- ✅ Fetching and sending data via the HTTP API
+- ✅ Listening to real-time events via an asynchronous WebSocket connection
+- ⏳ Automatic reconnection and error handling
+- ⏳ Rate limit management
+- ⏳ Command system / Bot architecture
+- ⏳ Type safety and automatic JSON conversions
+- ⏳ More coming soon...
 
-> Şu anda PyPI yayını yoktur, bu yüzden kaynak koddan kurmanız gerekir.
+---
+
+## 🔧 Installation
+
+> The project is not feature-complete yet, but you can install it via pip:
 
 ```bash
-git clone https://github.com/kullaniciadi/teamly.py.git
-cd teamly.py
-pip install -e .
+pip install teamly.py
