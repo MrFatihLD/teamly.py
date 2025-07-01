@@ -39,7 +39,7 @@ class HTTPClient:
         logger.debug("closing client session...")
         await self._session.close()
 
-    async def ws_connect(self):
+    async def ws_connect(self) -> aiohttp.ClientWebSocketResponse:
         logger.debug("creating ws connect...")
 
         kwargs = {
