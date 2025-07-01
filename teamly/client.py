@@ -1,5 +1,7 @@
 import asyncio
 
+from .http import HTTPClient
+
 from loguru import logger
 from typing import (
     TypeVar,
@@ -34,6 +36,7 @@ class Client:
 
     def __init__(self) -> None:
         self.loop: asyncio.AbstractEventLoop = _loop
+        self.http: HTTPClient = HTTPClient(self.loop)
 
     def run(self, token: str) -> None:
         """
@@ -52,15 +55,15 @@ class Client:
         async def runner():
             logger.debug("starting coroutine")
             async with self:
-                await asyncio.sleep(2) #temporaly
+                await self.start(token)
 
         try:
             asyncio.run(runner())
         except KeyboardInterrupt:
             pass
 
-    async def start(self) -> None:
-        pass
+    async def start(self, token: str) -> None:
+        await self.http.static_login(token)
 
     async def connect(self) -> None:
         pass
@@ -113,10 +116,21 @@ class Client:
         #scheduls event
         return self.loop.create_task(wrapper, name=f"Teamly.py: {event_name}")
 
+
+    async def _async_setup_hook(self):
+        logger.debug("setup event loop...")
+        loop = asyncio.get_running_loop()
+        self.loop = loop
+        self.http.loop = loop
+
+    async def close(self):
+        await self.http.close()
+
     async def __aenter__(self):
         logger.debug("Entering context...")
-        self.loop = asyncio.get_event_loop()
+        await self._async_setup_hook()
         return self
 
     async def __aexit__(self, exc_type, exc, tb):
         logger.debug("Exiting context...")
+        await self.close()
