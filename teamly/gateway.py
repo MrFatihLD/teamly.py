@@ -81,9 +81,11 @@ class KeepAliveHandler(threading.Thread):
             super().__init__()
             self.ws: TeamlyWebSocket = ws
             self.interval: Optional[float] = interval
+            self.behind_msg: str = 'Can\'t keep up, websocket is {} behind.'
             self._stop_event: threading.Event = threading.Event()
             self._last_send: float = time.perf_counter()
             self._last_ack: float = time.perf_counter()
+            self.latency: float = float('inf')
 
     def run(self):
         while not self._stop_event.wait(self.interval):
@@ -111,7 +113,11 @@ class KeepAliveHandler(threading.Thread):
         self._stop_event.set()
 
     def ack(self):
-        self._last_ack = time.perf_counter()
+        ack_time = time.perf_counter()
+        self._last_ack = ack_time
+        self.latency = ack_time - self._last_send
+        if self.latency > 10:
+            logger.warning(self.behind_msg,self.latency)
 
 class TeamlyWebSocket:
 
@@ -171,6 +177,8 @@ class TeamlyWebSocket:
         if event == "READY":
             interval = data["heartbeatIntervalMs"] / 1000
             self._keep_alive = KeepAliveHandler(ws=self,interval=interval)
+            await self.socket.send_json(self._keep_alive.get_payload())
             self._keep_alive.start()
+            return
 
         print(json.dumps(msg,indent=4,ensure_ascii=False))
