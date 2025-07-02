@@ -24,25 +24,104 @@ SOFTWARE.
 
 from __future__ import annotations
 
+import asyncio
+import threading
 import aiohttp
 import json
+import time
 
-from typing import TYPE_CHECKING
-from aiohttp.web_exceptions import Any
+from typing import TYPE_CHECKING, Any, Optional
 from loguru import logger
 
 if TYPE_CHECKING:
     from .client import Client
 
+
+class GatewayRatelimiter:
+    def __init__(self, count: int = 110, per: float = 60.0) -> None:
+        # The default is 110 to give room for at least 10 heartbeats per minute
+        self.max: int = count
+        self.remaining: int = count
+        self.window: float = 0.0
+        self.per: float = per
+        self.lock: asyncio.Lock = asyncio.Lock()
+
+    def is_ratelimited(self) -> bool:
+        current = time.time()
+        if current > self.window + self.per:
+            return False
+        return self.remaining == 0
+
+    def get_delay(self) -> float:
+        current = time.time()
+
+        if current > self.window + self.per:
+            self.remaining = self.max
+
+        if self.remaining == self.max:
+            self.window = current
+
+        if self.remaining == 0:
+            return self.per - (current - self.window)
+
+        self.remaining -= 1
+        return 0.0
+
+    async def block(self) -> None:
+        async with self.lock:
+            delta = self.get_delay()
+            if delta:
+                logger.warning('WebSocket is ratelimited, waiting {} seconds',delta)
+                await asyncio.sleep(delta)
+
+
+class KeepAliveHandler(threading.Thread):
+
+    def __init__(self, ws, loop: asyncio.AbstractEventLoop, interval: Optional[float] = None):
+            super().__init__()
+            self.ws: TeamlyWebSocket = ws
+            self.loop: asyncio.AbstractEventLoop = loop
+            self.interval: Optional[float] = interval
+            self._stop_event: threading.Event = threading.Event()
+            self._last_send: float = time.perf_counter()
+            self._last_ack: float = time.perf_counter()
+
+    def run(self):
+        while not self._stop_event.wait(self.interval):
+            if time.perf_counter() - self._last_ack > self.interval * 2: #type: ignore
+                print("[ThreadedHeartbeat] ACK alınamadı, bağlantı ölü olabilir.")
+                continue
+
+            self._last_send = time.perf_counter()
+
+            payload = {
+                "t": "HEARTBEAT",
+                "d": {}
+            }
+
+            coro = self.ws.socket.send_json(payload)
+            future = asyncio.run_coroutine_threadsafe(coro, self.loop)
+            try:
+                future.result(timeout=10)
+            except Exception as e:
+                print("[ThreadedHeartbeat] send error:", e)
+
+    def stop(self):
+        self._stop_event.set()
+
+    def ack(self):
+        self._last_ack = time.perf_counter()
+
 class TeamlyWebSocket:
 
-    def __init__(self, socket: aiohttp.ClientWebSocketResponse) -> None:
+    def __init__(self, socket: aiohttp.ClientWebSocketResponse,*, loop: asyncio.AbstractEventLoop) -> None: #type: ignore
         self.socket: aiohttp.ClientWebSocketResponse = socket
+        self._keep_alive: Optional[KeepAliveHandler] = None
 
     @classmethod
     async def from_client(cls, client: Client):
         socket = await client.http.ws_connect()
-        ws = cls(socket)
+        ws = cls(socket, loop=client.loop)
 
         await ws.poll_event()
 
