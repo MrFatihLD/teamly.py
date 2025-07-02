@@ -119,12 +119,16 @@ class KeepAliveHandler(threading.Thread):
         if self.latency > 10:
             logger.warning(self.behind_msg,self.latency)
 
+    def tick(self):
+        pass
+
 class TeamlyWebSocket:
 
     def __init__(self, socket: aiohttp.ClientWebSocketResponse,*, loop: asyncio.AbstractEventLoop) -> None: #type: ignore
         self.socket: aiohttp.ClientWebSocketResponse = socket
         self._keep_alive: Optional[KeepAliveHandler] = None
         self.loop: asyncio.AbstractEventLoop = loop
+        self._close_code: Optional[int] = None
 
     @classmethod
     async def from_client(cls, client: Client):
@@ -174,6 +178,14 @@ class TeamlyWebSocket:
         event = msg["t"]
         data = msg["d"]
 
+        # if self._keep_alive:
+        #     self._keep_alive.tick()
+
+        if event == "HEARTBEAT_ACK":
+            if self._keep_alive:
+                self._keep_alive.ack()
+            return
+
         if event == "READY":
             interval = data["heartbeatIntervalMs"] / 1000
             self._keep_alive = KeepAliveHandler(ws=self,interval=interval)
@@ -182,3 +194,11 @@ class TeamlyWebSocket:
             return
 
         print(json.dumps(msg,indent=4,ensure_ascii=False))
+
+    async def close(self, code: int = 4000) -> None:
+        if self._keep_alive:
+            self._keep_alive.stop()
+            self._keep_alive = None
+
+        self._close_code = code
+        await self.socket.close(code=code)

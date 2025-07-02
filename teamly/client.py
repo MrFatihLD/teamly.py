@@ -29,6 +29,8 @@ from .gateway import TeamlyWebSocket
 
 from loguru import logger
 from typing import (
+    Dict,
+    List,
     TypeVar,
     Callable,
     Coroutine,
@@ -63,6 +65,7 @@ class Client:
         self.loop: asyncio.AbstractEventLoop = _loop
         self.http: HTTPClient = HTTPClient(self.loop)
         self.ws: TeamlyWebSocket = None #type: ignore
+        self._listener: Dict[str,List[str]] = {}
 
     def run(self, token: str) -> None:
         """
@@ -96,9 +99,12 @@ class Client:
         try:
             coro = TeamlyWebSocket.from_client(self)
             self.ws = await asyncio.wait_for(coro,timeout=30)
-            #await self.ws.poll_event()
+            while True: #temporaly
+                await self.ws.poll_event()
+                await asyncio.sleep(1)
         except Exception as e:
             logger.error("Exception error: {}",e)
+            await self.close()
 
     def event(self, coro: CoroT,) -> CoroT:
         """
@@ -147,6 +153,9 @@ class Client:
         wrapper = self._run_event(coro, event_name, *arg, **kwargs)
         #scheduls event
         return self.loop.create_task(wrapper, name=f"Teamly.py: {event_name}")
+
+    async def dispatch(self, event: str):
+        pass
 
 
     async def _async_setup_hook(self):
