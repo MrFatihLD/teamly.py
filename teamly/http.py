@@ -27,7 +27,7 @@ import aiohttp
 import json
 
 from .utils import MISSING
-from typing import Any
+from typing import Any, Dict
 from urllib.parse import quote
 from loguru import logger
 
@@ -112,3 +112,39 @@ class HTTPClient:
             return await self._session.request(method, url, **kwargs)
         except Exception as e:
             logger.error("Exception error: {}",e)
+
+
+    #Core Resources
+
+    #Channels
+    async def get_channels(self, teamId: str):
+        return await self.request(Route("GET","/teams/{teamId}/channels", teamId=teamId))
+
+    async def create_channel(self, teamId: str, payload: Dict[str,Any]):
+        r = Route("PUT", "/teams/{teamId}/channels", teamId=teamId)
+        return await self.request(r,json=payload)
+
+    async def delete_channel(self, teamId: str, channelId: str):
+        r = Route("DELETE","/teams/{teamId}/channels/{channelId}", teamId=teamId, channelId=channelId)
+        return await self.request(r)
+
+    async def duplicate_channel(self, teamId: str, channelId: str):
+        r = Route("POST","/teams/{teamId}/channels/{channelId}/clone", teamId=teamId, channelId=channelId)
+        return await self.request(r)
+
+    async def update_channel_priorities(self, teamId: str, channelId: str, payload: Dict[str, Any]):
+        r = Route("PUT","/teams/{teamId}/channelspriority", teamId=teamId)
+        return await self.request(r,json=payload)
+
+    async def get_channel_by_Id(self, teamId: str, channelId: str):
+        r = Route("GET","/teams/{teamId}/channels/{channelId}", teamId=teamId, channelId=channelId)
+        return await self.request(r)
+
+    async def update_channel(self, teamId: str, channelId: str, payload: Dict[str, Any]):
+        r = Route("PATCH","/teams/{teamId}/channels/{channelId}", teamId=teamId, channelId=channelId)
+        return await self.request(r, json=payload)
+
+    async def update_channel_permissions(self, teamId: str, channelId: str, roleId: str, allow: int, deny: int):
+        payload = {"allow": allow, "deny": deny}
+        r = Route("POST","/teams/{teamId}/channels/{channelId}/permissions/role/{roleId}", teamId=teamId, channelId=channelId, roleId=roleId)
+        return await self.request(r,json=payload)
