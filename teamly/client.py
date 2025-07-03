@@ -109,7 +109,7 @@ class Client:
             logger.error("Exception error: {}",e)
             await self.close()
 
-    def event(self, coro: CoroT,) -> CoroT:
+    def event(self, coro: CoroT, /) -> CoroT:
         """
             The `event` decorator registers a coroutine function as an event handler.
 
@@ -138,8 +138,8 @@ class Client:
         self,
         coro: Callable[...,Coroutine[Any,Any,Any]],
         event_name: str,
-        *arg,
-        **kwargs
+        *arg: Any,
+        **kwargs: Any
     ) -> None:
         try:
             await coro(*arg, **kwargs)
@@ -157,7 +157,7 @@ class Client:
         #scheduls event
         return self.loop.create_task(wrapper, name=f"Teamly.py: {event_name}")
 
-    def dispatch(self, event: str):
+    def dispatch(self, event: str, /, *arg: Any, **kwargs: Any):
         method = 'on_' + event
 
         try:
@@ -165,7 +165,7 @@ class Client:
         except AttributeError:
             pass
         else:
-            self._schedul_event(coro, method)
+            self._schedul_event(coro, method, *arg, **kwargs)
 
 
     async def _async_setup_hook(self):

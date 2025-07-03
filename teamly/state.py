@@ -1,7 +1,9 @@
 
 import inspect
+import json
 
 from .http import HTTPClient
+from .message import Message
 from typing import Dict, Callable, Any
 
 class ConnectionState:
@@ -16,5 +18,14 @@ class ConnectionState:
             if attr.startswith('parse_'):
                 parsers[attr[6:].upper()] = func
 
-    def parse_ready(self):
+    # def clean(self):
+    #     self._user = Optional[User]
+
+    def parse_ready(self, data: Any):
         self.dispatch("ready")
+        print(json.dumps(data['user'],indent=4))
+
+    def parse_message_send(self, data: Any):
+        message = Message(state=self,data=data['message'])
+        self.dispatch("message",message)
+        print(json.dumps(data,indent=4))
