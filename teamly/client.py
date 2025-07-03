@@ -26,6 +26,7 @@ import asyncio
 
 from .http import HTTPClient
 from .gateway import TeamlyWebSocket
+from .state import ConnectionState
 
 from loguru import logger
 from typing import (
@@ -66,6 +67,8 @@ class Client:
         self.http: HTTPClient = HTTPClient(self.loop)
         self.ws: TeamlyWebSocket = None #type: ignore
         self._listener: Dict[str,List[str]] = {}
+
+        self._connection: ConnectionState = self._get_state()
 
     def run(self, token: str) -> None:
         """
@@ -143,7 +146,7 @@ class Client:
         except Exception as e:
             logger.error("The event could not run {}",e)
 
-    async def _schedul_event(
+    def _schedul_event(
         self,
         coro: Callable[..., Coroutine[Any,Any,Any]],
         event_name: str,
@@ -154,8 +157,15 @@ class Client:
         #scheduls event
         return self.loop.create_task(wrapper, name=f"Teamly.py: {event_name}")
 
-    async def dispatch(self, event: str):
-        pass
+    def dispatch(self, event: str):
+        method = 'on_' + event
+
+        try:
+            coro = getattr(self,method)
+        except AttributeError:
+            pass
+        else:
+            self._schedul_event(coro, method)
 
 
     async def _async_setup_hook(self):
@@ -166,6 +176,9 @@ class Client:
 
     async def close(self):
         await self.http.close()
+
+    def _get_state(self):
+        return ConnectionState(dispatch=self.dispatch,http=self.http)
 
     async def __aenter__(self):
         logger.debug("Entering context...")
