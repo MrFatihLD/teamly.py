@@ -30,8 +30,10 @@ import aiohttp
 import json
 import time
 
-from typing import TYPE_CHECKING, Any, Optional, Dict
+from typing import TYPE_CHECKING, Any, Optional, Dict, Callable
 from loguru import logger
+
+from .state import ConnectionState
 
 if TYPE_CHECKING:
     from .client import Client
@@ -90,13 +92,13 @@ class KeepAliveHandler(threading.Thread):
     def run(self):
         while not self._stop_event.wait(self.interval):
             if time.perf_counter() - self._last_ack > self.interval * 2: #type: ignore
-                logger.warning("[KeepAliveHandler] ACK alınamadı, bağlantı ölü olabilir.")
+                logger.warning("[KeepAliveHandler] ACK not received, connection may be dead.")
                 continue
 
             self._last_send = time.perf_counter()
 
             data = self.get_payload()
-            coro = self.ws.socket.send_json(data)
+            coro = self.ws.send_heartbeat(data)
             future = asyncio.run_coroutine_threadsafe(coro, self.ws.loop)
             try:
                 future.result(timeout=10)
@@ -124,6 +126,10 @@ class KeepAliveHandler(threading.Thread):
 
 class TeamlyWebSocket:
 
+    if TYPE_CHECKING:
+        _connection: ConnectionState
+        _dispatch_parsers: Dict[str, Callable[..., Any]]
+
     def __init__(self, socket: aiohttp.ClientWebSocketResponse,*, loop: asyncio.AbstractEventLoop) -> None: #type: ignore
         self.socket: aiohttp.ClientWebSocketResponse = socket
         self._keep_alive: Optional[KeepAliveHandler] = None
@@ -134,6 +140,9 @@ class TeamlyWebSocket:
     async def from_client(cls, client: Client):
         socket = await client.http.ws_connect()
         ws = cls(socket, loop=client.loop)
+
+        ws._connection = client._connection
+        ws._dispatch_parsers = client._connection.parsers
 
         await ws.poll_event()
 
@@ -191,7 +200,13 @@ class TeamlyWebSocket:
             self._keep_alive = KeepAliveHandler(ws=self,interval=interval)
             await self.socket.send_json(self._keep_alive.get_payload())
             self._keep_alive.start()
-            return
+
+        try:
+            func = self._dispatch_parsers[event]
+        except KeyError:
+            logger.debug("Unknown event {}",event)
+        else:
+            func()
 
         print(json.dumps(msg,indent=4,ensure_ascii=False))
 
@@ -202,3 +217,6 @@ class TeamlyWebSocket:
 
         self._close_code = code
         await self.socket.close(code=code)
+
+    async def send_heartbeat(self, data: Any):
+        await self.socket.send_str(json.dumps(data))
