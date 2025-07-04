@@ -22,36 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
+from typing import TypedDict, Optional
 
-from typing import TypedDict, Optional, List
 
-class UserBadges(TypedDict):
-    id: str
-    name: str
-    icon: str
-
-class UserStatus(TypedDict):
-    content: Optional[str]
-    emojiId: Optional[str]
-
-class UserRPC(TypedDict):
-    type: Optional[str]
-    name: Optional[str]
-    id: Optional[str]
-    startedAt: Optional[str]
-
-class User(TypedDict):
-    id: str
-    username: str
-    subdomain: str
-    profilePicture: Optional[str]
-    banner: Optional[str]
-    bot: bool
-    presence: int
-    flags: str
-    badges: UserBadges
-    userStatus: Optional[UserStatus]
-    userRPC: Optional[UserRPC]
-    connections: List[str]
-    createdAt: str
-    system: bool
+class Emoji(TypedDict):
+    emojiId: Optional[str] #The emoji used in the message

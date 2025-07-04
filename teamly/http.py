@@ -26,6 +26,7 @@ import asyncio
 import aiohttp
 import json
 
+
 from .utils import MISSING
 from typing import Any, Dict
 from urllib.parse import quote
@@ -147,4 +148,11 @@ class HTTPClient:
     async def update_channel_permissions(self, teamId: str, channelId: str, roleId: str, allow: int, deny: int):
         payload = {"allow": allow, "deny": deny}
         r = Route("POST","/teams/{teamId}/channels/{channelId}/permissions/role/{roleId}", teamId=teamId, channelId=channelId, roleId=roleId)
+        return await self.request(r,json=payload)
+
+
+
+    #Message
+    async def create_message(self, channelId: str, payload: Dict[str,Any]):
+        r = Route("POST","/channels/{channelId}/messages", channelId=channelId)
         return await self.request(r,json=payload)
