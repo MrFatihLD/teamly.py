@@ -40,7 +40,7 @@ class Message:
         self.id: str = data['id']
         self.channel_id: str = data['channelId']
         self.type: str = data['type']
-        self.content: str = data.get('content', None)
+        self._content: Optional[str] = data.get('content', None)
         self.attachments: Optional[List[str]] = data.get('attachments', [])
         self.embeds: List[Any] = data.get('embeds', []) #temporaly
         self.created_by: User = User(data=data['createdBy'])
@@ -51,10 +51,20 @@ class Message:
         self.nonce: Optional[str] = data['nonce']
         self.is_pinned: bool = data['isPinned']
         self.created_at: str = data['createdAt']
+        self.team_id: str = data['teamId']
 
     @property
     def author(self) -> User:
-        return self.createdBy
+        return self.created_by
+
+    @property
+    def content(self):
+        if self._content is not None:
+            return self._content
+
+    @property
+    def team(self):
+        return self.team_id
 
     async def send(self, content: str, replyTo: Optional[str] = None):
         channel_id = self.channel_id
