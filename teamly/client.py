@@ -175,6 +175,8 @@ class Client:
         self.http.loop = loop
 
     async def close(self):
+        if self.ws is not None:
+            await self.ws.close()
         await self.http.close()
 
     def _get_state(self):

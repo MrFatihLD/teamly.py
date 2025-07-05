@@ -80,7 +80,7 @@ class GatewayRatelimiter:
 class KeepAliveHandler(threading.Thread):
 
     def __init__(self, ws: TeamlyWebSocket,interval: Optional[float] = None):
-            super().__init__()
+            super().__init__(daemon=True)
             self.ws: TeamlyWebSocket = ws
             self.interval: Optional[float] = interval
             self.behind_msg: str = 'Can\'t keep up, websocket is {} behind.'
