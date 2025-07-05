@@ -38,25 +38,29 @@ class Message:
         self._state: ConnectionState = state
 
         self.id: str = data['id']
-        self.channelId: str = data['channelId']
+        self.channel_id: str = data['channelId']
         self.type: str = data['type']
         self.content: str = data.get('content', None)
         self.attachments: Optional[List[str]] = data.get('attachments', [])
         self.embeds: List[Any] = data.get('embeds', []) #temporaly
-        self.createdBy: User = User(data=data['createdBy'])
+        self.created_by: User = User(data=data['createdBy'])
         self.editedAt: Optional[str] = data.get('editedAt', None)
-        self.replyTo: Optional[str] = data.get('replyTo', None)
+        self.reply_to: Optional[str] = data.get('replyTo', None)
         self.emojis: List[Any] = data.get('emojis', []) #temporaly
         self.reactions: List[Any] = data.get('reactions', []) #temporaly
         self.nonce: Optional[str] = data['nonce']
-        self.isPinned: bool = data['isPinned']
-        self.createdAt: str = data['createdAt']
+        self.is_pinned: bool = data['isPinned']
+        self.created_at: str = data['createdAt']
 
     @property
     def author(self) -> User:
         return self.createdBy
 
     async def send(self, content: str, replyTo: Optional[str] = None):
-        channelId = self.channelId
+        channel_id = self.channel_id
         payload = {"content":content,"replyTo":replyTo}
-        await self._state.http.create_message(channelId,payload)
+        await self._state.http.create_message(channel_id,payload)
+
+    async def reply(self, content: str):
+        payload = {"content": content,"replyTo": self.id}
+        await self._state.http.create_message(self.channel_id,payload)
