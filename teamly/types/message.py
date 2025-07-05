@@ -25,32 +25,8 @@ SOFTWARE.
 
 from .user import User
 from .emoji import Emoji
+from .embed import Embed
 from typing import List, TypedDict, Optional
-
-
-class EmbedAuthor(TypedDict):
-    name: Optional[str] #Name of the author; <= 12 characters
-    icon_url: Optional[str] #URL to the author's icon
-
-class EmbedThumbnail(TypedDict):
-    url: Optional[str] #URL of the thumbnail image
-
-class EmbedImage(TypedDict):
-    url: Optional[str] #URL of the image to be displayed
-
-class EmbedFooter(TypedDict):
-    text: Optional[str] #Text content for the footer; <= 16 characters
-    icon_url: Optional[str] #URL to the icon for the footer
-
-class MessageEmbed(TypedDict):
-    title: Optional[str] #Title of the embed; <= 16 characters
-    description: Optional[str] #Description text for the embed (Markdown supported); <= 1024 characters
-    url: Optional[str] #URL associated with the embed
-    color: Optional[int] #Color code for the embed, represented in hexadecimal format
-    author: Optional[EmbedAuthor] #Contains information about the author of the embed
-    thumbnail: Optional[EmbedThumbnail] #Contains information about the thumbnail image
-    image: Optional[EmbedImage] #Contains information about the image
-    footer: Optional[EmbedFooter] #Contains information about the footer
 
 
 
@@ -67,7 +43,7 @@ class MessageReactions(TypedDict):
     count: Optional[str] #Number of users who reacted with this emoji
     users: Optional[List[_MessageReactedUsers]]
 
-class Message(TypedDict):
+class MessagePayload(TypedDict):
     id: str #Unique identifier for the message
     channelId: str #ID of the channel where the message was posted
     type: str #Type of the message (e.g., 'text' for a text message)
@@ -76,9 +52,10 @@ class Message(TypedDict):
     createdBy: User #User who created the message
     editedAt: str #Timestamp of when the message was last edited
     replyTo: str #ID of the message being replied to, or null if the message is not a reply
-    embeds: List[MessageEmbed] #List of embeds included with the message; <= 5 items
+    embeds: List[Embed] #List of embeds included with the message; <= 5 items
     emojis: Optional[List[Emoji]] #The emoji used in the message
     reactions: List[MessageReactions]
     nonce: Optional[str] #Unique identifier for this message instance, used to prevent duplicates
+    isPinned: bool
     createdAt: str #Timestamp of when the message was created
     mentions: List[Optional[str]] #Information about users mentioned in the message

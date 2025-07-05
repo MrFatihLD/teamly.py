@@ -24,42 +24,39 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from typing import Dict, Any, TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, List, Optional, Any
 from .user import User
+from .types.message import MessagePayload
 
 if TYPE_CHECKING:
     from .state import ConnectionState
 
+
 class Message:
 
-    def __init__(self, state: ConnectionState ,data: Dict[str, Any]) -> None:
-        self.state: ConnectionState = state
-        self.data: Dict[str, Any] = data
+    def __init__(self, state: ConnectionState ,data: MessagePayload) -> None:
+        self._state: ConnectionState = state
 
-        self.id = self.data['id']
-        self.channelid = self.data['channelId']
-        self.type = self.data['type']
-        self.content: str = self.data['content']
-        self.embeds = self.data['embeds']
-        self.attachments = self.data['attachments']
-        #editedAt
-        #replyTo
-        #emojis
-        #reactions
-        #nonce
-        #isPinned
-        #createdAt
-
-    @classmethod
-    def _copy(cls, state: ConnectionState, data: Dict[str, Any]):
-        pass
+        self.id: str = data['id']
+        self.channelId: str = data['channelId']
+        self.type: str = data['type']
+        self.content: str = data.get('content', None)
+        self.attachments: Optional[List[str]] = data.get('attachments', [])
+        self.embeds: List[Any] = data.get('embeds', []) #temporaly
+        self.createdBy: User = User(data=data['createdBy'])
+        self.editedAt: Optional[str] = data.get('editedAt', None)
+        self.replyTo: Optional[str] = data.get('replyTo', None)
+        self.emojis: List[Any] = data.get('emojis', []) #temporaly
+        self.reactions: List[Any] = data.get('reactions', []) #temporaly
+        self.nonce: Optional[str] = data['nonce']
+        self.isPinned: bool = data['isPinned']
+        self.createdAt: str = data['createdAt']
 
     @property
     def author(self) -> User:
-        createdby = User(createdby=self.data['createdBy'])
-        return createdby
+        return self.createdBy
 
     async def send(self, content: str, replyTo: Optional[str] = None):
-        messageid = self.data['channelId']
+        channelId = self.channelId
         payload = {"content":content,"replyTo":replyTo}
-        await self.state.http.create_message(messageid,payload)
+        await self._state.http.create_message(channelId,payload)
