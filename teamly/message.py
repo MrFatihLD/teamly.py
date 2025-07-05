@@ -51,20 +51,21 @@ class Message:
         self.nonce: Optional[str] = data['nonce']
         self.is_pinned: bool = data['isPinned']
         self.created_at: str = data['createdAt']
-        self.team_id: str = data['teamId']
 
     @property
     def author(self) -> User:
         return self.created_by
 
     @property
-    def content(self):
+    def content(self) -> str:
         if self._content is not None:
             return self._content
+        return ""
 
-    @property
-    def team(self):
-        return self.team_id
+    async def delete(self, reason: Optional[str] = None):
+        await self._state.http.delete_message(channelId=self.channel_id, messageId=self.id)
+        if reason:
+            await self._state.http.create_message(channelId=self.channel_id, payload = {"content": reason})
 
     async def send(self, content: str, replyTo: Optional[str] = None):
         channel_id = self.channel_id

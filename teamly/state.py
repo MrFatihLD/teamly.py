@@ -28,4 +28,4 @@ class ConnectionState:
     def parse_message_send(self, data: Any):
         message = Message(state=self,data=data['message'])
         self.dispatch("message",message)
-        print(json.dumps(data,indent=4))
+        print(json.dumps(data['message'],indent=4))

@@ -26,6 +26,10 @@ import asyncio
 import aiohttp
 import json
 
+from asyncio.timeouts import Optional
+
+
+
 
 from .utils import MISSING
 from typing import Any, Dict
@@ -141,6 +145,9 @@ class HTTPClient:
         r = Route("GET","/teams/{teamId}/channels/{channelId}", teamId=teamId, channelId=channelId)
         return await self.request(r)
 
+
+
+
     async def update_channel(self, teamId: str, channelId: str, payload: Dict[str, Any]):
         r = Route("PATCH","/teams/{teamId}/channels/{channelId}", teamId=teamId, channelId=channelId)
         return await self.request(r, json=payload)
@@ -156,3 +163,27 @@ class HTTPClient:
     async def create_message(self, channelId: str, payload: Dict[str,Any]):
         r = Route("POST","/channels/{channelId}/messages", channelId=channelId)
         return await self.request(r,json=payload)
+
+    async def delete_message(self, channelId: str, messageId: str):
+        r = Route("DELETE","/channels/{channelId}/messages/{messageId}",messageId=messageId, channelId=channelId)
+        return await self.request(r)
+
+    async def get_channel_messages(self, channelId: str, offset: Optional[str], limit: str = 15):
+        r = Route("GET","/channels/{channelId}/messages" + f"?offset={offset}&limit={limit}", channelId=channelId)
+        return await self.request(r)
+
+    async def update_channel_message(self, channelId: str, messageId: str, payload: Dict[str, Any]):
+        r = Route("PATCH","/channels/{channelId}/messages/{messageId}", channelId=channelId, messageId=messageId)
+        return await self.request(r,json=payload)
+
+    async def react_to_message(self, channelId: str, messageId: str, emojiId: str):
+        r = Route("POST","/channels/{channelId}/messages/{messageId}/reactions/{emojiId}", channelId=channelId, messageId=messageId, emojiId=emojiId)
+        return await self.request(r)
+
+    async def delete_reaction_from_message(self, channelId: str, messageId: str, emojiId: str):
+        r = Route("DELETE","/channels/{channelId}/messages/{messageId}/reactions/{emojiId}", channelId=channelId, messageId=messageId, emojiId=emojiId)
+        return await self.request(r)
+
+    async def get_channel_by_id(self, channelId: str, messageId: str):
+        r = Route("GET","/channels/{channelId}/messages/{messageId}", channelId=channelId, messageId=messageId)
+        return await self.request(r)

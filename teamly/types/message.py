@@ -59,4 +59,3 @@ class MessagePayload(TypedDict):
     isPinned: bool
     createdAt: str #Timestamp of when the message was created
     mentions: List[Optional[str]] #Information about users mentioned in the message
-    teamId: str
