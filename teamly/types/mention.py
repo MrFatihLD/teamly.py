@@ -22,8 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
-from typing import TypedDict, Optional
+from __future__ import annotations
+
+from typing import List, TypedDict
 
 
-class EmojiPayload(TypedDict):
-    emojiId: Optional[str] #The emoji used in the message
+class MentionPayload(TypedDict):
+    users: List[str]

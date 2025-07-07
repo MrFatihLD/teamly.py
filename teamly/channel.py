@@ -1,31 +1,23 @@
+'''
+MIT License
 
+Copyright (c) 2025 Fatih Kuloglu
 
-from __future__ import annotations
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-
-import datetime
-from typing import Optional, Dict, List, Any
-
-
-from types.channel import ChannelPayload
-
-class Channel:
-
-    def __init__(self, data: ChannelPayload) -> None:
-        self.id: str = data['id']
-        self.type: str = data['type']
-        self.team_id: str = data['teamId']
-        self.name: str = data['name']
-        self.description: Optional[str] = data.get("description", None)
-        self.created_by: str = data['createdBy']
-        self.created_at: Optional[datetime.datetime] = data['createdAt']
-        self.parent_id: Optional[str] = data.get('parentId', None)
-
-        if self.type == "voice":
-            self.participants = [data['participants']]
-
-        self.priority: int = data['priority']
-        self.rate_limit_per_user: int = data['rateLimitPerUser']
-        self.permissions: Dict[str,List[str]] = data.get('permissions', {})
-        self.additional_data: Optional[Dict[str,Any]] = data.get('additionalData', {})
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+'''

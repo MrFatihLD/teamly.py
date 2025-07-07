@@ -24,54 +24,89 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Optional, Any
-from .user import User
-from .types.message import MessagePayload
 
-if TYPE_CHECKING:
-    from .state import ConnectionState
+
+from .state import ConnectionState
+from .embed import Embed
+from .emoji import Emoji
+from .reaction import Reaction
+from .mention import Mentions
+
+from types.message import MessagePayload, MessageAttachment
+
+from typing import Optional, List
+
+class Attachment:
+
+    def __init__(self, data: MessageAttachment) -> None:
+        self.url: str = data.get('url', None)
+        self.name: str = data.get('name')
+        self.file_size_bytes: int = data.get('fileSizeBytes', None)
+
+    def __repr__(self) -> str:
+        return f"<Attachment name={self.name!r} size={self.size}B url={self.url}>"
+
+    @property
+    def file_extension(self) -> str:
+        filename = self.name
+        return filename.rsplit('.', 1)[-1].lower() if '.' in self.name else ''
+
+    @property
+    def is_image(self) -> bool:
+        return self.file_extension in {"png","jpg","jpeg","gif","webp"}
+
+    @property
+    def is_video(self) -> bool:
+        return self.file_extension in {"mp4","mov","webm"}
+
+    @property
+    def is_audio(self) -> bool:
+        return self.file_extension in {"mp3","wav","ogg"}
 
 
 class Message:
 
-    def __init__(self, state: ConnectionState ,data: MessagePayload) -> None:
+    def __init__(self, state: ConnectionState, data: MessagePayload) -> None:
         self._state: ConnectionState = state
 
         self.id: str = data['id']
         self.channel_id: str = data['channelId']
         self.type: str = data['type']
-        self._content: Optional[str] = data.get('content', None)
-        self.attachments: Optional[List[str]] = data.get('attachments', [])
-        self.embeds: List[Any] = data.get('embeds', []) #temporaly
-        self.created_by: User = User(data=data['createdBy'])
-        self.editedAt: Optional[str] = data.get('editedAt', None)
+        self.content: Optional[str] = data.get('content', None)
+        self.attachment: List[Attachment] = [Attachment(a) for a in data.get('attachments', None)]
+        #createdBy -> User
+        self.edited_at: Optional[str] = data['editedAt']
         self.reply_to: Optional[str] = data.get('replyTo', None)
-        self.emojis: List[Any] = data.get('emojis', []) #temporaly
-        self.reactions: List[Any] = data.get('reactions', []) #temporaly
-        self.nonce: Optional[str] = data['nonce']
-        self.is_pinned: bool = data['isPinned']
+        self.embeds: List[Embed] = [Embed(a) for a in data.get('embeds', None)]
+        self.emojis: List[Emoji] = [Emoji(a) for a in data.get('emojis', None)]
+        self.reactions: List[Reaction] = [Reaction(r) for r in data.get('reactions', None)]
+        self.nonce: Optional[str] = data.get('nonce', None)
         self.created_at: str = data['createdAt']
+        self.mentions: Mentions = Mentions(data.get('mentions', {}))
+
 
     @property
-    def author(self) -> User:
-        return self.created_by
+    def author(self):
+        pass
 
     @property
-    def content(self) -> str:
-        if self._content is not None:
-            return self._content
+    def channel(self):
+        pass
+
+    def edit(self):
+        pass
+
+    def delete(self):
+        pass
+
+    def copy(self):
+        pass
+
+    def reply(self):
+        pass
+
+    def __str__(self) -> str:
         return ""
 
-    async def delete(self, reason: Optional[str] = None):
-        await self._state.http.delete_message(channelId=self.channel_id, messageId=self.id)
-        if reason:
-            await self._state.http.create_message(channelId=self.channel_id, payload = {"content": reason})
-
-    async def send(self, content: str, replyTo: Optional[str] = None):
-        channel_id = self.channel_id
-        payload = {"content":content,"replyTo":replyTo}
-        await self._state.http.create_message(channel_id,payload)
-
-    async def reply(self, content: str):
-        payload = {"content": content,"replyTo": self.id}
-        await self._state.http.create_message(self.channel_id,payload)
+    def __repr__(self) -> str:
+        return ""

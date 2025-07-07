@@ -22,8 +22,21 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
-from typing import TypedDict, Optional
+from __future__ import annotations
+
+from .types.mention import MentionPayload
+from typing import List
 
 
-class EmojiPayload(TypedDict):
-    emojiId: Optional[str] #The emoji used in the message
+class Mentions:
+    def __init__(self, data: MentionPayload) -> None:
+        self.users: List[str] = data.get('users', None)
+
+    def __repr__(self) -> str:
+        return f"<Mentions users={self.users}>"
+
+    def __len__(self) -> int:
+            return len(self.users)
+
+    def __contains__(self, user_id: str) -> bool:
+        return user_id in self.users

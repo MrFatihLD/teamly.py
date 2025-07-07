@@ -22,8 +22,26 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
-from typing import TypedDict, Optional
+from __future__ import annotations
+
+from .types.reaction import ReactedUser, ReactionPayload
+
+from typing import List, Optional
+
+class ReactionUser:
+    def __init__(self, data: ReactedUser) -> None:
+        self.user_id: Optional[str] = data.get('user_id', None)
+        self.timestamb: Optional[str] = data.get('timestamp', None)
+
+    def __repr__(self) -> str:
+        return f"<ReactionUser id={self.user_id!r} at={self.timestamb}>"
 
 
-class EmojiPayload(TypedDict):
-    emojiId: Optional[str] #The emoji used in the message
+class Reaction:
+    def __init__(self, data: ReactionPayload) -> None:
+        self.emoji_id: Optional[str] = data.get('emoji_id', None)
+        self.count: Optional[str] =data.get('count', None)
+        self.users: List[ReactionUser] = [ReactionUser(u) for u in data.get('users', None)]
+
+    def __repr__(self) -> str:
+        return f"<Reaction emoji={self.emoji_id!r} count={self.count} users={len(self.users)}>"

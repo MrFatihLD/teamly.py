@@ -22,8 +22,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
-from typing import TypedDict, Optional
+from __future__ import annotations
 
 
-class EmojiPayload(TypedDict):
-    emojiId: Optional[str] #The emoji used in the message
+from .types.emoji import EmojiPayload
+from typing import Optional
+
+
+
+class Emoji:
+    def __init__(self, data: EmojiPayload) -> None:
+        self.id: Optional[str] = data.get('id', None)
+
+    def __repr__(self) -> str:
+        return f"<Emoji id={self.id!r}>"

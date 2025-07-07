@@ -22,25 +22,26 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
+from __future__ import annotations
 
 from typing import TypedDict, Optional, List
 
-class UserBadges(TypedDict):
+class UserBadgeProxy(TypedDict):
     id: str
     name: str
     icon: str
 
-class UserStatus(TypedDict):
+class UserStatusProxy(TypedDict):
     content: Optional[str]
     emojiId: Optional[str]
 
-class UserRPC(TypedDict):
+class UserRPCProxy(TypedDict):
     type: Optional[str]
     name: Optional[str]
     id: Optional[str]
     startedAt: Optional[str]
 
-class User(TypedDict):
+class UserPayload(TypedDict):
     id: str
     username: str
     subdomain: str
@@ -49,9 +50,9 @@ class User(TypedDict):
     bot: bool
     presence: int
     flags: str
-    badges: UserBadges
-    userStatus: Optional[UserStatus]
-    userRPC: Optional[UserRPC]
+    badges: UserBadgeProxy
+    userStatus: Optional[UserStatusProxy]
+    userRPC: Optional[UserRPCProxy]
     connections: List[str]
     createdAt: str
     system: bool

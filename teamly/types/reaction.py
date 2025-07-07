@@ -22,8 +22,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
-from typing import TypedDict, Optional
+from __future__ import annotations
+
+from typing import TypedDict, Optional, List
 
 
-class EmojiPayload(TypedDict):
-    emojiId: Optional[str] #The emoji used in the message
+class ReactedUser(TypedDict):
+    user_id: Optional[str] #User ID who reacted
+    timestamp: Optional[str] #Timestamp of the user's reaction
+
+class ReactionPayload(TypedDict):
+    emoji_id: Optional[str] #The emoji used for the reaction
+    count: Optional[str] #Number of users who reacted with this emoji
+    users: List[ReactedUser]
