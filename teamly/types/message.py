@@ -24,10 +24,9 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from teamly.message import Attachment
-from .user import User
-from .emoji import Emoji
-from .embed import Embed
+from .user import UserPayload
+from .emoji import EmojiPayload
+from .embed import EmbedPayload
 from typing import List, TypedDict, Optional
 
 
@@ -52,12 +51,12 @@ class MessagePayload(TypedDict):
     channelId: str #ID of the channel where the message was posted
     type: str #Type of the message (e.g., 'text' for a text message)
     content: str #Content of the message (Markdown supported); <= 2000 characters
-    attachments: List[Attachment] # Attachments for the message (may be empty); <= 5 items
-    createdBy: User #User who created the message
+    attachments: List[MessageAttachment] # Attachments for the message (may be empty); <= 5 items
+    createdBy: UserPayload #User who created the message
     editedAt: str #Timestamp of when the message was last edited
     replyTo: str #ID of the message being replied to, or null if the message is not a reply
-    embeds: List[Embed] #List of embeds included with the message; <= 5 items
-    emojis: List[Emoji] #The emoji used in the message
+    embeds: List[EmbedPayload] #List of embeds included with the message; <= 5 items
+    emojis: List[EmojiPayload] #The emoji used in the message
     reactions: List[MessageReactions]
     nonce: Optional[str] #Unique identifier for this message instance, used to prevent duplicates
     isPinned: bool

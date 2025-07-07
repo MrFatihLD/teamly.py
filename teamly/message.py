@@ -25,16 +25,18 @@ SOFTWARE.
 from __future__ import annotations
 
 
-
-from .state import ConnectionState
 from .embed import Embed
 from .emoji import Emoji
 from .reaction import Reaction
 from .mention import Mentions
+from .user import User
 
-from types.message import MessagePayload, MessageAttachment
+from .types.message import MessagePayload, MessageAttachment
 
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .state import ConnectionState
 
 class Attachment:
 
@@ -74,7 +76,7 @@ class Message:
         self.type: str = data['type']
         self.content: Optional[str] = data.get('content', None)
         self.attachment: List[Attachment] = [Attachment(a) for a in data.get('attachments', None)]
-        #createdBy -> User
+        self.created_by: User = User(data['createdBy'])
         self.edited_at: Optional[str] = data['editedAt']
         self.reply_to: Optional[str] = data.get('replyTo', None)
         self.embeds: List[Embed] = [Embed(a) for a in data.get('embeds', None)]
@@ -87,7 +89,7 @@ class Message:
 
     @property
     def author(self):
-        pass
+        return self.created_by
 
     @property
     def channel(self):
