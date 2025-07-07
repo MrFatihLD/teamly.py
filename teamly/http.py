@@ -118,6 +118,12 @@ class HTTPClient:
         except Exception as e:
             logger.error("Exception error: {}",e)
 
+        try:
+            async with self._session.request(method, url, **kwargs) as response:
+                pass
+        except:
+            pass
+
 
     #Core Resources
 
@@ -184,7 +190,7 @@ class HTTPClient:
         r = Route("DELETE","/channels/{channelId}/messages/{messageId}/reactions/{emojiId}", channelId=channelId, messageId=messageId, emojiId=emojiId)
         return await self.request(r)
 
-    async def get_channel_by_id(self, channelId: str, messageId: str):
+    async def get_channel_message_by_id(self, channelId: str, messageId: str):
         r = Route("GET","/channels/{channelId}/messages/{messageId}", channelId=channelId, messageId=messageId)
         return await self.request(r)
 
@@ -412,35 +418,35 @@ class HTTPClient:
     async def webhook_for_github(self, webhookId: str, webhookToken: str):
         r = Route("POST","/webhooks/{webhookId}/{webhookToken}/github", webhookId=webhookId, webhookToken=webhookToken)
         return await self.request(r)
-        
-    
-    
+
+
+
     #Blog
     async def get_blog_post(self, teamId: str):
         r = Route("GET","/teams/{teamId}/blogs", teamId=teamId)
         return await self.request(r)
-        
+
     async def create_blog_post(self, teamId: str, payload: Dict[str, Any]):
         r = Route("POST","/teams/{teamId}/blogs", teamId=teamId)
         return await self.request(r, json=payload)
-        
+
     async def delete_blog_post(self, teamId: str, blogId: str):
         r = Route("DELETE","/teams/{teamId}/blogs/{blogId}", teamId=teamId, blogId=blogId)
         return await self.request(r)
-        
-        
-        
+
+
+
     #Category
     async def create_category(self, teamId: str, name: str):
         payload = {"name": name}
         r = Route("POST","/teams/{teamId}/categories", teamId=teamId)
         return await self.request(r,json=payload)
-        
+
     async def update_category(self, teamId: str, categoryId: str, name: str):
         payload = {"name": name}
         r = Route("PUT","/teams/{teamId}/categories/{categoryId}", teamId=teamId, categoryId=categoryId)
         return await self.request(r,json=payload)
-        
+
     async def update_category_role_permission(
         self,
         teamId: str,
@@ -455,27 +461,27 @@ class HTTPClient:
         }
         r = Route("POST","/teams/{teamId}/categories/{categoryId}/permissions/role/{roleId}", teamId=teamId, categoryId=categoryId, roleId=roleId)
         return await self.request(r,json=payload)
-        
+
     async def delete_category(self, teamId: str, categoryId: str):
         r = Route("DELETE","/teams/{teamId}/categories/{categoryId}", teamId=teamId, categoryId=categoryId)
         return await self.request(r)
-        
+
     async def add_channel_to_category(self, teamId: str, categoryId: str, channelId: str):
         r = Route("POST","/teams/{teamId}/categories/{categoryId}/channels/{channelId}", teamId=teamId, categoryId=categoryId, channelId=channelId)
         return await self.request(r)
-        
+
     async def delete_channel_from_category(self, teamId: str, categoryId: str, channelId: str):
         r = Route("DELETE","/teams/{teamId}/categories/{categoryId}/channels/{channelId}", teamId=teamId, categoryId=categoryId, channelId=channelId)
         return await self.request(r)
-        
+
     async def set_channel_priority_of_category(self, teamId: str, categoryId: str, payload: Dict[str, List[str]]):
         r = Route("POST","/teams/{teamId}/categories/{categoryId}/channels-priority", teamId=teamId, categoryId=categoryId)
         return await self.request(r, json=payload)
-        
+
     async def set_team_category_priority(self, teamId: str, payload: Dict[str,List[str]]):
         r = Route("POST","/teams/{teamId}/categories-priority", teamId=teamId)
         return await self.request(r, json=payload)
-        
+
 
 
 
@@ -483,11 +489,11 @@ class HTTPClient:
     async def get_announcments(self, channelId: str):
         r = Route("GET","/channels/{channelId}/announcements", channelId=channelId)
         return await self.request(r)
-        
+
     async def create_announcment(self, channelId: str, payload: Dict[str, Any]):
         r = Route("POST","/channels/{channelId}/announcements", channelId=channelId)
         return await self.request(r, json=payload)
-        
+
     async def delete_announcement(self, channelId: str, announcementId: str):
         r = Route("DELETE","/channels/{channelId}/announcements/{announcementId}", channelId=channelId, announcementId=announcementId)
         return await self.request(r)

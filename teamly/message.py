@@ -25,6 +25,7 @@ SOFTWARE.
 from __future__ import annotations
 
 
+
 from .embed import Embed
 from .emoji import Emoji
 from .reaction import Reaction
@@ -37,6 +38,7 @@ from typing import Optional, List, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .state import ConnectionState
+
 
 class Attachment:
 
@@ -66,10 +68,12 @@ class Attachment:
         return self.file_extension in {"mp3","wav","ogg"}
 
 
+
 class Message:
 
-    def __init__(self, state: ConnectionState, data: MessagePayload) -> None:
+    def __init__(self, state: ConnectionState, team_id: str, data: MessagePayload) -> None:
         self._state: ConnectionState = state
+        self._team_id: str = team_id
 
         self.id: str = data['id']
         self.channel_id: str = data['channelId']
@@ -92,8 +96,9 @@ class Message:
         return self.created_by
 
     @property
-    def channel(self):
+    async def channel(self):
         pass
+
 
     def edit(self):
         pass

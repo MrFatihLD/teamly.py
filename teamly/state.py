@@ -63,9 +63,9 @@ class ConnectionState:
 
 
     def parse_message_send(self, data: Any):
-        message = Message(state=self,data=data['message'])
+        message = Message(state=self, team_id=data['teamId'],data=data['message'])
         self.dispatch("message",message)
-        print(json.dumps(data['message'],indent=4))
+        print(json.dumps(data,indent=4))
 
     def parse_message_updated(self, data: Any):
         print(json.dumps(data,indent=4, ensure_ascii=False))

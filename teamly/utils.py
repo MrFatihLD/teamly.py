@@ -24,6 +24,7 @@ SOFTWARE.
 
 from enum import Enum
 
+import json
 from typing import Any
 
 
@@ -50,3 +51,8 @@ class Status(Enum):
     ONLINE = 1
     IDLE = 2
     DO_DO_DISTURB = 3
+
+
+@staticmethod
+def _to_json(data: Any):
+    return json.dumps(data,indent=4,ensure_ascii=False)
