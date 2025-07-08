@@ -29,7 +29,6 @@ from datetime import datetime
 
 
 class RolePermissionEntry(TypedDict):
-    roleId: Optional[str]
     allow: Optional[float]
     deny: Optional[float]
 

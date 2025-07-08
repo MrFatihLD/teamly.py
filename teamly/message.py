@@ -80,7 +80,7 @@ class Message:
         self.type: str = data['type']
         self.content: Optional[str] = data.get('content', None)
         self.attachment: List[Attachment] = [Attachment(a) for a in data.get('attachments', None)]
-        self.created_by: User = User(data['createdBy'])
+        self.created_by: User = User(state=self._state, data=data['createdBy'])
         self.edited_at: Optional[str] = data['editedAt']
         self.reply_to: Optional[str] = data.get('replyTo', None)
         self.embeds: List[Embed] = [Embed(a) for a in data.get('embeds', None)]
@@ -103,8 +103,14 @@ class Message:
     def edit(self):
         pass
 
-    def delete(self):
-        pass
+    async def delete(self, reason: str):
+        await self._state.http.delete_message(self.channel_id, self.id)
+
+        if reason:
+            payload = {"content": reason}
+            await self._state.http.create_message(self.channel_id, payload)
+
+
 
     def copy(self):
         pass

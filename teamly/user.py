@@ -26,8 +26,13 @@ from __future__ import annotations
 
 from .types.user import UserBadgeProxy, UserPayload, UserRPCProxy, UserStatusProxy
 from .utils import Status
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from .state import ConnectionState
+
+class _UserTag:
+    id: str
 
 class UserStatus:
     def __init__(self, data: UserStatusProxy) -> None:
@@ -47,8 +52,8 @@ class Badge:
         self.name: str = data['name']
         self.icon: str = data['icon']
 
-class User:
-    def __init__(self, data: UserPayload) -> None:
+class BaseUser(_UserTag):
+    def __init__(self,*, state: ConnectionState, data: UserPayload) -> None:
         self.id: str = data['id']
         self.username: str = data['username']
         self.subdomain: str = data['subdomain']
@@ -80,4 +85,26 @@ class User:
 
 
     def __repr__(self) -> str:
-        return f"<User username={self.username!r} id={self.id}>"
+        return (
+            f"<BaseUser id={self.id} username={self.username!r} subdomain={self.subdomain!r}> "
+            f"<bot={self.bot}>"
+        )
+
+    def __eq__(self, other: object, /) -> bool:
+        return isinstance(other, _UserTag) and other.id == self.id
+
+class ClientUser(BaseUser):
+
+    def __init__(self,*, state: ConnectionState, data: UserPayload) -> None:
+        super().__init__(state=state,data=data)
+
+    def __repr__(self) -> str:
+        return (
+            f"<ClientUser id={self.id} name={self.username!r} subdomain={self.subdomain!r}> "
+            f"<bot={self.bot}>"
+        )
+
+class User(BaseUser):
+
+    def __repr__(self) -> str:
+        return f"<User id={self.id} username={self.username!r} subdomain={self.subdomain!r}>"

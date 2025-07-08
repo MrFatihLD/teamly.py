@@ -26,15 +26,23 @@ import asyncio
 import aiohttp
 import json
 
-from asyncio.timeouts import Optional
-
 
 
 
 from .utils import MISSING
-from typing import Any, Dict, List, Literal
+from typing import Any, Dict, List, Literal, Union, Optional
 from urllib.parse import quote
 from loguru import logger
+
+async def json_or_text(response: aiohttp.ClientResponse) -> Union[Dict[str, Any], str]:
+    text = await response.text(encoding='utf-8')
+    try:
+        if response.headers['content-type'] == 'application/json':
+            return json.loads(text)
+    except KeyError:
+        pass
+
+    return text
 
 class Route:
     '''
@@ -68,7 +76,7 @@ class Route:
 
 class HTTPClient:
 
-    def __init__(self, loop: asyncio.AbstractEventLoop) -> None:
+    def __init__(self,loop: asyncio.AbstractEventLoop) -> None:
         self._session: aiohttp.ClientSession = MISSING
         self.token = None
         self.loop: asyncio.AbstractEventLoop = loop
@@ -78,6 +86,13 @@ class HTTPClient:
 
         self.token = token
         self._session = aiohttp.ClientSession()
+
+        try:
+            data = await self.request(Route('GET','/me'))
+        except Exception as e:
+            logger.debug("Exception error: {}",e)
+        else:
+            return data
 
     async def close(self):
         logger.debug("closing client session...")
@@ -112,17 +127,27 @@ class HTTPClient:
 
         kwargs["headers"] = headers
 
-        try:
-            logger.debug("making request...")
-            return await self._session.request(method, url, **kwargs)
-        except Exception as e:
-            logger.error("Exception error: {}",e)
-
+        data: Optional[Union[Dict[str,Any], str]] = None
         try:
             async with self._session.request(method, url, **kwargs) as response:
-                pass
-        except:
-            pass
+                logger.debug("Sending request {!r} {} with {}", method, url, kwargs)
+
+                data = await json_or_text(response)
+
+                status = response.status
+                if 200 <= status < 300:
+                    logger.debug("Request successful with status {}", status)
+                elif 400 <= status < 500:
+                    logger.warning("Client error with status {}", status)
+                elif status >= 500:
+                    logger.error("Server error with status {}", status)
+                else:
+                    logger.debug("Received status {}", status)
+
+                return data
+        except Exception as e:
+            logger.error("Request failed: {}", e)
+            raise
 
 
     #Core Resources

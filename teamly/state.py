@@ -27,6 +27,7 @@ import json
 
 from .http import HTTPClient
 from .message import Message
+from .user import ClientUser
 #from .channel import Channel
 from typing import Dict, Callable, Any
 
@@ -45,8 +46,8 @@ class ConnectionState:
 
 
     def parse_ready(self, data: Any):
+        self.user = ClientUser(state=self,data=data['user'])
         self.dispatch("ready")
-        print(json.dumps(data['user'],indent=4))
 
 
 
@@ -65,7 +66,6 @@ class ConnectionState:
     def parse_message_send(self, data: Any):
         message = Message(state=self, team_id=data['teamId'],data=data['message'])
         self.dispatch("message",message)
-        print(json.dumps(data,indent=4))
 
     def parse_message_updated(self, data: Any):
         print(json.dumps(data,indent=4, ensure_ascii=False))
