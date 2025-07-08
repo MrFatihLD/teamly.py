@@ -25,5 +25,11 @@ SOFTWARE.
 from typing import TypedDict, Optional
 
 
-class EmojiPayload(TypedDict):
-    emojiId: Optional[str] #The emoji used in the message
+class Emoji(TypedDict):
+    id: str
+    name: str
+    createdBy: str
+    updatedBy: Optional[str]
+    updatedAt: Optional[str]
+    url: str
+    createdAt: str

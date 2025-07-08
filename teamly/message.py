@@ -27,7 +27,7 @@ from __future__ import annotations
 
 
 from .embed import Embed
-from .emoji import Emoji
+#from .emoji import Emoji
 from .reaction import Reaction
 from .mention import Mentions
 from .user import User
@@ -84,7 +84,7 @@ class Message:
         self.edited_at: Optional[str] = data['editedAt']
         self.reply_to: Optional[str] = data.get('replyTo', None)
         self.embeds: List[Embed] = [Embed(a) for a in data.get('embeds', None)]
-        self.emojis: List[Emoji] = [Emoji(a) for a in data.get('emojis', None)]
+        #self.emojis: List[Emoji] = [Emoji(a) for a in data.get('emojis', None)]
         self.reactions: List[Reaction] = [Reaction(r) for r in data.get('reactions', None)]
         self.nonce: Optional[str] = data.get('nonce', None)
         self.created_at: str = data['createdAt']

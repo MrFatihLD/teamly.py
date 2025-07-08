@@ -25,14 +25,21 @@ SOFTWARE.
 from __future__ import annotations
 
 
-from .types.emoji import EmojiPayload
+from .types.emoji import Emoji as EmojiPayload
 from typing import Optional
 
 
 
 class Emoji:
+
     def __init__(self, data: EmojiPayload) -> None:
-        self.id: Optional[str] = data.get('id', None)
+        self.id: str = data['id']
+        self.name: str = data['name']
+        self.created_by: str = data['createdBy']
+        self.updated_by: Optional[str] = data.get('updatedBy', None)
+        self.update_at: Optional[str] = data.get('updatedAt', None)
+        self.url: str = data['url']
+        self.created_at: str = data['createdAt']
 
     def __repr__(self) -> str:
-        return f"<Emoji id={self.id!r}>"
+        return f"<Emoji id={self.id} name={self.name!r} url={self.url!r}>"
