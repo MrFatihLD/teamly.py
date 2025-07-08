@@ -24,16 +24,10 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from typing import TypedDict, Optional, List, Dict
+from typing import TypedDict, Optional, List
 from datetime import datetime
+from .role import Permissions
 
-
-class RolePermissionEntry(TypedDict):
-    allow: Optional[float]
-    deny: Optional[float]
-
-class Permissions(TypedDict):
-    role: Dict[str, RolePermissionEntry]
 
 class AdditionalData(TypedDict):
     streamChannel: Optional[str]

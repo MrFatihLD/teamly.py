@@ -4,8 +4,15 @@
 
 
 
-from typing import TypedDict, Optional
+from typing import TypedDict, Optional, Dict
 
+
+class RolePermissionEntry(TypedDict):
+    allow: Optional[float]
+    deny: Optional[float]
+
+class Permissions(TypedDict):
+    role: Dict[str, RolePermissionEntry]
 
 class BotScope(TypedDict):
     userId: Optional[str]
