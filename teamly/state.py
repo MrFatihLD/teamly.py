@@ -22,12 +22,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
+
 import inspect
 import json
 
 from .http import HTTPClient
 from .message import Message
 from .user import ClientUser
+from .channel import _team_channel_factory
 #from .channel import Channel
 from typing import Dict, Callable, Any
 
@@ -52,13 +54,18 @@ class ConnectionState:
 
 
     def parse_channel_created(self, data: Dict[str,Any]):
-        #channel = Channel(data['channel'])
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        factory = _team_channel_factory(data['channel']['type'])
+        if factory is not None:
+            channel = factory(state=self, data=data['channel'])
+            self.dispatch('channel_create', channel)
+        #print(json.dumps(data,indent=4, ensure_ascii=False))
 
     def parse_channel_deleted(self, data: Any):
+        self.dispatch('channel_delete')
         print(json.dumps(data,indent=4, ensure_ascii=False))
 
     def parse_channel_updated(self, data: Any):
+        self.dispatch('channel_update')
         print(json.dumps(data,indent=4, ensure_ascii=False))
 
 

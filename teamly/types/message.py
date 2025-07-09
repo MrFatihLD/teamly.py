@@ -25,7 +25,7 @@ SOFTWARE.
 from __future__ import annotations
 
 from .user import UserPayload
-from .emoji import EmojiPayload
+from .emoji import Emoji as EmojiPayload
 from .embed import EmbedPayload
 from typing import List, TypedDict, Optional
 

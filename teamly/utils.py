@@ -22,8 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
-from enum import Enum
-
 import json
 from typing import Any
 
@@ -45,13 +43,6 @@ class _MissingSentinel:
         return '...'
 
 MISSING: Any = _MissingSentinel()
-
-class Status(Enum):
-    OFFLINE = 0
-    ONLINE = 1
-    IDLE = 2
-    DO_DO_DISTURB = 3
-
 
 @staticmethod
 def _to_json(data: Any):

@@ -25,7 +25,7 @@ SOFTWARE.
 from __future__ import annotations
 
 from .types.user import UserBadgeProxy, UserPayload, UserRPCProxy, UserStatusProxy
-from .utils import Status
+from teamly.abc import Status
 from typing import List, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:

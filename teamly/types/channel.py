@@ -25,7 +25,6 @@ SOFTWARE.
 from __future__ import annotations
 
 from typing import TypedDict, Optional, List
-from datetime import datetime
 from .role import Permissions
 
 
@@ -33,17 +32,27 @@ class AdditionalData(TypedDict):
     streamChannel: Optional[str]
     streamPlatform: Optional[str]
 
-class ChannelPayload(TypedDict):
+class BaseChannelPayload(TypedDict):
     id: str
     type: str
     teamId: str
     name: str
     description: Optional[str]
     createdBy: str
+    createdAt: str
     parentId: Optional[str]
-    participants: Optional[List[str]]
     priority: float
-    rateLimitPerUser: int  # 0 <= rateLimitPerUser <= 21600
-    createdAt: datetime
     permissions: Permissions
+
+class TextChannelPayload(BaseChannelPayload):
+    rateLimitPerUser: int  # 0 <= rateLimitPerUser <= 21600
+
+class VoiceChannelPayload(BaseChannelPayload):
+    userLimit: int
+    participants: Optional[List[str]]
+
+class WatchstreamChannelPayload(BaseChannelPayload):
     additionalData: Optional[AdditionalData]
+
+class AnnouncementChannelPayload(BaseChannelPayload):
+    pass
