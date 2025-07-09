@@ -98,5 +98,15 @@ class AnnouncementChannel(BaseChannel):
         return f"<AnnouncementChannel id={self.id} type={self.type!r} name={self.name!r} teamId{self.team_id}>"
 
 def _team_channel_factory(channel_type: str):
-    if ChannelType.TEXT == 'text':
+    if ChannelType.TEXT == channel_type:
         return TextChannel
+    elif ChannelType.VOICE == channel_type:
+        return VoiceChannel
+    elif ChannelType.TODO == channel_type:
+        return TodoChannel
+    elif ChannelType.WATCHSTREAM == channel_type:
+        return WatchstreamChannel
+    elif ChannelType.ANNOUNCEMENT == channel_type:
+        return AnnouncementChannel
+    else:
+        return None
