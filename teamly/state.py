@@ -27,7 +27,6 @@ import inspect
 import json
 
 from .http import HTTPClient
-#from .channel import Channel
 from typing import Dict, Callable, Any
 
 class ConnectionState:
@@ -46,12 +45,13 @@ class ConnectionState:
 
     def parse_ready(self, data: Any):
         self.dispatch("ready")
+        print(json.dumps(data,indent=4, ensure_ascii=False))
 
 
 
     def parse_channel_created(self, data: Dict[str,Any]):
-            self.dispatch('channel_create')
-        #print(json.dumps(data,indent=4, ensure_ascii=False))
+        self.dispatch('channel_create')
+        print(json.dumps(data,indent=4, ensure_ascii=False))
 
     def parse_channel_deleted(self, data: Any):
         self.dispatch('channel_delete')
