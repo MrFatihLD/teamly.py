@@ -1,26 +1,50 @@
 # Teamly.py
 
-A modern, asynchronous Python library for interacting with the Teamly API.
+**Teamly.py** is a modern asynchronous Python wrapper for the Teamly API. The library is still under heavy development and many features are in progress.
 
-> 🚧 **This project is still under development, and not all features are implemented yet.**
+## Current Progress
 
----
+The following pieces are already implemented:
 
-## ✨ Features (Planned and Available)
+- **HTTP client** covering most Teamly endpoints such as channels, messages, roles, todos and more.
+- **WebSocket gateway** for real-time events with a keep-alive handler.
+- **Event system** using the `Client.event` decorator and `dispatch` method.
+- **Connection state parser** that maps gateway events to your callbacks.
+- Basic context manager support on the `Client` class.
 
-- ✅ Fetching and sending data via the HTTP API
-- ✅ Listening to real-time events via an asynchronous WebSocket connection
-- ⏳ Automatic reconnection and error handling
-- ⏳ Rate limit management
-- ⏳ Command system / Bot architecture
-- ⏳ Type safety and automatic JSON conversions
-- ⏳ More coming soon...
+## Planned Work
 
----
+Work is ongoing on these areas:
 
-## 🔧 Installation
+- Expanding event parsing and improving the gateway.
+- Automatic reconnection and error handling.
+- HTTP rate limit management.
+- Command framework for building bots.
+- Stronger type hints and data models.
+- More examples and tests.
 
-> The project is not feature-complete yet, but you can install it via pip:
+## Quick Example
+
+```python
+from teamly import Client
+
+client = Client()
+
+@client.event
+async def on_ready():
+    print("Bot ready!")
+
+client.run("YOUR_TOKEN_HERE")
+```
+
+## Installation
+
+Although not feature complete, the package can be installed with pip:
 
 ```bash
 pip install teamly.py
+```
+
+## License
+
+This project is licensed under the MIT License.
