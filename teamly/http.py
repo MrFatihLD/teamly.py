@@ -88,7 +88,7 @@ class HTTPClient:
         self._session = aiohttp.ClientSession()
 
         try:
-            data = await self.request(Route('GET','/me'))
+            data = await self.get_loggedIn_user
         except Exception as e:
             logger.debug("Exception error: {}",e)
         else:
@@ -199,7 +199,7 @@ class HTTPClient:
         r = Route("DELETE","/channels/{channelId}/messages/{messageId}",messageId=messageId, channelId=channelId)
         return await self.request(r)
 
-    async def get_channel_messages(self, channelId: str, offset: Optional[str], limit: str = 15):
+    async def get_channel_messages(self, channelId: str, offset: str = '0', limit: str = '15'):
         r = Route("GET","/channels/{channelId}/messages" + f"?offset={offset}&limit={limit}", channelId=channelId)
         return await self.request(r)
 

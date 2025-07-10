@@ -27,13 +27,12 @@ import asyncio
 from .http import HTTPClient
 from .gateway import TeamlyWebSocket
 from .state import ConnectionState
-from .user import ClientUser
 
 from loguru import logger
 from typing import (
     Dict,
     List,
-    Optional,
+
     TypeVar,
     Callable,
     Coroutine,
@@ -185,8 +184,8 @@ class Client:
         return ConnectionState(dispatch=self.dispatch,http=self.http)
 
     @property
-    def user(self) -> Optional[ClientUser]:
-        return self._connection.user
+    def user(self):
+        pass
 
     async def __aenter__(self):
         logger.debug("Entering context...")

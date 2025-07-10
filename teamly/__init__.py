@@ -20,4 +20,3 @@ from .http import *
 from .utils import *
 from .gateway import *
 from .state import *
-from .user import *
