@@ -2,12 +2,11 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Optional, TYPE_CHECKING
+from typing import Literal, TYPE_CHECKING
 
 
 if TYPE_CHECKING:
-    from .message import Attachment
-    from .embed import Embed
+    pass
 
 class ChannelType(str, Enum):
     TEXT = 'text'
@@ -28,17 +27,9 @@ class Status(int,Enum):
     IDLE = 2
     DO_DO_DISTURB = 3
 
+StatusLiteral = Literal[Status.OFFLINE, Status.ONLINE, Status.IDLE, Status.DO_DO_DISTURB]
+
 
 
 class MessageAble:
-
-
-
-    async def send(
-        self,
-        content: str,
-        embeds: Optional[Embed],
-        attachment: Optional[Attachment],
-        replyTo: str
-    ):
-        pass
+    pass

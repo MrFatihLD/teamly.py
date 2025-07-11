@@ -26,6 +26,8 @@ SOFTWARE.
 import inspect
 import json
 
+
+from .user import ClientUser
 from .http import HTTPClient
 from typing import Dict, Callable, Any
 
@@ -42,8 +44,8 @@ class ConnectionState:
                 parsers[attr[6:].upper()] = func
 
 
-
     def parse_ready(self, data: Any):
+        self._user: ClientUser = ClientUser(state=self, data=data['user'])
         self.dispatch("ready")
         print(json.dumps(data,indent=4, ensure_ascii=False))
 
