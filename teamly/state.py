@@ -46,6 +46,7 @@ class ConnectionState:
 
     def parse_ready(self, data: Any):
         self._user: ClientUser = ClientUser(state=self, data=data['user'])
+        self._teams = {team['id']: team for team in data['teams']}
         self.dispatch("ready")
         print(json.dumps(data,indent=4, ensure_ascii=False))
 
