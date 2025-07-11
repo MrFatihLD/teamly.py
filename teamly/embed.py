@@ -2,6 +2,8 @@
 
 from typing import Optional, Dict
 
+from .color import Color
+
 
 class Embed:
     def __init__(
@@ -10,7 +12,7 @@ class Embed:
         title: Optional[str] = None,
         description: Optional[str] = None,
         url: Optional[str] = None,
-        color: Optional[int] = None
+        color: Optional[Color] = None
     ):
         if title and len(title) > 16:
             raise ValueError("title must be 16 characters or fewer")
@@ -20,7 +22,8 @@ class Embed:
         self.title = title
         self.description = description
         self.url = url
-        self.color = color
+        self.color = int(color) if color else None
+
         self.author: Optional[Dict[str, str]] = None
         self.thumbnail: Optional[Dict[str, str]] = None
         self.image: Optional[Dict[str, str]] = None
