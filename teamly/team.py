@@ -4,7 +4,9 @@ from __future__ import annotations
 
 
 
-from teamly.channel import TextChannel, VoiceChannel
+
+from .channel import TextChannel, VoiceChannel
+from .member import Member
 
 from .types.team import TeamPayload, TeamGames as TeamGamesPayload
 from typing import TYPE_CHECKING, Dict, List, Optional, Union
@@ -26,7 +28,7 @@ class Team:
     def __init__(self,*, state: ConnectionState, data: TeamPayload) -> None:
         self._state = state
         self._channels: Dict[str, _TeamChannelTypes] = {}
-        self._members: Dict[str, str] = {}
+        self._members: Dict[str, Member] = {}
         self._update(data)
 
     def _update(self, data: TeamPayload):

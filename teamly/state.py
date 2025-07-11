@@ -59,7 +59,6 @@ class ConnectionState:
         self.user = ClientUser(state=self, data=data['user'])
         self._teams = {team['id']: Team(state=self,data=team) for team in data['teams']}
         self.dispatch("ready")
-        print(self._teams)
         #print(json.dumps(data,indent=4, ensure_ascii=False))
 
 
