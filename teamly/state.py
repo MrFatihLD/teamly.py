@@ -27,6 +27,9 @@ import inspect
 import json
 
 
+
+from .team import Team
+from .channel import _channel_factory
 from .user import ClientUser
 from .http import HTTPClient
 from typing import Dict, Callable, Any
@@ -43,18 +46,28 @@ class ConnectionState:
             if attr.startswith('parse_'):
                 parsers[attr[6:].upper()] = func
 
+        self.clear()
+
+    def clear(self):
+        self._teams: Dict[str, Team] = {}
+
 
     def parse_ready(self, data: Any):
         self._user: ClientUser = ClientUser(state=self, data=data['user'])
-        self._teams = {team['id']: team for team in data['teams']}
+        self._teams = {team['id']: Team(state=self,data=team) for team in data['teams']}
         self.dispatch("ready")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        print(self._teams)
+        #print(json.dumps(data,indent=4, ensure_ascii=False))
 
 
 
     def parse_channel_created(self, data: Dict[str,Any]):
-        self.dispatch('channel_create')
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        factory = _channel_factory(data['channel']['type'])
+        if factory is not None:
+            channel = factory(state=self, data=data['channel'])
+            self.dispatch('channel_create', channel)
+
+        #print(json.dumps(data,indent=4, ensure_ascii=False))
 
     def parse_channel_deleted(self, data: Any):
         self.dispatch('channel_delete')
