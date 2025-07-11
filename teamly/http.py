@@ -235,7 +235,7 @@ class HTTPClient:
         r = Route("DELETE","/teams/{teamId}/members/{userId}", teamId=teamId, userId=userId)
         return await self.request(r)
 
-    async def get_member(self, teamId: str, userId):
+    async def get_member(self, teamId: str, userId: str):
         r = Route("GET","/teams/{teamId}/members/{userId}", teamId=teamId, userId=userId)
         return await self.request(r)
 

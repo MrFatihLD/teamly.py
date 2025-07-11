@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from teamly.abc import StatusLiteral
+from .types.user import User as UserPayload
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
@@ -18,11 +19,11 @@ class _UserTag:
 
 class BaseUser(_UserTag):
 
-    def __init__(self,*, state: ConnectionState, data: Dict[str, Any]) -> None:
+    def __init__(self,*, state: ConnectionState, data: UserPayload) -> None:
         self._state = state
         self._update(data)
 
-    def _update(self, data: Dict[str, Any]):
+    def _update(self, data: UserPayload):
         self.id: str = data['id']
         self.username: str = data['username']
         self.subdomain: str = data['subdomain']
@@ -51,10 +52,10 @@ class BaseUser(_UserTag):
 
 class ClientUser(BaseUser):
 
-    def __init__(self, *, state: ConnectionState, data: Dict[str, Any]) -> None:
+    def __init__(self, *, state: ConnectionState, data: UserPayload) -> None:
         super().__init__(state=state, data=data)
 
-    def _update(self, data: Dict[str, Any]):
+    def _update(self, data: UserPayload):
         super()._update(data)
 
         self.verified: bool = data.get('verified', False)

@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
+
+
+from teamly.channel import TextChannel, VoiceChannel
+
 from .types.team import TeamPayload, TeamGames as TeamGamesPayload
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 if TYPE_CHECKING:
     from .state import ConnectionState
+
+_TeamChannelTypes = Union[TextChannel,VoiceChannel]
 
 class TeamGames:
 
@@ -19,6 +25,8 @@ class Team:
 
     def __init__(self,*, state: ConnectionState, data: TeamPayload) -> None:
         self._state = state
+        self._channels: Dict[str, _TeamChannelTypes] = {}
+        self._members: Dict[str, str] = {}
         self._update(data)
 
     def _update(self, data: TeamPayload):
@@ -37,6 +45,30 @@ class Team:
         self.discoverable_invite: Optional[str] = data.get('discoverableInvite')
         self.created_at: str = data['createdAt']
         self.member_count: int = data['memberCount']
+
+    async def update_team(
+        self,
+        *,
+        name: str,
+        description: Optional[str] = None,
+        banner: Optional[str] = None,
+        profilePicture: Optional[str] = None
+    ):
+        if len(name) > 12:
+            raise ValueError("\'name\' must be smaller or equel then 12 characters")
+
+        if len(description) > 1000:
+            raise ValueError("\'description\' must be smaller or equel then 1000 characters")
+
+        all_args = locals()
+
+        payload = {
+            key: value
+            for key, value in all_args.items()
+            if key in {"name","description","banner","profilePicture"} and value is not None
+        }
+
+        return self._state.http.update_team(self.id, payload=payload)
 
 
     def __repr__(self) -> str:

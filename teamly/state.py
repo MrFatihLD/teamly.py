@@ -28,11 +28,13 @@ import json
 
 
 
+
+
 from .team import Team
 from .channel import _channel_factory
 from .user import ClientUser
 from .http import HTTPClient
-from typing import Dict, Callable, Any
+from typing import Dict, Callable, Any, Optional
 
 class ConnectionState:
 
@@ -49,11 +51,12 @@ class ConnectionState:
         self.clear()
 
     def clear(self):
+        self.user: Optional[ClientUser] = None
         self._teams: Dict[str, Team] = {}
 
 
     def parse_ready(self, data: Any):
-        self._user: ClientUser = ClientUser(state=self, data=data['user'])
+        self.user = ClientUser(state=self, data=data['user'])
         self._teams = {team['id']: Team(state=self,data=team) for team in data['teams']}
         self.dispatch("ready")
         print(self._teams)
