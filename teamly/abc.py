@@ -1,12 +1,14 @@
 
 from __future__ import annotations
+from posix import stat
 
+from .http import message_handler
 from enum import Enum
-from typing import Literal, TYPE_CHECKING, Union
+from typing import Any, Dict, List, Literal, TYPE_CHECKING, Union
 
 
 if TYPE_CHECKING:
-    pass
+    from .state import ConnectionState
 
 class ChannelType(str, Enum):
     TEXT = 'text'
@@ -34,10 +36,23 @@ StatusLiteral = Literal[Status.OFFLINE, Status.ONLINE, Status.IDLE, Status.DO_DO
 
 class MessageAble:
 
-    def send(
+    def __init__(self,state: ConnectionState) -> None:
+        self._state: ConnectionState = state
+
+    async def send(
         self,
+        channelId: str,
         content: str,
         *,
-        embed: str
+        embeds: str = None,
+        attachment: List[Dict[str,Any]] = None,
+        replyTo: str = None
     ):
-        pass
+        payload = await message_handler(
+            content,
+            embeds=embeds,
+            attachment=attachment,
+            replyTo=replyTo
+        )
+
+        return await self._state.http.create_message(channelId, payload)

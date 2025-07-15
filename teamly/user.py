@@ -42,7 +42,7 @@ class BaseUser(_UserTag):
 
     def __repr__(self) -> str:
         return (
-            f"<BaseUser id={self.id} username={self.username} subdomain={self.subdomain}"
+            f"<BaseUser id={self.id} username={self.username} subdomain={self.subdomain} "
             f"bot={self.bot} system={self.system}>"
         )
 
@@ -62,10 +62,16 @@ class ClientUser(BaseUser):
         self.disabled: bool = data.get('disabled', False)
         self.last_online: str = data.get('lastOnline', None)
 
+    def __repr__(self) -> str:
+        return (
+            f"<ClientUser id={self.id} username={self.username} subdoamin={self.subdomain} "
+            f"bot={self.bot} system={self.system}>"
+        )
+
 class User(BaseUser):
 
     def __repr__(self) -> str:
         return (
-            f"<User id={self.id} username={self.username} subdomain={self.subdomain}"
+            f"<User id={self.id} username={self.username} subdomain={self.subdomain} "
             f"bot={self.bot} system={self.system}>"
         )

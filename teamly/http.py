@@ -22,17 +22,52 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
+from __future__ import annotations
+
 import asyncio
 import aiohttp
 import json
+
+from aiohttp.client_reqrep import payload
+
 
 
 
 
 from .utils import MISSING
-from typing import Any, Dict, List, Literal, Union, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Literal, Union, Optional
 from urllib.parse import quote
 from loguru import logger
+
+if TYPE_CHECKING:
+    from .embed import Embed
+
+
+async def message_handler(
+    content: Optional[str],
+    *,
+    embeds: Optional[List[Embed]],
+    attachment: List[Dict[str,Any]],
+    replyTo: str
+):
+    payload = {}
+
+    if len(content) > 2000:
+        raise ValueError("the content must equel or lower then 2000 characters")
+    else:
+        payload['content'] = content
+
+    if embeds:
+       payload['embeds'] = embeds
+
+    if attachment:
+       payload['attachment'] = attachment
+
+    if replyTo:
+       payload['replyTo'] = replyTo
+
+    return payload
+
 
 async def json_or_text(response: aiohttp.ClientResponse) -> Union[Dict[str, Any], str]:
     text = await response.text(encoding='utf-8')

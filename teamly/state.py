@@ -25,11 +25,14 @@ SOFTWARE.
 import asyncio
 import inspect
 import json
+from os import stat
 
 
 
 
 
+
+from .message import Message
 from .member import Member
 from .team import Team
 from .channel import TextChannel, VoiceChannel, _channel_factory
@@ -52,14 +55,14 @@ class ConnectionState:
         self.clear()
 
     def clear(self):
-        self.user: Optional[ClientUser] = None
+        self._user: Optional[ClientUser] = None
         self._teams: Dict[str, Team] = {}
         self._channels: Dict[str, Union[TextChannel,VoiceChannel]] = {}
         self._users: Dict[str,Member] = {}
 
 
     def parse_ready(self, data: Any):
-        self.user = ClientUser(state=self, data=data['user'])
+        self._user = ClientUser(state=self, data=data['user'])
         self._teams = {team['id']: Team(state=self,data=team) for team in data['teams']}
         for team in self._teams:
             asyncio.create_task(self.get_channels(team))
@@ -105,7 +108,8 @@ class ConnectionState:
 
 
     def parse_message_send(self, data: Any):
-        self.dispatch("message")
+        message = Message(state=self, data=data['message'])
+        self.dispatch("message",message)
 
     def parse_message_updated(self, data: Any):
         self.dispatch("message_updated")

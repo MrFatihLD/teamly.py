@@ -14,7 +14,7 @@ class Message(TypedDict):
     channelId: str
     type: str
     content: Optional[str]
-    attachments: Optional[List[str]]
+    attachments: Optional[List[Dict[str,str]]]
     createdBy: User
     editedAt: Optional[str]
     replyTo: Optional[str]
