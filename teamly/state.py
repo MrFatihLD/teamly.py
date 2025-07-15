@@ -33,7 +33,7 @@ import json
 from .member import Member
 from .team import Team
 from .channel import TextChannel, VoiceChannel, _channel_factory
-from .user import ClientUser
+from .user import ClientUser, User
 from .http import HTTPClient
 from typing import Dict, Callable, Any, Optional, Union
 
@@ -84,15 +84,12 @@ class ConnectionState:
         members = json.loads(members)
         for member in members['members']:
 
-            if teamId is not self._users:
-                self._users[teamId] = []
-
-            if member['id'] is not self._users:
-                self._users[member['id']] = Member(state=self, data=member)
+            if member['id'] not in self._users:
+                self._users[member['id']] = User(state=self, data=member)
 
     def parse_channel_created(self, data: Dict[str,Any]):
         factory = _channel_factory(data['channel']['type'])
-        if factory is not None:
+        if factory:
             channel = factory(state=self, data=data['channel'])
             self.dispatch('channel_create', channel)
 
@@ -100,8 +97,10 @@ class ConnectionState:
         self.dispatch('channel_delete',data)
 
     def parse_channel_updated(self, data: Any):
-        self.dispatch('channel_update')
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        factory = _channel_factory(data['channel']['type'])
+        if factory:
+            channel = factory(state=self, data=data)
+            self.dispatch('channel_update', channel)
 
 
 

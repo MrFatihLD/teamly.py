@@ -63,4 +63,9 @@ class ClientUser(BaseUser):
         self.last_online: str = data.get('lastOnline', None)
 
 class User(BaseUser):
-    pass
+
+    def __repr__(self) -> str:
+        return (
+            f"<User id={self.id} username={self.username} subdomain={self.subdomain}"
+            f"bot={self.bot} system={self.system}>"
+        )
