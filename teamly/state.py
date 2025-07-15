@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
-
+import asyncio
 import inspect
 import json
 
@@ -30,11 +30,12 @@ import json
 
 
 
+from .member import Member
 from .team import Team
-from .channel import _channel_factory
+from .channel import TextChannel, VoiceChannel, _channel_factory
 from .user import ClientUser
 from .http import HTTPClient
-from typing import Dict, Callable, Any, Optional
+from typing import Dict, Callable, Any, Optional, Union
 
 class ConnectionState:
 
@@ -53,15 +54,41 @@ class ConnectionState:
     def clear(self):
         self.user: Optional[ClientUser] = None
         self._teams: Dict[str, Team] = {}
+        self._channels: Dict[str, Union[TextChannel,VoiceChannel]] = {}
+        self._users: Dict[str,Member] = {}
 
 
     def parse_ready(self, data: Any):
         self.user = ClientUser(state=self, data=data['user'])
         self._teams = {team['id']: Team(state=self,data=team) for team in data['teams']}
+        for team in self._teams:
+            asyncio.create_task(self.get_channels(team))
+            asyncio.create_task(self.get_members(team))
         self.dispatch("ready")
-        #print(json.dumps(data,indent=4, ensure_ascii=False))
+
+    async def get_channels(self, teamId: str):
+        channels = await self.http.get_channels(teamId)
+        channels = json.loads(channels)
+        for channel in channels['channels']:
+            factory = _channel_factory(channel['type'])
+
+            if teamId not in self._channels:
+                self._channels[teamId] = []
+
+            if factory:
+                self._channels[teamId].append(factory(state=self, data=channel))
 
 
+    async def get_members(self, teamId: str):
+        members = await self.http.get_member(teamId,"")
+        members = json.loads(members)
+        for member in members['members']:
+
+            if teamId is not self._users:
+                self._users[teamId] = []
+
+            if member['id'] is not self._users:
+                self._users[member['id']] = Member(state=self, data=member)
 
     def parse_channel_created(self, data: Dict[str,Any]):
         factory = _channel_factory(data['channel']['type'])
@@ -69,11 +96,8 @@ class ConnectionState:
             channel = factory(state=self, data=data['channel'])
             self.dispatch('channel_create', channel)
 
-        #print(json.dumps(data,indent=4, ensure_ascii=False))
-
     def parse_channel_deleted(self, data: Any):
-        self.dispatch('channel_delete')
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        self.dispatch('channel_delete',data)
 
     def parse_channel_updated(self, data: Any):
         self.dispatch('channel_update')

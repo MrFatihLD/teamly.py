@@ -3,9 +3,8 @@ from __future__ import annotations
 
 from loguru import logger
 
+
 from teamly.abc import ChannelType
-
-
 from .types.channel import TextChannelPayload, VoiceChannelPayload
 from typing import TYPE_CHECKING, Dict, Any, List, Optional
 
@@ -26,7 +25,7 @@ class TextChannel:
         self.name: str = data['name']
 
         self.description: Optional[str] = data.get('description', None)
-        self.created_by: str = data['createdBy']
+        self.created_by: str = data.get('createdBy')
         self.parent_id: Optional[str] = data.get('parentId', None)
         self.priority: int = data['priority']
         self.rate_limit_per_user: int = data['rateLimitPerUser']
@@ -79,7 +78,7 @@ class VoiceChannel:
         self.name: str = data['name']
 
         self.description: Optional[str] = data.get('description', None)
-        self.created_by: str = data['createdBy']
+        self.created_by: str = data.get('createdBy')
         self.parent_id: Optional[str] = data.get('parentId', None)
         self.priority: int = data['priority']
         self.participants: List[str] = data.get('participants', [])

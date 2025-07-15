@@ -38,10 +38,12 @@ async def json_or_text(response: aiohttp.ClientResponse) -> Union[Dict[str, Any]
     text = await response.text(encoding='utf-8')
     try:
         if response.headers['content-type'] == 'application/json':
+            #logger.warning("returning as json file")
             return json.loads(text)
     except KeyError:
         pass
 
+    #logger.warning("returning as text file")
     return text
 
 class Route:

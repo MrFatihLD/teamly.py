@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Literal, TYPE_CHECKING
+from typing import Literal, TYPE_CHECKING, Union
 
 
 if TYPE_CHECKING:
@@ -21,6 +21,7 @@ class ChannelType(str, Enum):
     def __repr__(self) -> str:
         return self.value
 
+
 class Status(int,Enum):
     OFFLINE = 0
     ONLINE = 1
@@ -32,4 +33,11 @@ StatusLiteral = Literal[Status.OFFLINE, Status.ONLINE, Status.IDLE, Status.DO_DO
 
 
 class MessageAble:
-    pass
+
+    def send(
+        self,
+        content: str,
+        *,
+        embed: str
+    ):
+        pass
