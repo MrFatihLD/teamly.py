@@ -28,7 +28,6 @@ import asyncio
 import aiohttp
 import json
 
-from aiohttp.client_reqrep import payload
 
 
 

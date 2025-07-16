@@ -1,10 +1,9 @@
 
 from __future__ import annotations
-from posix import stat
 
 from .http import message_handler
 from enum import Enum
-from typing import Any, Dict, List, Literal, TYPE_CHECKING, Union
+from typing import Any, Dict, List, Literal, TYPE_CHECKING
 
 
 if TYPE_CHECKING:
@@ -41,7 +40,6 @@ class MessageAble:
 
     async def send(
         self,
-        channelId: str,
         content: str,
         *,
         embeds: str = None,
@@ -55,4 +53,4 @@ class MessageAble:
             replyTo=replyTo
         )
 
-        return await self._state.http.create_message(channelId, payload)
+        return await self._state.http.create_message(self.channel_id, payload)

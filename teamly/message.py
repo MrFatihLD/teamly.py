@@ -1,7 +1,6 @@
 
 
 from __future__ import annotations
-import inspect
 
 from teamly.abc import MessageAble
 from .user import User
