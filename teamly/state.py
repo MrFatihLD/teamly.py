@@ -93,16 +93,16 @@ class ConnectionState:
         factory = _channel_factory(data['channel']['type'])
         if factory:
             channel = factory(state=self, data=data['channel'])
-            self.dispatch('channel_create', channel)
+            self.dispatch('channel_created', channel)
 
     def parse_channel_deleted(self, data: Any):
-        self.dispatch('channel_delete',data)
+        self.dispatch('channel_deleted',data)
 
     def parse_channel_updated(self, data: Any):
         factory = _channel_factory(data['channel']['type'])
         if factory:
             channel = factory(state=self, data=data)
-            self.dispatch('channel_update', channel)
+            self.dispatch('channel_updated', channel)
 
 
 
@@ -111,44 +111,37 @@ class ConnectionState:
         self.dispatch("message",message)
 
     def parse_message_updated(self, data: Any):
-        self.dispatch("message_updated")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        message = Message(state=self, data=data['message'])
+        self.dispatch("message_updated", message)
 
     def parse_message_deleted(self, data: Any):
-        self.dispatch("message_delete")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        self.dispatch("message_deleted", data)
 
     def parse_message_reaction_added(self, data: Any):
-        self.dispatch("message_reaction")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        self.dispatch("message_reaction", data)
 
     def parse_message_reaction_removed(self, data: Any):
-        self.dispatch("message_reaction_removed")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        self.dispatch("message_reaction_removed", data)
 
 
 
     def parse_presence_update(self, data: Any):
-        self.dispatch("presence_update")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        self.dispatch("presence_updated",data)
 
 
 
     def parse_team_role_created(self, data: Any):
-        self.dispatch("team_role")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        self.dispatch("team_role", data)
 
     def parse_team_role_deleted(self, data: Any):
-        self.dispatch("team_role_deleted")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        self.dispatch("team_role_deleted", data)
 
     def parse_team_roles_updated(self, data: Any):
         self.dispatch("team_roles_updated")
         print(json.dumps(data,indent=4, ensure_ascii=False))
 
     def parse_team_updated(self, data: Any):
-        self.dispatch("team_updated")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        self.dispatch("team_updated", data)
 
 
 
