@@ -26,6 +26,8 @@ import asyncio
 import inspect
 import json
 
+from teamly.todo import TodoItem
+
 
 
 
@@ -137,8 +139,7 @@ class ConnectionState:
         self.dispatch("team_role_deleted", data)
 
     def parse_team_roles_updated(self, data: Any):
-        self.dispatch("team_roles_updated")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        self.dispatch("team_roles_updated", data)
 
     def parse_team_updated(self, data: Any):
         self.dispatch("team_updated", data)
@@ -146,16 +147,16 @@ class ConnectionState:
 
 
     def parse_todo_item_created(self, data: Any):
-        self.dispatch("todo_item")
+        todo_item = TodoItem(state=self, data=data)
+        self.dispatch("todo_item", todo_item)
         print(json.dumps(data,indent=4, ensure_ascii=False))
 
     def parse_todo_item_deleted(self, data: Any):
-        self.dispatch("todo_item_deleted")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        self.dispatch("todo_item_deleted", data)
 
     def parse_todo_item_updated(self, data: Any):
-        self.dispatch("todo_item_updated")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        todo_item = TodoItem(state=self, data=data)
+        self.dispatch("todo_item_updated", todo_item)
 
 
 

@@ -83,3 +83,9 @@ class Message(MessageAble):
             result['nonce'] = self.nonce
         if self.mentions:
             result['mentions'] = self.mentions
+
+    def __repr__(self) -> str:
+        return (
+            f"<Message id={self.id} channelId={self.channel_id} type={self.type} content={self.content} "
+            f"createdBy={self.created_by.username}>"
+        )
