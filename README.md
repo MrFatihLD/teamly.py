@@ -18,7 +18,6 @@ Work is ongoing on these areas:
 
 - Expanding event parsing and improving the gateway.
 - Automatic reconnection and error handling.
-- HTTP rate limit management.
 - Command framework for building bots.
 - Stronger type hints and data models.
 - More examples and tests.
