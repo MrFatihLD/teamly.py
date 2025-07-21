@@ -26,6 +26,8 @@ import asyncio
 import inspect
 import json
 
+from asyncio.unix_events import logger
+
 from teamly.abc import MessageAbleChannel
 from teamly.reaction import Reaction
 from teamly.todo import TodoItem
@@ -41,7 +43,8 @@ from .team import Team
 from .channel import TextChannel, VoiceChannel, _channel_factory
 from .user import ClientUser, User
 from .http import HTTPClient
-from typing import Dict, Callable, Any, Optional, Union
+from typing import Dict, Callable, Any,  Optional, Union
+
 
 class ConnectionState:
 
@@ -61,6 +64,7 @@ class ConnectionState:
         self._user: Optional[ClientUser] = None
         self._teams: Dict[str, Team] = {}
         self._channels: Dict[str, Dict[str, Union[TextChannel,VoiceChannel]]] = {}
+        self._messages: Dict[str, Dict[str, Dict[str, Message]]] = {}
         self._users: Dict[str,Member] = {}
 
 
@@ -84,15 +88,38 @@ class ConnectionState:
             if factory:
                 self._channels[teamId][channel['id']] = factory(state=self, data=channel)
 
+            if teamId not in self._messages:
+                self._messages[teamId] = {}
+
+            if channel['type'] == 'text':
+                self._messages[teamId][channel['id']] = await self._get_cach_messages(channelId=channel['id'])
+
     def get_channel(self, teamId: str, channelId: str) -> MessageAbleChannel:
         return self._channels[teamId][channelId]
 
+    async def _get_cach_messages(self, channelId: str):
+        try:
+            messages = await self.http.get_channel_messages(channelId=channelId, limit=50)
+            messages = json.loads(messages)
+            temp_dict = {}
+
+            if messages['messages']:
+                for message in messages['messages']:
+                    temp_dict[message['id']] = Message(state=self, data=message)
+
+            if messages['replyMessages']:
+                for message in messages['replyMessages']:
+                    temp_dict[message['id']] = Message(state=self, data=message)
+
+            return temp_dict
+        except Exception as e:
+            logger.error(f"Exception error: {e}")
+            return {}
 
     async def get_members(self, teamId: str):
         members = await self.http.get_member(teamId,"")
         members = json.loads(members)
         for member in members['members']:
-
             if member['id'] not in self._users:
                 self._users[member['id']] = User(state=self, data=member)
 

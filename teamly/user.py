@@ -1,6 +1,7 @@
 
 from __future__ import annotations
 
+
 from teamly.abc import StatusLiteral
 from .types.user import User as UserPayload
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
@@ -26,7 +27,7 @@ class BaseUser(_UserTag):
     def _update(self, data: UserPayload):
         self.id: str = data['id']
         self.username: str = data['username']
-        self.subdomain: str = data['subdomain']
+        self.subdomain: str = data.get('subdomain')
         self.profile_picture: Optional[str] = data.get('profilePicture', None)
         self.banner: Optional[str] = data.get('banner', None)
 

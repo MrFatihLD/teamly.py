@@ -27,6 +27,7 @@ from __future__ import annotations
 import asyncio
 import aiohttp
 import json
+import time
 
 
 
@@ -110,12 +111,46 @@ class Route:
             })
         self.url: str = url
 
+class RateLimit:
+    """Simple rate limiter for HTTP requests."""
+
+    def __init__(self, count: int = 5, per: float = 1.0) -> None:
+        self.max: int = count
+        self.remaining: int = count
+        self.window: float = 0.0
+        self.per: float = per
+        self.lock: asyncio.Lock = asyncio.Lock()
+
+    def _get_delay(self) -> float:
+            current = time.time()
+
+            if current > self.window + self.per:
+                self.remaining = self.max
+
+            if self.remaining == self.max:
+                self.window = current
+
+            if self.remaining == 0:
+                return self.per - (current - self.window)
+
+            self.remaining -= 1
+            return 0.0
+
+    async def block(self) -> None:
+        async with self.lock:
+            delay = self._get_delay()
+            if delay:
+                logger.warning('HTTP client is ratelimited, waiting {} seconds', delay)
+                await asyncio.sleep(delay)
+
+
 class HTTPClient:
 
-    def __init__(self,loop: asyncio.AbstractEventLoop) -> None:
+    def __init__(self,loop: asyncio.AbstractEventLoop, *, rate_limit: int = 5, per: float = 1.0) -> None:
         self._session: aiohttp.ClientSession = MISSING
         self.token = None
         self.loop: asyncio.AbstractEventLoop = loop
+        self._ratelimiter = RateLimit(rate_limit, per)
 
     async def static_login(self, token: str):
         logger.debug("static logging...")
@@ -151,6 +186,8 @@ class HTTPClient:
         method = route.method
         url = route.url
 
+        await self._ratelimiter.block()
+
         #creating headers
         headers = {}
 
@@ -167,6 +204,17 @@ class HTTPClient:
         try:
             async with self._session.request(method, url, **kwargs) as response:
                 logger.debug("Sending request {!r} {} with {}", method, url, kwargs)
+
+                if response.status == 429:
+                    retry_after = response.headers.get("Retry-After")
+                    if retry_after is None:
+                        payload = await json_or_text(response)
+                        if isinstance(payload, dict) and "retry_after" in payload:
+                            retry_after = payload.get("retry_after")
+                    delay = float(retry_after or 1)
+                    logger.warning('Rate limit hit, retrying after {} seconds', delay)
+                    await asyncio.sleep(delay)
+                    return await self.request(route, **kwargs)
 
                 data = await json_or_text(response)
 

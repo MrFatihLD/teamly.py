@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+
 from teamly.abc import MessageAble
 from .user import User
 from .embed import Embed
