@@ -22,8 +22,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
+import asyncio
 import inspect
 import json
+
+from loguru import logger
 
 
 from .cache import Cache
@@ -53,8 +56,12 @@ class ConnectionState:
 
 
     def parse_ready(self, data: Any):
-        self.cache.setup_cache(data=data)
-        self.dispatch("ready")
+        logger.info("Bot connected successfuly")
+        asyncio.create_task(self.__setup_before_ready(data), name = "setup_ready")
+
+    async def __setup_before_ready(self, data: Any):
+        await asyncio.wait_for(self.cache.setup_cache(data=data), timeout=15)
+        self.dispatch('ready')
 
 
 
@@ -70,7 +77,7 @@ class ConnectionState:
     def parse_channel_updated(self, data: Any):
         factory = _channel_factory(data['channel']['type'])
         if factory:
-            channel = factory(state=self, data=data)
+            channel = factory(state=self, data=data['channel'])
             self.dispatch('channel_updated', channel)
 
 

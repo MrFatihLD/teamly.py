@@ -32,12 +32,10 @@ class Cache:
         self._messages: Dict[str, Dict[str, Dict[str, Message]]] = {}
         self._members: Dict[str, Dict[str, Member]] = {}
 
-    def setup_cache(self, data: Any):
+    async def setup_cache(self, data: Any):
         #get ClietnUser Payload
         self._user = ClientUser(state=self._state, data=data['user'])
-        asyncio.create_task(self.__start_setup_cache(data=data), name="SetupCache")
-
-    async def __start_setup_cache(self, data: Any):
+        logger.info(f"Bot connected as {self._user.username!r}")
         await self._fetch_teams(data['teams'])
         for team in self._teams:
             asyncio.create_task(self._fetch_channels(team))

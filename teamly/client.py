@@ -24,6 +24,7 @@ SOFTWARE.
 
 import asyncio
 
+from teamly.logging import enable_debug
 from teamly.user import ClientUser
 
 from .http import HTTPClient
@@ -65,11 +66,17 @@ _loop: Any = _LoopSentinel()
 
 class Client:
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        *,
+        enable_debug: bool = False
+    ) -> None:
         self.loop: asyncio.AbstractEventLoop = _loop
         self.http: HTTPClient = HTTPClient(self.loop)
         self.ws: TeamlyWebSocket = None #type: ignore
         self._listener: Dict[str,List[str]] = {}
+
+        self.enable_debug: bool = enable_debug
 
         self._connection: ConnectionState = self._get_state()
 
@@ -89,6 +96,10 @@ class Client:
 
         async def runner():
             logger.debug("starting coroutine")
+
+            if self.enable_debug:
+                enable_debug()
+
             async with self:
                 await self.start(token)
 
