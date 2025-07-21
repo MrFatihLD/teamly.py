@@ -26,6 +26,8 @@ import asyncio
 import inspect
 import json
 
+from teamly.abc import MessageAbleChannel
+from teamly.reaction import Reaction
 from teamly.todo import TodoItem
 
 
@@ -58,7 +60,7 @@ class ConnectionState:
     def clear(self):
         self._user: Optional[ClientUser] = None
         self._teams: Dict[str, Team] = {}
-        self._channels: Dict[str, Union[TextChannel,VoiceChannel]] = {}
+        self._channels: Dict[str, Dict[str, Union[TextChannel,VoiceChannel]]] = {}
         self._users: Dict[str,Member] = {}
 
 
@@ -66,21 +68,24 @@ class ConnectionState:
         self._user = ClientUser(state=self, data=data['user'])
         self._teams = {team['id']: Team(state=self,data=team) for team in data['teams']}
         for team in self._teams:
-            asyncio.create_task(self.get_channels(team))
+            asyncio.create_task(self._get_channels(team))
             asyncio.create_task(self.get_members(team))
         self.dispatch("ready")
 
-    async def get_channels(self, teamId: str):
+    async def _get_channels(self, teamId: str):
         channels = await self.http.get_channels(teamId)
         channels = json.loads(channels)
         for channel in channels['channels']:
             factory = _channel_factory(channel['type'])
 
             if teamId not in self._channels:
-                self._channels[teamId] = []
+                self._channels[teamId] = {}
 
             if factory:
-                self._channels[teamId].append(factory(state=self, data=channel))
+                self._channels[teamId][channel['id']] = factory(state=self, data=channel)
+
+    def get_channel(self, teamId: str, channelId: str) -> MessageAbleChannel:
+        return self._channels[teamId][channelId]
 
 
     async def get_members(self, teamId: str):
@@ -120,10 +125,14 @@ class ConnectionState:
         self.dispatch("message_deleted", data)
 
     def parse_message_reaction_added(self, data: Any):
-        self.dispatch("message_reaction", data)
+        channel = self.get_channel(data['teamId'],data['channelId'])
+        reaction = Reaction(state=self, channel=channel, data=data)
+        self.dispatch("message_reaction", reaction)
 
     def parse_message_reaction_removed(self, data: Any):
-        self.dispatch("message_reaction_removed", data)
+        channel = self.get_channel(data['teamId'],data['channelId'])
+        reaction = Reaction(state=self, channel=channel, data=data)
+        self.dispatch("message_reaction_removed", reaction)
 
 
 

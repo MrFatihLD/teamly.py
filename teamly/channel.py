@@ -3,8 +3,8 @@ from __future__ import annotations
 
 from loguru import logger
 
+from .enums import ChannelType
 
-from teamly.abc import ChannelType
 from .types.channel import TextChannelPayload, VoiceChannelPayload
 from typing import TYPE_CHECKING, Dict, Any, List, Optional
 
