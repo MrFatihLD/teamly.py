@@ -22,28 +22,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
-import asyncio
 import inspect
 import json
 
-from asyncio.unix_events import logger
 
-from teamly.abc import MessageAbleChannel
-from teamly.reaction import Reaction
-from teamly.todo import TodoItem
-
-
-
-
-
-
-from .message import Message
-from .member import Member
-from .team import Team
-from .channel import TextChannel, VoiceChannel, _channel_factory
-from .user import ClientUser, User
+from .cache import Cache
+from .todo import TodoItem
+from .channel import _channel_factory
 from .http import HTTPClient
-from typing import Dict, Callable, Any,  Optional, Union
+
+from typing import Dict, Callable, Any
 
 
 class ConnectionState:
@@ -61,79 +49,14 @@ class ConnectionState:
         self.clear()
 
     def clear(self):
-        self._user: Optional[ClientUser] = None
-        self._teams: Dict[str, Team] = {}
-        self._channels: Dict[str, Dict[str, Union[TextChannel,VoiceChannel]]] = {}
-        self._messages: Dict[str, Dict[str, Dict[str, Message]]] = {}
-        self._users: Dict[str,Member] = {}
+        self.cache: Cache = Cache(state=self)
 
 
     def parse_ready(self, data: Any):
-        self._user = ClientUser(state=self, data=data['user'])
-        self._teams = {team['id']: Team(state=self,data=team) for team in data['teams']}
-        for team in self._teams:
-            asyncio.create_task(self._get_channels(team))
-            asyncio.create_task(self.get_members(team))
+        self.cache.setup_cache(data=data)
         self.dispatch("ready")
 
-    async def _get_channels(self, teamId: str):
-        channels = await self.http.get_channels(teamId)
-        channels = json.loads(channels)
-        for channel in channels['channels']:
-            factory = _channel_factory(channel['type'])
-            factory_channel: MessageAbleChannel = None
 
-            if teamId not in self._channels:
-                self._channels[teamId] = {}
-
-            if factory:
-                self._channels[teamId][channel['id']] = factory_channel = factory(state=self, data=channel)
-
-            if teamId not in self._messages:
-                self._messages[teamId] = {}
-
-            if channel['type'] == 'text':
-                self._messages[teamId][channel['id']] = await self._get_cach_messages(channel=factory_channel)
-
-    def get_channel(self, teamId: str, channelId: str) -> MessageAbleChannel:
-        return self._channels[teamId][channelId]
-
-    def get_cach_message(self, teamId: str, channelId: str, messageId: str):
-        return self._messages[teamId][channelId][messageId]
-
-    def update_cach_message(self, teamId: str, channelId: str, messageId: str, message: Message):
-        before = self._messages[teamId][channelId][messageId]
-        self._messages[teamId][channelId][messageId] = message
-        return before
-
-    def delete_cach_message(self, teamId: str, channelId: str, messageId: str):
-        return self._messages[teamId][channelId].pop(messageId)
-
-    async def _get_cach_messages(self, channel: MessageAbleChannel):
-        try:
-            messages = await self.http.get_channel_messages(channelId=channel.id, limit=50)
-            messages = json.loads(messages)
-            temp_dict = {}
-
-            if messages['messages']:
-                for message in messages['messages']:
-                    temp_dict[message['id']] = Message(state=self,channel=channel, data=message)
-
-            if messages['replyMessages']:
-                for message in messages['replyMessages']:
-                    temp_dict[message['id']] = Message(state=self, channel=channel, data=message)
-
-            return temp_dict
-        except Exception as e:
-            logger.error(f"Exception error: {e}")
-            return {}
-
-    async def get_members(self, teamId: str):
-        members = await self.http.get_member(teamId,"")
-        members = json.loads(members)
-        for member in members['members']:
-            if member['id'] not in self._users:
-                self._users[member['id']] = User(state=self, data=member)
 
     def parse_channel_created(self, data: Dict[str,Any]):
         factory = _channel_factory(data['channel']['type'])
@@ -153,32 +76,19 @@ class ConnectionState:
 
 
     def parse_message_send(self, data: Any):
-        channel = self.get_channel(data['teamId'], data['channelId'])
-        message = Message(state=self, channel=channel, data=data['message'])
-        self.dispatch("message",message)
+        self.dispatch("message",data)
 
     def parse_message_updated(self, data: Any):
-        channel = self.get_channel(data['teamId'], data['channelId'])
-        message = Message(state=self, channel=channel, data=data['message'])
-        self.update_cach_message(data['teamId'],data['channelId'], message.id, message)
-        self.dispatch("message_updated", message)
+        self.dispatch("message_updated", data)
 
     def parse_message_deleted(self, data: Any):
-        print(json.dumps(data,indent=4,ensure_ascii=False))
-        self.delete_cach_message(data['teamId'], data['channelId'], data['messageId'])
         self.dispatch("message_deleted", data)
 
     def parse_message_reaction_added(self, data: Any):
-        channel = self.get_channel(data['teamId'],data['channelId'])
-        message = self.get_cach_message(data['teamId'], data['channelId'], data['messageId'])
-        reaction = Reaction(state=self, channel=channel, message=message, data=data)
-        self.dispatch("message_reaction", reaction)
+        self.dispatch("message_reaction", data)
 
     def parse_message_reaction_removed(self, data: Any):
-        channel = self.get_channel(data['teamId'],data['channelId'])
-        message = self.get_cach_message(data['teamId'], data['channelId'], data['messageId'])
-        reaction = Reaction(state=self, channel=channel, message=message, data=data)
-        self.dispatch("message_reaction_removed", reaction)
+        self.dispatch("message_reaction_removed", data)
 
 
 
