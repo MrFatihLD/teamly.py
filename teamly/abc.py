@@ -39,4 +39,4 @@ class MessageAble:
             replyTo=replyTo
         )
 
-        return await self._state.http.create_message(self.channel_id, payload)
+        return await self._state.http.create_message(self.channel.id, payload)

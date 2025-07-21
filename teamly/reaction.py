@@ -1,6 +1,7 @@
 
 from __future__ import annotations
 
+from teamly.message import Message
 from teamly.user import User
 
 
@@ -20,14 +21,15 @@ class Reaction:
         *,
         state: ConnectionState,
         channel: MessageAbleChannel,
+        message: Message,
         data: ReactionPayload
     ) -> None:
         self._state: ConnectionState = state
         self.channel: MessageAbleChannel = channel
+        self.message: Message = message
         self._update(data)
 
     def _update(self, data: Mapping):
-        self.message_id: str = data['messageId']
         self.emoji_id: str = data['emojiId']
         self.team_id: str = data['teamId']
         self.user: User = User(state=self._state, data=data['reactedBy'])

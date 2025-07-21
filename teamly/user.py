@@ -41,6 +41,27 @@ class BaseUser(_UserTag):
         self.created_at: str = data['createdAt']
         self.system: bool = data.get('system', False)
 
+
+    def to_dict(self):
+        payload = {
+            "id": self.id,
+            "username": self.username,
+            "subdomain": self.subdomain,
+            "profilePicture": self.profile_picture,
+            "banner": self.banner,
+            "bot": self.bot,
+            "presence": self.presence,
+            "flags": self.flags,
+            "badges": self.badges,
+            "userStatus": self._user_status,
+            "userRPC": self.user_rpc,
+            "connections": self.connections,
+            "createdAt": self.created_at,
+            "system": self.system
+        }
+
+        return payload
+
     def __repr__(self) -> str:
         return (
             f"<BaseUser id={self.id} username={self.username} subdomain={self.subdomain} "

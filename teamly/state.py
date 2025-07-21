@@ -81,35 +81,47 @@ class ConnectionState:
         channels = json.loads(channels)
         for channel in channels['channels']:
             factory = _channel_factory(channel['type'])
+            factory_channel: MessageAbleChannel = None
 
             if teamId not in self._channels:
                 self._channels[teamId] = {}
 
             if factory:
-                self._channels[teamId][channel['id']] = factory(state=self, data=channel)
+                self._channels[teamId][channel['id']] = factory_channel = factory(state=self, data=channel)
 
             if teamId not in self._messages:
                 self._messages[teamId] = {}
 
             if channel['type'] == 'text':
-                self._messages[teamId][channel['id']] = await self._get_cach_messages(channelId=channel['id'])
+                self._messages[teamId][channel['id']] = await self._get_cach_messages(channel=factory_channel)
 
     def get_channel(self, teamId: str, channelId: str) -> MessageAbleChannel:
         return self._channels[teamId][channelId]
 
-    async def _get_cach_messages(self, channelId: str):
+    def get_cach_message(self, teamId: str, channelId: str, messageId: str):
+        return self._messages[teamId][channelId][messageId]
+
+    def update_cach_message(self, teamId: str, channelId: str, messageId: str, message: Message):
+        before = self._messages[teamId][channelId][messageId]
+        self._messages[teamId][channelId][messageId] = message
+        return before
+
+    def delete_cach_message(self, teamId: str, channelId: str, messageId: str):
+        return self._messages[teamId][channelId].pop(messageId)
+
+    async def _get_cach_messages(self, channel: MessageAbleChannel):
         try:
-            messages = await self.http.get_channel_messages(channelId=channelId, limit=50)
+            messages = await self.http.get_channel_messages(channelId=channel.id, limit=50)
             messages = json.loads(messages)
             temp_dict = {}
 
             if messages['messages']:
                 for message in messages['messages']:
-                    temp_dict[message['id']] = Message(state=self, data=message)
+                    temp_dict[message['id']] = Message(state=self,channel=channel, data=message)
 
             if messages['replyMessages']:
                 for message in messages['replyMessages']:
-                    temp_dict[message['id']] = Message(state=self, data=message)
+                    temp_dict[message['id']] = Message(state=self, channel=channel, data=message)
 
             return temp_dict
         except Exception as e:
@@ -141,24 +153,31 @@ class ConnectionState:
 
 
     def parse_message_send(self, data: Any):
-        message = Message(state=self, data=data['message'])
+        channel = self.get_channel(data['teamId'], data['channelId'])
+        message = Message(state=self, channel=channel, data=data['message'])
         self.dispatch("message",message)
 
     def parse_message_updated(self, data: Any):
-        message = Message(state=self, data=data['message'])
+        channel = self.get_channel(data['teamId'], data['channelId'])
+        message = Message(state=self, channel=channel, data=data['message'])
+        self.update_cach_message(data['teamId'],data['channelId'], message.id, message)
         self.dispatch("message_updated", message)
 
     def parse_message_deleted(self, data: Any):
+        print(json.dumps(data,indent=4,ensure_ascii=False))
+        self.delete_cach_message(data['teamId'], data['channelId'], data['messageId'])
         self.dispatch("message_deleted", data)
 
     def parse_message_reaction_added(self, data: Any):
         channel = self.get_channel(data['teamId'],data['channelId'])
-        reaction = Reaction(state=self, channel=channel, data=data)
+        message = self.get_cach_message(data['teamId'], data['channelId'], data['messageId'])
+        reaction = Reaction(state=self, channel=channel, message=message, data=data)
         self.dispatch("message_reaction", reaction)
 
     def parse_message_reaction_removed(self, data: Any):
         channel = self.get_channel(data['teamId'],data['channelId'])
-        reaction = Reaction(state=self, channel=channel, data=data)
+        message = self.get_cach_message(data['teamId'], data['channelId'], data['messageId'])
+        reaction = Reaction(state=self, channel=channel, message=message, data=data)
         self.dispatch("message_reaction_removed", reaction)
 
 

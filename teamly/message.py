@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 
-from teamly.abc import MessageAble
+from teamly.abc import MessageAble, MessageAbleChannel
 from .user import User
 from .embed import Embed
 from .types.message import Message as MessagePayload
@@ -18,11 +18,11 @@ class Message(MessageAble):
     __slots__ = (
         '_state',
         'id',
-        'channel_id',
+        'channel',
         'type',
         'content',
         'attachment',
-        'created_by',
+        '_created_by',
         'edited_at',
         'reply_to',
         'embeds',
@@ -33,19 +33,25 @@ class Message(MessageAble):
         'mentions'
     )
 
-    def __init__(self, state: ConnectionState, data: MessagePayload) -> None:
+    def __init__(
+        self,
+        state: ConnectionState,
+        *,
+        channel: MessageAbleChannel,
+        data: MessagePayload
+    ) -> None:
         super().__init__(state=state)
         self._state: ConnectionState = state
+        self.channel: MessageAbleChannel = channel
         self.from_dict(data)
 
     def from_dict(self, data: MessagePayload):
         self.id: str = data['id']
-        self.channel_id: str = data['channelId']
         self.type: str = data['type']
         self.content: Optional[str] = data.get('content')
 
         self.attachment: Optional[List[Dict[str,str]]] = data.get('attachments')
-        self.created_by: User = User(state=self._state, data=data['createdBy'])
+        self._created_by: User = User(state=self._state, data=data['createdBy'])
         self.edited_at: Optional[str] = data.get('editedAt')
         self.reply_to: Optional[str] = data.get('replyTo')
         self.embeds: Optional[List[Embed]] = data.get('embeds')
@@ -57,15 +63,15 @@ class Message(MessageAble):
 
     @property
     def author(self) -> User:
-        return self.created_by
+        return self._created_by
 
     def to_dict(self):
         result = {
             "id": self.id,
-            "channelId": self.channel_id,
+            "channelId": self.channel.id,
             "type": self.type,
             "content": self.content,
-            "createdBy": self.created_by,
+            "createdBy": self.author.to_dict(),
             "createdAt": self.created_at
         }
         if self.attachment:
@@ -85,8 +91,10 @@ class Message(MessageAble):
         if self.mentions:
             result['mentions'] = self.mentions
 
+        return result
+
     def __repr__(self) -> str:
         return (
-            f"<Message id={self.id} channelId={self.channel_id} type={self.type} content={self.content} "
-            f"createdBy={self.created_by.username}>"
+            f"<Message id={self.id} channelId={self.channel.id} type={self.type} content={self.content} "
+            f"createdBy={self.author.username}>"
         )
