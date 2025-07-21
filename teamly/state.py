@@ -69,15 +69,18 @@ class ConnectionState:
         factory = _channel_factory(data['channel']['type'])
         if factory:
             channel = factory(state=self, data=data['channel'])
+            self.cache.add_channel(teamId=channel.team_id, channelId=channel.id, channel=channel)
             self.dispatch('channel_created', channel)
 
     def parse_channel_deleted(self, data: Any):
+        self.cache.delete_channel(teamId=data['teamId'], channelId=data['channelId'])
         self.dispatch('channel_deleted',data)
 
     def parse_channel_updated(self, data: Any):
         factory = _channel_factory(data['channel']['type'])
         if factory:
             channel = factory(state=self, data=data['channel'])
+            self.cache.update_channel(teamId=channel.team_id, channelId=channel.id, channel=channel)
             self.dispatch('channel_updated', channel)
 
 

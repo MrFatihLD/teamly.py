@@ -26,26 +26,29 @@ class Cache:
         self.clear()
 
     def clear(self):
-        self._user: Optional[ClientUser] = None
-        self._teams: Dict[str, Team] = {}
-        self._channels: Dict[str, Dict[str, Union[TextChannel, VoiceChannel]]] = {}
-        self._messages: Dict[str, Dict[str, Dict[str, Message]]] = {}
-        self._members: Dict[str, Dict[str, Member]] = {}
+        self.__user: Optional[ClientUser] = None
+        self.__teams: Dict[str, Team] = {}
+        self.__channels: Dict[str, Dict[str, Union[TextChannel, VoiceChannel]]] = {}
+        self.__messages: Dict[str, Dict[str, Dict[str, Message]]] = {}
+        self.__members: Dict[str, Dict[str, Member]] = {}
 
     async def setup_cache(self, data: Any):
         #get ClietnUser Payload
-        self._user = ClientUser(state=self._state, data=data['user'])
-        logger.info(f"Bot connected as {self._user.username!r}")
-        await self._fetch_teams(data['teams'])
-        for team in self._teams:
-            asyncio.create_task(self._fetch_channels(team))
-            asyncio.create_task(self._fetch_team_members(team))
+        self.__user = ClientUser(state=self._state, data=data['user'])
+        logger.info(f"Bot connected as {self.__user.username!r}")
+        await self.__fetch_teams(data['teams'])
+        tasks = []
+        for team in self.__teams:
+            tasks.append(self.__fetch_channels(team))
+            tasks.append(self.__fetch_team_members(team))
 
-    async def _fetch_teams(self, teams: Dict[str, Any]):
+        await asyncio.gather(*tasks)
+
+    async def __fetch_teams(self, teams: Dict[str, Any]):
         for team in teams:
-            self._teams[team['id']] = Team(state=self._state, data=team)
+            self.__teams[team['id']] = Team(state=self._state, data=team)
 
-    async def _fetch_channels(self, teamId: str):
+    async def __fetch_channels(self, teamId: str):
         channels = await self._http.get_channels(teamId)
         channels = json.loads(channels)
 
@@ -53,19 +56,19 @@ class Cache:
             factory = _channel_factory(data['type'])
             channel: MessageAbleChannel = None
 
-            if teamId not in self._channels:
-                self._channels[teamId] = {}
+            if teamId not in self.__channels:
+                self.__channels[teamId] = {}
 
             if factory:
-                self._channels[teamId][data['id']] = channel = factory(state=self._state, data=data)
+                self.__channels[teamId][data['id']] = channel = factory(state=self._state, data=data)
 
-            if teamId not in self._messages:
-                self._messages[teamId] = {}
+            if teamId not in self.__messages:
+                self.__messages[teamId] = {}
 
             if data['type'] == 'text':
-                self._messages[teamId][channel.id] = await self._fetch_channel_messages(channel=channel)
+                self.__messages[teamId][channel.id] = await self.__fetch_channel_messages(channel=channel)
 
-    async def _fetch_channel_messages(self, channel: MessageAbleChannel):
+    async def __fetch_channel_messages(self, channel: MessageAbleChannel):
         try:
             messages = await self._http.get_channel_messages(channelId=channel.id, limit=50)
             messages = json.loads(messages)
@@ -85,13 +88,34 @@ class Cache:
             logger.error(f"Exception error: {e}")
             return {}
 
-    async def _fetch_team_members(self, teamId: str):
+    async def __fetch_team_members(self, teamId: str):
         members = await self._http.get_member(teamId, "")
         members = json.loads(members)
 
-        if teamId not in self._members:
-            self._members[teamId] = {}
+        if teamId not in self.__members:
+            self.__members[teamId] = {}
 
         for member in members['members']:
-            if member['id'] not in self._members:
-                self._members[member['id']] = Member(state=self._state, data=member)
+            if member['id'] not in self.__members:
+                self.__members[member['id']] = Member(state=self._state, data=member)
+
+
+
+    #Channel Cache
+    def add_channel(self, teamId: str, channelId: str, channel: MessageAbleChannel):
+        if teamId not in self.__channels:
+            self.__channels[teamId] = {}
+
+        if channelId not in self.__channels[teamId]:
+            self.__channels[teamId][channelId] = channel
+            logger.opt(colors=True).debug(f"<cyan>Added channel {channelId!r} to cache successfuly</cyan>")
+
+    def delete_channel(self, teamId: str, channelId: str):
+        if channelId in self.__channels[teamId]:
+            self.__channels[teamId].pop(channelId)
+            logger.opt(colors=True).debug(f"<cyan>Deleted channel {channelId!r} from cache successfuly</cyan>")
+
+    def update_channel(self, teamId: str, channelId: str, channel: MessageAbleChannel):
+        if channelId in self.__channels[teamId]:
+            self.__channels[teamId][channelId] = channel
+            logger.opt(colors=True).debug(f"<cyan>Updated channel {channelId!r} from cache successfuly</cyan>")
