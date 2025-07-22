@@ -28,6 +28,8 @@ import json
 
 from loguru import logger
 
+from teamly.announcement import Announcement
+
 
 from .cache import Cache
 from .todo import TodoItem
@@ -203,15 +205,13 @@ class ConnectionState:
         print(json.dumps(data,indent=4, ensure_ascii=False))
 
 
-
-
     def parse_announcement_created(self, data: Any):
-        self.dispatch("announcement")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        print(data)
+        announcement = Announcement(state=self, data=data)
+        self.dispatch("announcement",announcement)
 
     def parse_announcement_deleted(self, data: Any):
-        self.dispatch("announcement_deleted")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        self.dispatch("announcement_deleted",data)
 
 
 
