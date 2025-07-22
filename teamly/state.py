@@ -29,6 +29,7 @@ import json
 from loguru import logger
 
 from teamly.announcement import Announcement
+from teamly.message import Message
 
 
 from .cache import Cache
@@ -88,7 +89,9 @@ class ConnectionState:
 
 
     def parse_message_send(self, data: Any):
-        self.dispatch("message",data)
+        channel = self.cache.get_channel(teamId=data['teamId'], channelId=['channelId'])
+        message = Message(state=self,channel=channel, data=data['message'])
+        self.dispatch("message",message)
 
     def parse_message_updated(self, data: Any):
         self.dispatch("message_updated", data)

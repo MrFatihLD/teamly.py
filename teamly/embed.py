@@ -66,3 +66,15 @@ class Embed:
         }
         # Remove None values (Teamly muhtemelen boş objeleri istemez)
         return {k: v for k, v in data.items() if v is not None}
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        self = cls.__new__(cls)
+
+        self.title = data.get('title')
+        self.description = data.get('description')
+        self.url = data.get('url')
+        self.author = data.get('author')
+        self.thumbnail = data.get('thumbnail')
+        self.image = data.get('image')
+        self.footer = data.get('footer')

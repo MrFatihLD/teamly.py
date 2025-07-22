@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from teamly.reaction import PartialReaction
 from teamly.user import User
 from .types.announcement import (
     Announcement as AnnouncementPayload,
@@ -14,35 +14,6 @@ from typing import TYPE_CHECKING, List, Optional
 
 if TYPE_CHECKING:
     from .state import ConnectionState
-
-@dataclass(frozen=True)
-class AnnouncementReactionUser:
-    userId: str #noqa
-    timestamp: str
-
-    @staticmethod
-    def from_dict(data: dict):
-        return AnnouncementReactionUser(userId=data['userId'],timestamp=data['timestamp'])
-
-class AnnouncementReaction:
-
-    def __init__(self, data: AnnouncementReactionsPayload) -> None:
-        self.__emoji_id: str = data['emojiId']
-        self.__count: str = data['count']
-        self.__users: List[dict] = data['users']
-
-    @property
-    def emojiId(self):
-        return self.__emoji_id
-
-    @property
-    def count(self):
-        return self.__count
-
-    @property
-    def users(self):
-        return [AnnouncementReactionUser.from_dict(u) for u in self.__users]
-
 
 class Announcement:
 
@@ -93,7 +64,7 @@ class Announcement:
     @property
     def reactions(self):
         if self._reactions:
-            return [AnnouncementReaction(r) for r in self._reactions]
+            return [PartialReaction(r) for r in self._reactions]
         else:
             return []
 

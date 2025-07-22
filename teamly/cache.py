@@ -119,3 +119,10 @@ class Cache:
         if channelId in self.__channels[teamId]:
             self.__channels[teamId][channelId] = channel
             logger.opt(colors=True).debug(f"<cyan>Updated channel {channelId!r} from cache successfuly</cyan>")
+
+    def get_channel(self, teamId: str, channelId: str):
+        try:
+            if channelId in self.__channels[teamId]:
+                return self.__channels[teamId][channelId]
+        except Exception as e:
+            logger.error(f"Exception error: {e}")
