@@ -15,7 +15,9 @@ __license__ = 'MIT'
 __copyright__ = 'Copyright (c) 2025 Fatih Kuloglu'
 __version__ = '0.1.0a'
 
-from .abc import *
+from . import (
+    abc as abc
+)
 from .cache import *
 from .channel import *
 from .client import *

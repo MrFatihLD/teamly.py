@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
-from typing import List, Optional, TypedDict
+from typing import TYPE_CHECKING, List, Optional, TypedDict, Literal
 
-from teamly.abc import StatusLiteral
+if TYPE_CHECKING:
+    from teamly.enums import Status
+
+    StatusLiteral = Literal[Status.OFFLINE, Status.ONLINE, Status.IDLE, Status.DO_DO_DISTURB]
 
 class UserRPC(TypedDict):
     type: Optional[str]

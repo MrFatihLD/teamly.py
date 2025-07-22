@@ -2,17 +2,23 @@
 
 from __future__ import annotations
 
+import teamly.abc
+
 from .reaction import PartialReaction
-from teamly.abc import MessageAble, MessageAbleChannel
 from .user import User
 from .embed import Embed
 from .types.message import Message as MessagePayload
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 if TYPE_CHECKING:
     from teamly.state import ConnectionState
 
-class Message(MessageAble):
+    from .channel import TextChannel
+
+    MessageAbleChannel = Union[TextChannel]
+
+
+class Message(teamly.abc.MessageAble):
 
     __slots__ = (
         '_state',

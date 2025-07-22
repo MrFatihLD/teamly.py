@@ -1,8 +1,7 @@
 
 from __future__ import annotations
 
-
-from teamly.abc import MessageAble
+import teamly.abc
 
 from .enums import ChannelType
 
@@ -49,7 +48,7 @@ class BaseChannel:
 
 
 
-class TextChannel(BaseChannel, MessageAble):
+class TextChannel(BaseChannel,teamly.abc.MessageAble):
 
     def __init__(self, *, state: ConnectionState, data: TextChannelPayload) -> None:
         super().__init__(state=state, data=data)

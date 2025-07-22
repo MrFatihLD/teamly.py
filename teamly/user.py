@@ -2,12 +2,14 @@
 from __future__ import annotations
 
 
-from teamly.abc import StatusLiteral
 from .types.user import User as UserPayload
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Literal
 
 if TYPE_CHECKING:
     from .state import ConnectionState
+    from .enums import Status
+
+    StatusLiteral = Literal[Status.OFFLINE, Status.ONLINE, Status.IDLE, Status.DO_DO_DISTURB]
 
 __all__ = (
     "ClientUser",

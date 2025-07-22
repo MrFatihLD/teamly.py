@@ -2,16 +2,18 @@
 from __future__ import annotations
 
 
-
 from .http import message_handler
-from typing import Any, Dict, List, TYPE_CHECKING
+from typing import Any, Dict, List, TYPE_CHECKING, Union, Literal
 
 
 if TYPE_CHECKING:
+    from .channel import TextChannel
+    from .enums import Status
     from .state import ConnectionState
 
 
-
+    MessageAbleChannel = Union[TextChannel]
+    StatusLiteral = Literal[Status.OFFLINE, Status.ONLINE, Status.IDLE, Status.DO_DO_DISTURB]
 
 class MessageAble:
 

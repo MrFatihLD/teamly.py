@@ -7,16 +7,17 @@ from typing import Dict, Optional, Union, Any, TYPE_CHECKING
 
 from loguru import logger
 
-from teamly.enums import MessageAbleChannel
-from teamly.channel import TextChannel, VoiceChannel, _channel_factory
-from teamly.http import HTTPClient
-from teamly.message import Message
-from teamly.team import Team
-from teamly.member import Member
-from teamly.user import ClientUser
+from .channel import TextChannel, VoiceChannel, _channel_factory
+from .http import HTTPClient
+from .message import Message
+from .team import Team
+from .member import Member
+from .user import ClientUser
 
 if TYPE_CHECKING:
-    from teamly.state import ConnectionState
+    from .state import ConnectionState
+    from .channel import TextChannel
+    MessageAbleChannel = Union[TextChannel]
 
 class Cache:
 
