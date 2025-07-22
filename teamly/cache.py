@@ -7,7 +7,7 @@ from typing import Dict, Optional, Union, Any, TYPE_CHECKING
 
 from loguru import logger
 
-from teamly.abc import MessageAbleChannel
+from teamly.enums import MessageAbleChannel
 from teamly.channel import TextChannel, VoiceChannel, _channel_factory
 from teamly.http import HTTPClient
 from teamly.message import Message

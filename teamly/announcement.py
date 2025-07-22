@@ -10,15 +10,16 @@ from .types.announcement import (
     AnnouncementMedia,
     AnnouncementMentions,
     AnnouncementReactions as AnnouncementReactionsPayload)
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, Any
 
 if TYPE_CHECKING:
     from .state import ConnectionState
 
 class Announcement:
 
-    def __init__(self, state: ConnectionState, data: AnnouncementPayload) -> None:
+    def __init__(self, state: ConnectionState, channel: Any, data: AnnouncementPayload) -> None:
         self._state: ConnectionState = state
+        self.channel = channel
         self._update(data=data)
 
     def _update(self, data: AnnouncementPayload):

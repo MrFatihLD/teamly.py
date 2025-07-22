@@ -2,11 +2,9 @@
 from __future__ import annotations
 
 
-from teamly.channel import TextChannel, VoiceChannel
 
 from .http import message_handler
-from .enums import Status
-from typing import Any, Dict, List, Literal, TYPE_CHECKING, Union
+from typing import Any, Dict, List, TYPE_CHECKING
 
 
 if TYPE_CHECKING:
@@ -14,10 +12,6 @@ if TYPE_CHECKING:
 
 
 
-
-StatusLiteral = Literal[Status.OFFLINE, Status.ONLINE, Status.IDLE, Status.DO_DO_DISTURB]
-
-MessageAbleChannel = Union[TextChannel, VoiceChannel]
 
 class MessageAble:
 

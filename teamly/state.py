@@ -89,7 +89,7 @@ class ConnectionState:
 
 
     def parse_message_send(self, data: Any):
-        channel = self.cache.get_channel(teamId=data['teamId'], channelId=['channelId'])
+        channel = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
         message = Message(state=self,channel=channel, data=data['message'])
         self.dispatch("message",message)
 
@@ -209,11 +209,12 @@ class ConnectionState:
 
 
     def parse_announcement_created(self, data: Any):
-        print(data)
-        announcement = Announcement(state=self, data=data)
+        channel = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
+        announcement = Announcement(state=self,channel=channel, data=data['announcement'])
         self.dispatch("announcement",announcement)
 
     def parse_announcement_deleted(self, data: Any):
+        print(data)
         self.dispatch("announcement_deleted",data)
 
 

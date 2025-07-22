@@ -4,14 +4,12 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, TypedDict
 
-class _BaseChannel(TypedDict):
+class BaseChannel(TypedDict):
     id: str
     type: str
     teamId: str
     name: str
     description: Optional[str]
-
-class _ChannelPayload(_BaseChannel):
     createdBy: str
     parentId: Optional[str]
     priority: int
@@ -19,8 +17,8 @@ class _ChannelPayload(_BaseChannel):
     permissions: Dict[str,Any]
     additionalData: Optional[Dict[str,Any]]
 
-class TextChannelPayload(_ChannelPayload):
+class TextChannelPayload(BaseChannel):
     rateLimitPerUser: int
 
-class VoiceChannelPayload(_ChannelPayload):
+class VoiceChannelPayload(BaseChannel):
     participants: Optional[List[str]]
