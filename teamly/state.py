@@ -66,6 +66,9 @@ class ConnectionState:
 
     async def __setup_before_ready(self, data: Any):
         await asyncio.wait_for(self.cache.setup_cache(data=data), timeout=15)
+        channel = self.cache.get_channel(teamId="fbd699b97903a6db" , channelId="e0864afd95b53ecf")
+        if channel:
+            print(channel._participants)
         self.dispatch('ready')
 
 
@@ -145,11 +148,13 @@ class ConnectionState:
 
     def parse_user_joined_team(self, data: Any):
         self.dispatch("user_joined_team")
+        print('parse_user_joined_team')
         print(json.dumps(data,indent=4, ensure_ascii=False))
 
     def parse_user_left_team(self, data: Any):
         self.dispatch("user_left_team")
         print(json.dumps(data,indent=4, ensure_ascii=False))
+
 
     def parse_user_joined_voice_channel(self, data: Any):
         self.dispatch("user_joinded_voice_channel")
@@ -158,6 +163,7 @@ class ConnectionState:
     def parse_user_left_voice_channel(self, data: Any):
         self.dispatch("user_left_voice_channel")
         print(json.dumps(data,indent=4, ensure_ascii=False))
+
 
     def parse_user_profile_updated(self, data: Any):
         self.dispatch("user_profile_updated")
@@ -229,7 +235,7 @@ class ConnectionState:
     def parse_application_updated(self, data: Any):
         team = self.cache.get_team(teamId=data['teamId'])
         if team:
-            app = Application(state=self,team=team,data=data)
+            app = Application(state=self,team=team,data=data['application'])
             self.dispatch("application_updated", app)
 
 

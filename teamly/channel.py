@@ -48,14 +48,27 @@ class BaseChannel:
 
 
 
-class TextChannel(BaseChannel,teamly.abc.MessageAble):
+class TextChannel(teamly.abc.MessageAble):
 
     def __init__(self, *, state: ConnectionState, data: TextChannelPayload) -> None:
-        super().__init__(state=state, data=data)
+        self._state: ConnectionState = state
+        self._update(data)
 
     def _update(self, data: Mapping):
-        super()._update(data)
+        self.id: str = data['id']
+        self.type: str = data['type']
+        self.team_id: str = data['teamId']
+        self.name: str = data['name']
+
+        self.description: Optional[str] = data.get('description', None)
+        self.created_by: str = data.get('createdBy')
+        self.parent_id: Optional[str] = data.get('parentId', None)
+        self.priority: int = data['priority']
         self.rate_limit_per_user: int = data['rateLimitPerUser']
+        self.created_at: str = data['createdAt']
+        self.permissions: Dict[str,Any] = data['permissions'].get('role', {})
+        self.additional_data: Dict[str,Any] = data.get('additionalData', {})
+
 
     def __repr__(self) -> str:
         return f"<TextChannel id={self.id} name={self.name!r} type={self.type} teamId={self.team_id}>"
@@ -69,20 +82,67 @@ class TextChannel(BaseChannel,teamly.abc.MessageAble):
 
 
 
-class VoiceChannel(BaseChannel):
+class VoiceChannel:
 
     def __init__(self, *, state: ConnectionState, data: VoiceChannelPayload) -> None:
-        super().__init__(state=state, data=data)
+        self._state: ConnectionState = state
+        self._update(data)
 
-    def _update(self, data: Mapping):
-        super()._update(data)
-        self.participants: List[str] = data.get('participants', [])
+    def _update(self, data: VoiceChannelPayload):
+        self.id: str = data['id']
+        self.type: str = data['type']
+        self.team_id: str = data['teamId']
+        self.name: str = data['name']
+
+        self.description: Optional[str] = data.get('description', None)
+        self.created_by: str = data.get('createdBy')
+        self.parent_id: Optional[str] = data.get('parentId', None)
+        self.priority: int = data['priority']
+        self._participants: List[Dict[str,str]] = data.get('participants', [])
+        self.created_at: str = data['createdAt']
+        self.permissions: Dict[str,Any] = data['permissions'].get('role', {})
+        self.additional_data: Dict[str,Any] = data.get('additionalData', {})
+
+    @property
+    def participants(self):
+        if not self._participants:
+            return None
+        return [p.get('id') for p in self._participants if self._participants]
+
+    def _participant_joined(self, participantId: str):
+        for par in self._participants:
+            if par.get('id') == participantId:
+               self._participants.append({"id": participantId})
+
+    def _participant_leaved(self, participantId: str):
+        for par in self._participants:
+            if par.get('id') == participantId:
+                self._participants.remove({"id": participantId})
+
 
     def __repr__(self) -> str:
         return f"<VoiceChannel id={self.id} name={self.name!r} type={self.type} teamId={self.team_id}>"
 
 
-class AnnouncementChannel(BaseChannel):
+class AnnouncementChannel:
+
+    def __init__(self, *, state: ConnectionState, data: VoiceChannelPayload) -> None:
+        self._state: ConnectionState = state
+        self._update(data)
+
+    def _update(self, data: Mapping):
+        self.id: str = data['id']
+        self.type: str = data['type']
+        self.team_id: str = data['teamId']
+        self.name: str = data['name']
+
+        self.description: Optional[str] = data.get('description', None)
+        self.created_by: str = data.get('createdBy')
+        self.parent_id: Optional[str] = data.get('parentId', None)
+        self.priority: int = data['priority']
+        self.created_at: str = data['createdAt']
+        self.permissions: Dict[str,Any] = data['permissions'].get('role', {})
+        self.additional_data: Dict[str,Any] = data.get('additionalData', {})
 
     def __repr__(self) -> str:
         return f"<VoiceChannel id={self.id} name={self.name!r} type={self.type} teamId={self.team_id}>"

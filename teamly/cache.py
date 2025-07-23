@@ -17,9 +17,13 @@ from .user import ClientUser
 
 if TYPE_CHECKING:
     from .state import ConnectionState
-    from .channel import TextChannel
+    from .channel import (
+        TextChannel,
+        VoiceChannel
+    )
     from .message import Message
     MessageAbleChannel = Union[TextChannel]
+    Channel = Union[TextChannel, VoiceChannel]
 
 __all__ = [
     "Cache"
@@ -36,7 +40,7 @@ class Cache:
     def clear(self):
         self.__user: Optional[ClientUser] = None
         self.__teams: Dict[str, Team] = {}
-        self.__channels: Dict[str, Dict[str, Union[TextChannel, VoiceChannel]]] = {}
+        self.__channels: Dict[str, Dict[str, Channel]] = {}
         self.__messages: Dict[str, Dict[str, OrderedDict[str, Message]]] = {}
         self.__members: Dict[str, Dict[str, Member]] = {}
 
@@ -62,7 +66,7 @@ class Cache:
 
         for data in channels['channels']:
             factory = _channel_factory(data['type'])
-            channel: MessageAbleChannel = None
+            channel: Channel = None
 
             if teamId not in self.__channels:
                 self.__channels[teamId] = {}
@@ -133,7 +137,7 @@ class Cache:
             self.__channels[teamId][channelId] = channel
             logger.opt(colors=True).debug(f"<cyan>Updated channel {channelId!r} from cache successfuly</cyan>")
 
-    def get_channel(self, teamId: str, channelId: str):
+    def get_channel(self, teamId: str, channelId: str) -> Channel | None:
         try:
             if channelId in self.__channels[teamId]:
                 return self.__channels[teamId][channelId]
