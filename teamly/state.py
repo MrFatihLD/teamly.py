@@ -30,6 +30,7 @@ from loguru import logger
 
 from teamly.announcement import Announcement
 from teamly.application import Application
+from teamly.member import Member
 from teamly.message import Message
 
 
@@ -66,9 +67,6 @@ class ConnectionState:
 
     async def __setup_before_ready(self, data: Any):
         await asyncio.wait_for(self.cache.setup_cache(data=data), timeout=15)
-        channel = self.cache.get_channel(teamId="fbd699b97903a6db" , channelId="e0864afd95b53ecf")
-        if channel:
-            print(channel._participants)
         self.dispatch('ready')
 
 
@@ -147,6 +145,8 @@ class ConnectionState:
 
 
     def parse_user_joined_team(self, data: Any):
+        member = Member._new_member(state=self, data=data['user'], teamId=data['teamId'])
+        self.cache.add_member(teamId=data['teamId'], member=member)
         self.dispatch("user_joined_team")
         print('parse_user_joined_team')
         print(json.dumps(data,indent=4, ensure_ascii=False))
@@ -157,12 +157,18 @@ class ConnectionState:
 
 
     def parse_user_joined_voice_channel(self, data: Any):
+        voice = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
+        if voice:
+            voice._participant_joined(participantId=data['user']['id'])
+            print(voice.participants)
         self.dispatch("user_joinded_voice_channel")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
 
     def parse_user_left_voice_channel(self, data: Any):
+        voice = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
+        if voice:
+            voice._participant_leaved(participantId=data['user']['id'])
+            print(voice.participants)
         self.dispatch("user_left_voice_channel")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
 
 
     def parse_user_profile_updated(self, data: Any):
@@ -178,8 +184,8 @@ class ConnectionState:
         print(json.dumps(data,indent=4, ensure_ascii=False))
 
     def parse_user_updated_voice_metadata(self, data: Any):
+        print(data)
         self.dispatch("user_updated_voice_metadata")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
 
 
 

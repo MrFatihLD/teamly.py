@@ -105,14 +105,11 @@ class VoiceChannel:
 
     @property
     def participants(self):
-        if not self._participants:
-            return None
-        return [p.get('id') for p in self._participants if self._participants]
+        return [p.get('id') for p in self._participants if self._participants] if self._participants else []
 
     def _participant_joined(self, participantId: str):
-        for par in self._participants:
-            if par.get('id') == participantId:
-               self._participants.append({"id": participantId})
+        if not any(p.get('id') == participantId for p in self._participants):
+            self._participants.append({"id": participantId})
 
     def _participant_leaved(self, participantId: str):
         for par in self._participants:

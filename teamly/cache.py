@@ -169,3 +169,15 @@ class Cache:
                 message = self.__messages[teamId][channelId].pop(messageId)
                 logger.opt(colors=True).debug(f"<cyan>deleted channel message {messageId!r} from cache successfuly</cyan>")
                 return message
+
+
+
+    #Member
+
+    def add_member(self, teamId: str, member: Member):
+        if member.id not in self.__members[teamId]:
+            self.__members[teamId][member.id] = member
+
+    def delete_member(self, teamId: str, memberId: str):
+        if memberId in self.__members[teamId]:
+            self.__members[teamId].pop(memberId)
