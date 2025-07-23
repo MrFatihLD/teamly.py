@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections import OrderedDict
 import json
 from typing import Dict, Optional, Union, Any, TYPE_CHECKING
 
@@ -17,20 +18,26 @@ from .user import ClientUser
 if TYPE_CHECKING:
     from .state import ConnectionState
     from .channel import TextChannel
+    from .message import Message
     MessageAbleChannel = Union[TextChannel]
+
+__all__ = [
+    "Cache"
+]
 
 class Cache:
 
     def __init__(self, state: ConnectionState) -> None:
         self._state: ConnectionState = state
         self._http: HTTPClient = self._state.http
+        self.maxLength: int = 100
         self.clear()
 
     def clear(self):
         self.__user: Optional[ClientUser] = None
         self.__teams: Dict[str, Team] = {}
         self.__channels: Dict[str, Dict[str, Union[TextChannel, VoiceChannel]]] = {}
-        self.__messages: Dict[str, Dict[str, Dict[str, Message]]] = {}
+        self.__messages: Dict[str, Dict[str, OrderedDict[str, Message]]] = {}
         self.__members: Dict[str, Dict[str, Member]] = {}
 
     async def setup_cache(self, data: Any):
@@ -64,7 +71,7 @@ class Cache:
                 self.__channels[teamId][data['id']] = channel = factory(state=self._state, data=data)
 
             if teamId not in self.__messages:
-                self.__messages[teamId] = {}
+                self.__messages[teamId] = OrderedDict()
 
             if data['type'] == 'text':
                 self.__messages[teamId][channel.id] = await self.__fetch_channel_messages(channel=channel)
@@ -127,3 +134,29 @@ class Cache:
                 return self.__channels[teamId][channelId]
         except Exception as e:
             logger.error(f"Exception error: {e}")
+
+
+    #Message Cache
+
+    def add_message(self, teamId: str, channelId: str, message: Message):
+        if channelId in self.__messages[teamId]:
+            self.__messages[teamId][channelId][message.id] = message
+
+        if len(self.__messages[teamId][channelId]) > self.maxLength:
+            self.__messages[teamId][channelId].popitem(last=False)
+
+    def update_message(self, teamId: str, channelId: str, message: Message):
+        if channelId in self.__messages[teamId]:
+            if message.id in self.__messages[teamId][channelId]:
+                upt_message = self.__messages[teamId][channelId][message.id]
+                self.__messages[teamId][channelId][message.id] = message
+                logger.opt(colors=True).debug(f"<cyan>updated channel message {message.id!r} from cache successfuly</cyan>")
+                return upt_message
+
+
+    def delete_message(self, teamId: str, channelId: str, messageId: str):
+        if channelId in self.__messages[teamId]:
+            if messageId in self.__messages[channelId][messageId]:
+                message = self.__messages[teamId][channelId].pop(messageId)
+                logger.opt(colors=True).debug(f"<cyan>deleted channel message {messageId!r} from cache successfuly</cyan>")
+                return message

@@ -18,6 +18,8 @@ __version__ = '0.1.0a'
 from . import (
     abc as abc
 )
+from .announcement import *
+from .blog import *
 from .cache import *
 from .channel import *
 from .client import *

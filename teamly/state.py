@@ -35,6 +35,7 @@ from teamly.message import Message
 from .cache import Cache
 from .todo import TodoItem
 from .channel import _channel_factory
+from .blog import Blog
 from .http import HTTPClient
 
 from typing import Dict, Callable, Any
@@ -177,12 +178,11 @@ class ConnectionState:
 
 
     def parse_blog_created(self, data: Any):
-        self.dispatch("blog")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        blog = Blog(state=self, data=data)
+        self.dispatch("blog", blog)
 
     def parse_blog_deleted(self, data: Any):
-        self.dispatch("blog_deleted")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        self.dispatch("blog_deleted", data)
 
 
 
