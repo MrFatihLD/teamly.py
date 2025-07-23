@@ -29,6 +29,7 @@ import json
 from loguru import logger
 
 from teamly.announcement import Announcement
+from teamly.application import Application
 from teamly.message import Message
 
 
@@ -214,19 +215,22 @@ class ConnectionState:
         self.dispatch("announcement",announcement)
 
     def parse_announcement_deleted(self, data: Any):
-        print(data)
         self.dispatch("announcement_deleted",data)
 
 
 
 
     def parse_application_created(self, data: Any):
-        self.dispatch("application")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        team = self.cache.get_team(teamId=data['teamId'])
+        if team:
+            app = Application(state=self,team=team,data=data)
+            self.dispatch("application", app)
 
     def parse_application_updated(self, data: Any):
-        self.dispatch("application_updated")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        team = self.cache.get_team(teamId=data['teamId'])
+        if team:
+            app = Application(state=self,team=team,data=data)
+            self.dispatch("application_updated", app)
 
 
 

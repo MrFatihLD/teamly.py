@@ -108,6 +108,11 @@ class Cache:
                 self.__members[member['id']] = Member(state=self._state, data=member)
 
 
+    #Team Cache
+    def get_team(self, teamId):
+        if teamId in self.__teams:
+            return self.__teams[teamId]
+
 
     #Channel Cache
     def add_channel(self, teamId: str, channelId: str, channel: MessageAbleChannel):

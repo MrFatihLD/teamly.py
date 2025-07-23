@@ -22,3 +22,11 @@ class Status(int,Enum):
     ONLINE = 1
     IDLE = 2
     DO_DO_DISTURB = 3
+
+class AppStatus(str, Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+    def __str__(self) -> str:
+        return self.value
