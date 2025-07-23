@@ -6,6 +6,18 @@ from .color import Color
 
 
 class Embed:
+
+    __slots__ = (
+        "title",
+        "description",
+        "url",
+        "color",
+        "author",
+        "thumbnail",
+        "image",
+        "footer",
+    )
+
     def __init__(
         self,
         *,

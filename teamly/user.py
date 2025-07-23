@@ -22,6 +22,24 @@ class _UserTag:
 
 class BaseUser(_UserTag):
 
+    __slots__ = (
+        "_state",
+        "id",
+        "username",
+        "subdomain",
+        "profile_picture",
+        "banner",
+        "bot",
+        "presence",
+        "flags",
+        "badges",
+        "_user_status",
+        "user_rpc",
+        "connections",
+        "created_at",
+        "system",
+    )
+
     def __init__(self,*, state: ConnectionState, data: UserPayload) -> None:
         self._state = state
         self._update(data)
@@ -75,6 +93,12 @@ class BaseUser(_UserTag):
 
 
 class ClientUser(BaseUser):
+
+    __slots__ = (
+        "verified",
+        "disabled",
+        "last_online",
+    )
 
     def __init__(self, *, state: ConnectionState, data: UserPayload) -> None:
         super().__init__(state=state, data=data)
