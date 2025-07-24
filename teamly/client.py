@@ -82,14 +82,14 @@ class Client:
 
     def run(self, token: str) -> None:
         """
-            Starts the asynchronous event loop with the given token.
+        Starts the client using the provided token.
 
-            This method initializes and runs the main coroutine (`runner`),
-            which currently contains a temporary sleep call for testing purposes.
-            In a production environment, this would be replaced with actual logic.
+        This method sets up the asyncio event loop, initializes internal components,
+        and begins the WebSocket connection. It blocks the main thread until the
+        client is stopped or interrupted.
 
-            Args:
-                token (str): The token used to authenticate or start the process.
+        Parameters:
+            token (str): Your Teamly bot token used for authentication.
         """
 
         logger.debug('Your token is "{}"', token)
@@ -125,20 +125,24 @@ class Client:
 
     def event(self, coro: CoroT, /) -> CoroT:
         """
-            The `event` decorator registers a coroutine function as an event handler.
+        Registers a coroutine function as an event handler.
 
-            This method checks whether the given function is a coroutine. If it is,
-            it sets the coroutine as an attribute of the instance, allowing it to be
-            called or referenced later as an event. Otherwise, it raises a TypeError.
+        Use this as a decorator to bind custom event listeners like `on_ready`,
+        `on_message`, etc. The method name must start with `on_` to be recognized.
 
-            Args:
-                coro (CoroT): A coroutine function to be registered as an event.
+        Example:
+            @client.event
+            async def on_ready():
+                print("Bot is ready!")
 
-            Returns:
-                CoroT: The same coroutine function, unmodified.
+        Parameters:
+            coro (Callable): The coroutine function to register.
 
-            Raises:
-                TypeError: If the provided function is not a coroutine.
+        Returns:
+            Callable: The same coroutine function.
+
+        Raises:
+            TypeError: If the function is not a coroutine.
         """
 
         if not asyncio.iscoroutinefunction(coro):
@@ -189,6 +193,12 @@ class Client:
         self.http.loop = loop
 
     async def close(self):
+        """
+        Closes the WebSocket and HTTP connections.
+
+        This method should be used when you want to shut down the client cleanly,
+        such as during application shutdown or error handling.
+        """
         if self.ws is not None:
             await self.ws.close()
         await self.http.close()
@@ -198,13 +208,35 @@ class Client:
 
     @property
     def user(self) -> Optional[ClientUser]:
+        """
+        Returns the currently authenticated bot user, if available.
+
+        This property becomes available after a successful connection
+        and login with a valid token.
+
+        Returns:
+            Optional[ClientUser]: The bot's user object.
+        """
         return self._connection._user
 
     async def __aenter__(self):
+        """
+        Enters the asynchronous context manager.
+
+        This prepares the internal event loop and HTTP client for usage.
+        Called automatically when using `async with`.
+        """
+
         logger.debug("Entering context...")
         await self._async_setup_hook()
         return self
 
     async def __aexit__(self, exc_type, exc, tb):
+        """
+          Exits the asynchronous context manager.
+
+          This ensures the client is closed gracefully when used in an `async with` block.
+        """
+
         logger.debug("Exiting context...")
         await self.close()

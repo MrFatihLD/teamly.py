@@ -73,8 +73,9 @@ class ConnectionState:
 
     def parse_channel_created(self, data: Dict[str,Any]):
         factory = _channel_factory(data['channel']['type'])
+        team = self.cache.get_team(teamId=data['teamId'])
         if factory:
-            channel = factory(state=self, data=data['channel'])
+            channel = factory(state=self,team=team, data=data['channel'])
             self.cache.add_channel(teamId=channel.team_id, channelId=channel.id, channel=channel)
             self.dispatch('channel_created', channel)
 
@@ -84,8 +85,9 @@ class ConnectionState:
 
     def parse_channel_updated(self, data: Any):
         factory = _channel_factory(data['channel']['type'])
+        team = self.cache.get_team(teamId=data['teamId'])
         if factory:
-            channel = factory(state=self, data=data['channel'])
+            channel = factory(state=self,team=team, data=data['channel'])
             self.cache.update_channel(teamId=channel.team_id, channelId=channel.id, channel=channel)
             self.dispatch('channel_updated', channel)
 
@@ -157,6 +159,7 @@ class ConnectionState:
 
 
     def parse_user_joined_voice_channel(self, data: Any):
+        print(data)
         voice = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
         if voice:
             voice._participant_joined(participantId=data['user']['id'])

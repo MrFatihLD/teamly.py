@@ -67,12 +67,14 @@ class Cache:
         for data in channels['channels']:
             factory = _channel_factory(data['type'])
             channel: Channel = None
+            team: Team = None
 
             if teamId not in self.__channels:
                 self.__channels[teamId] = {}
 
             if factory:
-                self.__channels[teamId][data['id']] = channel = factory(state=self._state, data=data)
+                team = self.__teams[teamId]
+                self.__channels[teamId][data['id']] = channel = factory(state=self._state,team=team, data=data)
 
             if teamId not in self.__messages:
                 self.__messages[teamId] = OrderedDict()
@@ -143,6 +145,20 @@ class Cache:
                 return self.__channels[teamId][channelId]
         except Exception as e:
             logger.error(f"Exception error: {e}")
+
+    #Voice Channel
+    def voice_participants_joined(self,teamId: str, channelId: str, participantId: str):
+        if self.__channels[teamId][channelId]:
+            voice = self.__channels[teamId][channelId]
+            if not any(p.get('id') == participantId for p in voice._participants):
+                voice._participants.append({"id": participantId})
+
+    def voice_participants_leaved(self, teamId:str, channelId: str, participantId: str):
+        if self.__channels[teamId][channelId]:
+            voice = self.__channels[teamId][channelId]
+            for par in voice._participants:
+                if par.get('id') == participantId:
+                    voice._participants.remove({"id": participantId})
 
 
     #Message Cache
