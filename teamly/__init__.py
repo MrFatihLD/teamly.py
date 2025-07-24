@@ -16,7 +16,8 @@ __copyright__ = 'Copyright (c) 2025 Fatih Kuloglu'
 __version__ = '0.1.0a'
 
 from . import (
-    abc as abc
+    abc as abc,
+    utils as utils
 )
 from .announcement import *
 from .blog import *
@@ -35,7 +36,6 @@ from .state import *
 from .team import *
 from .todo import *
 from .user import *
-from .utils import *
 from .logging import setup_logging, enable_debug #noqa: F401 <- ignoring unused import warning
 
 #hide debug logs by default

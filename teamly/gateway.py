@@ -27,11 +27,12 @@ from __future__ import annotations
 import asyncio
 import threading
 import aiohttp
-import json
 import time
 
 from typing import TYPE_CHECKING, Any, Optional, Dict, Callable
 from loguru import logger
+
+from teamly import utils
 
 from .state import ConnectionState
 
@@ -182,7 +183,7 @@ class TeamlyWebSocket:
         if msg is None:
             return
 
-        msg = json.loads(msg)
+        msg = utils._to_json(msg)
 
         event = msg["t"]
         data = msg["d"]
@@ -219,4 +220,4 @@ class TeamlyWebSocket:
         await self.socket.close(code=code)
 
     async def send_heartbeat(self, data: Any):
-        await self.socket.send_str(json.dumps(data))
+        await self.socket.send_str(data)
