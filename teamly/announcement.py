@@ -32,11 +32,11 @@ from .types.announcement import (
     AnnouncementMedia,
     AnnouncementMentions,
     AnnouncementReactions as AnnouncementReactionsPayload)
-from typing import TYPE_CHECKING, List, Optional, Any
+from typing import TYPE_CHECKING, List, Optional
 
 if TYPE_CHECKING:
     from .state import ConnectionState
-    from .team import Team
+    from .channel import AnnouncementChannel
 
 
 class Announcement:
@@ -45,18 +45,15 @@ class Announcement:
         self,
         *,
         state: ConnectionState,
-        team: Team,
-        channel: Any,
+        channel: AnnouncementChannel,
         data: AnnouncementPayload
     ) -> None:
         self._state: ConnectionState = state
-        self.team: Team = team
         self.channel = channel
         self._update(data=data)
 
     def _update(self, data: AnnouncementPayload):
         self.id: str = data['id']
-        self.channel_id: str = data['channelId']
         self.title: str = data['title']
         self.content: str = data['content']
 
@@ -110,4 +107,4 @@ class Announcement:
         return self._edited_at
 
     def __repr__(self) -> str:
-        return f"<Announcement id={self.id} title={self.title!r} channelId={self.channel_id}>"
+        return f"<Announcement id={self.id} title={self.title!r} channelId={self.channel.id}>"

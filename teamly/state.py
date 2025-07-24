@@ -132,7 +132,8 @@ class ConnectionState:
 
 
     def parse_todo_item_created(self, data: Any):
-        todo_item = TodoItem(state=self, data=data)
+        channel = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
+        todo_item = TodoItem(state=self,channel=channel, data=data['todo'])
         self.dispatch("todo_item", todo_item)
         print(json.dumps(data,indent=4, ensure_ascii=False))
 
@@ -140,7 +141,8 @@ class ConnectionState:
         self.dispatch("todo_item_deleted", data)
 
     def parse_todo_item_updated(self, data: Any):
-        todo_item = TodoItem(state=self, data=data)
+        channel = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
+        todo_item = TodoItem(state=self,channel=channel, data=data)
         self.dispatch("todo_item_updated", todo_item)
 
 
@@ -222,9 +224,8 @@ class ConnectionState:
 
 
     def parse_announcement_created(self, data: Any):
-        team = self.cache.get_team(teamId=data['teamId'])
         channel = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
-        announcement = Announcement(state=self,team=team,channel=channel, data=data['announcement'])
+        announcement = Announcement(state=self,channel=channel, data=data['announcement'])
         self.dispatch("announcement",announcement)
 
     def parse_announcement_deleted(self, data: Any):

@@ -24,13 +24,13 @@ SOFTWARE.
 
 from __future__ import annotations
 
+
 from .types.todo import TodoItem as TodoItemPayload
 from typing import TYPE_CHECKING, Mapping, Optional
 
 
 if TYPE_CHECKING:
     from .state import ConnectionState
-    from .team import Team
     from .channel import TodoChannel
 
 class TodoItem:
@@ -39,11 +39,11 @@ class TodoItem:
         self,
         *,
         state: ConnectionState,
-        team: Team,
         channel: TodoChannel,
         data: TodoItemPayload
     ) -> None:
         self._state: ConnectionState = state
+        self.channel: TodoChannel = channel
         self.from_dict(data)
 
     def from_dict(self, data: Mapping):
