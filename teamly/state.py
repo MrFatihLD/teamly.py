@@ -160,18 +160,14 @@ class ConnectionState:
 
     def parse_user_joined_voice_channel(self, data: Any):
         print(data)
+        self.cache.voice_participants_joined(teamId=data['teamId'], channelId=data['channelId'],participantId=data['user']['id'])
         voice = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
-        if voice:
-            voice._participant_joined(participantId=data['user']['id'])
-            print(voice.participants)
-        self.dispatch("user_joinded_voice_channel")
+        self.dispatch("user_joinded_voice_channel",voice)
 
     def parse_user_left_voice_channel(self, data: Any):
+        self.cache.voice_participants_leaved(teamId=data['teamId'], channelId=data['channelId'],participantId=data['user']['id'])
         voice = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
-        if voice:
-            voice._participant_leaved(participantId=data['user']['id'])
-            print(voice.participants)
-        self.dispatch("user_left_voice_channel")
+        self.dispatch("user_left_voice_channel", voice)
 
 
     def parse_user_profile_updated(self, data: Any):
@@ -194,7 +190,8 @@ class ConnectionState:
 
 
     def parse_blog_created(self, data: Any):
-        blog = Blog(state=self, data=data)
+        team = self.cache.get_team(teamId=data['teamId'])
+        blog = Blog(state=self,team=team, data=data)
         self.dispatch("blog", blog)
 
     def parse_blog_deleted(self, data: Any):
@@ -225,8 +222,9 @@ class ConnectionState:
 
 
     def parse_announcement_created(self, data: Any):
+        team = self.cache.get_team(teamId=data['teamId'])
         channel = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
-        announcement = Announcement(state=self,channel=channel, data=data['announcement'])
+        announcement = Announcement(state=self,team=team,channel=channel, data=data['announcement'])
         self.dispatch("announcement",announcement)
 
     def parse_announcement_deleted(self, data: Any):

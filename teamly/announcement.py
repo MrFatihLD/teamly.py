@@ -14,11 +14,21 @@ from typing import TYPE_CHECKING, List, Optional, Any
 
 if TYPE_CHECKING:
     from .state import ConnectionState
+    from .team import Team
+
 
 class Announcement:
 
-    def __init__(self, state: ConnectionState, channel: Any, data: AnnouncementPayload) -> None:
+    def __init__(
+        self,
+        *,
+        state: ConnectionState,
+        team: Team,
+        channel: Any,
+        data: AnnouncementPayload
+    ) -> None:
         self._state: ConnectionState = state
+        self.team: Team = team
         self.channel = channel
         self._update(data=data)
 

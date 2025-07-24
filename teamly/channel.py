@@ -5,7 +5,11 @@ import teamly.abc
 
 from .enums import ChannelType
 
-from .types.channel import TextChannelPayload, VoiceChannelPayload
+from .types.channel import (
+    TextChannelPayload,
+    VoiceChannel as VoiceChannelPayload,
+    AnnouncementChannel as AnnouncementChannelPayload
+)
 from typing import TYPE_CHECKING, Dict, Any, List, Mapping, Optional
 
 if TYPE_CHECKING:
@@ -85,15 +89,6 @@ class VoiceChannel:
     def participants(self):
         return [p.get('id') for p in self._participants if self._participants] if self._participants else []
 
-    def _participant_joined(self, participantId: str):
-        if not any(p.get('id') == participantId for p in self._participants):
-            self._participants.append({"id": participantId})
-
-    def _participant_leaved(self, participantId: str):
-        for par in self._participants:
-            if par.get('id') == participantId:
-                self._participants.remove({"id": participantId})
-
 
     def __repr__(self) -> str:
         return f"<VoiceChannel id={self.id} name={self.name!r} type={self.type} teamId={self.team.id}>"
@@ -106,7 +101,7 @@ class AnnouncementChannel:
         *,
         state: ConnectionState,
         team: Team,
-        data: VoiceChannelPayload
+        data: AnnouncementChannelPayload
     ) -> None:
         self._state: ConnectionState = state
         self.team: Team = team

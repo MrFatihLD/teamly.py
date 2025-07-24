@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:
     from teamly.state import ConnectionState
     from .types.blog import Blog as BlogPayload
+    from .team import Team
 
 __all__ = [
     "Blog"
@@ -23,12 +24,19 @@ class Blog:
         '_created_at',
         '_created_by',
         '_edited_at',
-        '_team_id',
+        'team',
         '_hero_image'
     )
 
-    def __init__(self, state: ConnectionState, data: BlogPayload) -> None:
+    def __init__(
+        self,
+        *,
+        state: ConnectionState,
+        team: Team,
+        data: BlogPayload
+    ) -> None:
         self._state: ConnectionState = state
+        self.team: Team = team
         self._update(data)
 
     def _update(self, data: BlogPayload):
@@ -39,7 +47,6 @@ class Blog:
         self._created_at: str = data['createdAt']
         self._created_by: str = data['createdBy']
         self._edited_at: Optional[str] = data.get('editedAt')
-        self._team_id: str = data['teamId']
         self._hero_image: Optional[str] = data.get('heroImage')
 
     @property
@@ -55,10 +62,6 @@ class Blog:
         return self._edited_at if self._edited_at else None
 
     @property
-    def teamId(self):
-        return self._team_id
-
-    @property
     def heroImage(self):
         return self._hero_image if self._hero_image else None
 
@@ -72,7 +75,7 @@ class Blog:
             "createdAt": self._created_at,
             "createdBy": self._created_by,
             "editedAt": self._edited_at,
-            "teamId": self._team_id,
+            "teamId": self.team.id,
             "heroImage": self._hero_image
         }
 
