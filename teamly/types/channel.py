@@ -47,3 +47,6 @@ class VoiceChannel(_BaseChannel):
 
 class AnnouncementChannel(_BaseChannel):
     pass
+
+class TodoChannel(_BaseChannel):
+    pass

@@ -29,11 +29,20 @@ from typing import TYPE_CHECKING, Mapping, Optional
 
 
 if TYPE_CHECKING:
-    from teamly.state import ConnectionState
+    from .state import ConnectionState
+    from .team import Team
+    from .channel import TodoChannel
 
 class TodoItem:
 
-    def __init__(self, state: ConnectionState, data: TodoItemPayload) -> None:
+    def __init__(
+        self,
+        *,
+        state: ConnectionState,
+        team: Team,
+        channel: TodoChannel,
+        data: TodoItemPayload
+    ) -> None:
         self._state: ConnectionState = state
         self.from_dict(data)
 

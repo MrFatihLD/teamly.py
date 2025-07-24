@@ -31,17 +31,40 @@ from .enums import ChannelType
 from .types.channel import (
     TextChannelPayload,
     VoiceChannel as VoiceChannelPayload,
-    AnnouncementChannel as AnnouncementChannelPayload
+    AnnouncementChannel as AnnouncementChannelPayload,
+    TodoChannel as TodoChannelPayload
 )
-from typing import TYPE_CHECKING, Dict, Any, List, Mapping, Optional
+from typing import TYPE_CHECKING, Dict, Any, List, Optional
 
 if TYPE_CHECKING:
     from .state import ConnectionState
     from .team import Team
 
 
+__all__ = [
+    'TextChannel',
+    'VoiceChannel',
+    'AnnouncementChannel',
+    'TodoChannel'
+]
 
 class TextChannel(teamly.abc.MessageAble):
+
+    __slots__ = (
+        '_state',
+        'team',
+        'id',
+        'type',
+        'name',
+        'description',
+        'created_by',
+        'parent_id',
+        'priority',
+        'rate_limit_per_user',
+        'created_at',
+        'permissions',
+        'additional_data'
+    )
 
     def __init__(
         self,
@@ -51,12 +74,12 @@ class TextChannel(teamly.abc.MessageAble):
         data: TextChannelPayload
     ) -> None:
         self._state: ConnectionState = state
+        self.team: Team = team
         self._update(data)
 
-    def _update(self, data: Mapping):
+    def _update(self, data: TextChannelPayload):
         self.id: str = data['id']
         self.type: str = data['type']
-        self.team_id: str = data['teamId']
         self.name: str = data['name']
 
         self.description: Optional[str] = data.get('description', None)
@@ -70,7 +93,7 @@ class TextChannel(teamly.abc.MessageAble):
 
 
     def __repr__(self) -> str:
-        return f"<TextChannel id={self.id} name={self.name!r} type={self.type} teamId={self.team_id}>"
+        return f"<TextChannel id={self.id} name={self.name!r} type={self.type} teamId={self.team.id}>"
 
     async def delete_message(self, messageId: str):
         return await self._state.http.delete_message(self.id, messageId)
@@ -82,6 +105,22 @@ class TextChannel(teamly.abc.MessageAble):
 
 
 class VoiceChannel:
+
+    __slots__ = (
+        '_state',
+        'team',
+        'id',
+        'type',
+        'name',
+        'description',
+        'created_by',
+        'parent_id',
+        'priority',
+        '_participants',
+        'created_at',
+        'permissions',
+        'additional_data'
+    )
 
     def __init__(
         self,
@@ -119,6 +158,22 @@ class VoiceChannel:
 
 class AnnouncementChannel:
 
+    __slots__ = (
+        '_state',
+        'team',
+        'id',
+        'type',
+        'name',
+        'description',
+        'created_by',
+        'parent_id',
+        'priority',
+        'rate_limit_per_user',
+        'created_at',
+        'permissions',
+        'additional_data'
+    )
+
     def __init__(
         self,
         *,
@@ -130,10 +185,9 @@ class AnnouncementChannel:
         self.team: Team = team
         self._update(data)
 
-    def _update(self, data: Mapping):
+    def _update(self, data: AnnouncementChannelPayload):
         self.id: str = data['id']
         self.type: str = data['type']
-        self.team_id: str = data['teamId']
         self.name: str = data['name']
 
         self.description: Optional[str] = data.get('description', None)
@@ -145,16 +199,77 @@ class AnnouncementChannel:
         self.additional_data: Dict[str,Any] = data.get('additionalData', {})
 
     def __repr__(self) -> str:
-        return f"<VoiceChannel id={self.id} name={self.name!r} type={self.type} teamId={self.team_id}>"
+        return f"<VoiceChannel id={self.id} name={self.name!r} type={self.type} teamId={self.team.id}>"
+
+class TodoChannel:
+    def __init__(
+        self,
+        *,
+        state: ConnectionState,
+        team: Team,
+        data: TodoChannelPayload
+    ) -> None:
+        self._state: ConnectionState = state
+        self.team: Team = team
+        self._update(data)
+
+    def _update(self, data: TodoChannelPayload):
+        self.id: str = data['id']
+        self.type: str = data['type']
+        self.name: str = data['name']
+
+        self.description: Optional[str] = data.get('description', None)
+        self.created_by: str = data.get('createdBy')
+        self.parent_id: Optional[str] = data.get('parentId', None)
+        self.priority: int = data['priority']
+        self.created_at: str = data['createdAt']
+        self.permissions: Dict[str,Any] = data['permissions'].get('role', {})
+        self.additional_data: Dict[str,Any] = data.get('additionalData', {})
+
+    def __repr__(self) -> str:
+        return f"<TodoChannel id={self.id} name={self.name!r} type={self.type} teamId={self.team.id}>"
+
+
+class WatchStreamChannel:
+    def __init__(
+        self,
+        *,
+        state: ConnectionState,
+        team: Team,
+        data: TodoChannelPayload
+    ) -> None:
+        self._state: ConnectionState = state
+        self.team: Team = team
+        self._update(data)
+
+    def _update(self, data: TodoChannelPayload):
+        self.id: str = data['id']
+        self.type: str = data['type']
+        self.name: str = data['name']
+
+        self.description: Optional[str] = data.get('description', None)
+        self.created_by: str = data.get('createdBy')
+        self.parent_id: Optional[str] = data.get('parentId', None)
+        self.priority: int = data['priority']
+        self.created_at: str = data['createdAt']
+        self.permissions: Dict[str,Any] = data['permissions'].get('role', {})
+        self.additional_data: Dict[str,Any] = data.get('additionalData', {})
+
+    def __repr__(self) -> str:
+        return f"<WatchStreamChannel id={self.id} name={self.name!r} type={self.type} teamId={self.team.id}>"
 
 
 @staticmethod
-def _channel_factory(type: str):
+def _channel_factory(type: str) -> Any | None:
     if ChannelType.TEXT == type:
         return TextChannel
     elif ChannelType.VOICE == type:
         return VoiceChannel
     elif ChannelType.ANNOUNCEMENT == type:
         return AnnouncementChannel
+    elif ChannelType.TODO == type:
+        return TodoChannel
+    elif ChannelType.WATCHSTREAM == type:
+        return WatchStreamChannel
     else:
         return None
