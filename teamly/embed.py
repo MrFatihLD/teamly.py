@@ -12,10 +12,10 @@ class Embed:
         "description",
         "url",
         "color",
-        "author",
-        "thumbnail",
-        "image",
-        "footer",
+        "_author",
+        "_thumbnail",
+        "_image",
+        "_footer",
     )
 
     def __init__(
@@ -36,33 +36,49 @@ class Embed:
         self.url = url
         self.color = int(color) if color else None
 
-        self.author: Optional[Dict[str, str]] = None
-        self.thumbnail: Optional[Dict[str, str]] = None
-        self.image: Optional[Dict[str, str]] = None
-        self.footer: Optional[Dict[str, str]] = None
+        self._author: Optional[Dict[str, str]] = None
+        self._thumbnail: Optional[Dict[str, str]] = None
+        self._image: Optional[Dict[str, str]] = None
+        self._footer: Optional[Dict[str, str]] = None
+
+    @property
+    def author(self) -> Dict[str,str] | None:
+        return self._author if self._author else None
+
+    @property
+    def thumbnail(self) -> str | None:
+        return self._thumbnail['url'] if self._thumbnail else None
+
+    @property
+    def image(self) -> str | None:
+        return self._image['url'] if self._image else None
+
+    @property
+    def footer(self) -> Dict[str,str] | None:
+        return self._footer if self._footer else None
 
     def set_author(self, *, name: Optional[str] = None, icon_url: Optional[str] = None):
-        self.author = {}
+        self._author = {}
         if name:
-            self.author["name"] = name
+            self._author["name"] = name
         if icon_url:
-            self.author["icon_url"] = icon_url
+            self._author["icon_url"] = icon_url
         return self
 
     def set_thumbnail(self, *, url: str):
-        self.thumbnail = {"url": url}
+        self._thumbnail = {"url": url}
         return self
 
     def set_image(self, *, url: str):
-        self.image = {"url": url}
+        self._image = {"url": url}
         return self
 
     def set_footer(self, *, text: Optional[str] = None, icon_url: Optional[str] = None):
-        self.footer = {}
+        self._footer = {}
         if text:
-            self.footer["text"] = text
+            self._footer["text"] = text
         if icon_url:
-            self.footer["icon_url"] = icon_url
+            self._footer["icon_url"] = icon_url
         return self
 
     def to_dict(self) -> Dict:
@@ -71,12 +87,11 @@ class Embed:
             "description": self.description,
             "url": self.url,
             "color": self.color,
-            "author": self.author,
-            "thumbnail": self.thumbnail,
-            "image": self.image,
-            "footer": self.footer,
+            "author": self._author,
+            "thumbnail": self._thumbnail,
+            "image": self._image,
+            "footer": self._footer,
         }
-        # Remove None values (Teamly muhtemelen boş objeleri istemez)
         return {k: v for k, v in data.items() if v is not None}
 
     @classmethod
@@ -86,7 +101,7 @@ class Embed:
         self.title = data.get('title')
         self.description = data.get('description')
         self.url = data.get('url')
-        self.author = data.get('author')
-        self.thumbnail = data.get('thumbnail')
-        self.image = data.get('image')
-        self.footer = data.get('footer')
+        self._author = data.get('author')
+        self._thumbnail = data.get('thumbnail')
+        self._image = data.get('image')
+        self._footer = data.get('footer')
