@@ -28,16 +28,14 @@ from loguru import logger
 
 
 
-from .channel import TextChannel, VoiceChannel
 
 from .types.team import TeamPayload, TeamGames as TeamGamesPayload
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional
 
 if TYPE_CHECKING:
     from .state import ConnectionState
     from .role import Role
 
-_TeamChannelTypes = Union[TextChannel,VoiceChannel]
 
 __all__ = ['Team']
 
@@ -116,10 +114,9 @@ class Team:
             raise ValueError("\'description\' must be smaller or equel then 1000 characters")
 
         payload = {
-            "name": name,
-            "description": description,
-            "banner": banner,
-            "profilePicture": profilePicture
+            k:v
+            for k,v in locals().items()
+            if v is not None
         }
 
         try:
@@ -127,13 +124,6 @@ class Team:
         except Exception as e:
             logger.error(f"Exception error: {e}")
 
-    # async def edit_name(self, name: str):
-    #     if 3 <= len(name) <= 12:
-    #         await self._state.http.update_team(teamId=self.id, payload={"name": name})
-
-    # async def edit_description(self, description: str):
-    #     if len(description) > 1000:
-    #         await self._state.http.update_team(teamId=self.id, payload={"description", description})
 
     def info(self) -> str:
         return (
@@ -169,47 +159,41 @@ class Team:
         return self._state.cache.get_member(teamId=self.id, userId=userId)
 
 
+
+
     async def ban(self, userId: str, reason: str):
-        response = await self._state.http.ban(teamId=self.id, userId=userId, reason=reason)
-
-        if response['success']:
-            logger.info(f"banned user {userId!r} successfuly")
-        else:
-            logger.opt(colors=True).info(
-                f"<red>You do not have permissions to ban users in this team (teamId -> {self.id}). "
-                f"You need permission \"BAN_MEMBERS\""
-            )
-
+        return await self._state.http.ban(teamId=self.id, userId=userId, reason=reason)
 
     async def unban(self, userId: str):
-        response = await self._state.http.unban(teamId=self.id, userId=userId)
+        return await self._state.http.unban(teamId=self.id, userId=userId)
 
-        if response['success']:
-            logger.info(f"unbanned user {userId!r} successfuly")
-        else:
-            logger.opt(colors=True).info(
-                f"<red>You do not have permissions to unban members in this team (teamId -> {self.id}). "
-                f"You need permission \"BAN_MEMBERS\""
-            )
+    async def get_banned_users(self, teamId: str, limit: int = 10):
+        return await self._state.http.get_banned_users(teamId=teamId, limit=limit)
+
+
+    async def kick(self, userId: str):
+        return await self._state.http.kick_member(teamId=self.id, userId=userId)
 
 
     #Role
 
     async def add_role(self, role: Role):
-        await self._state.http.create_role(teamId=self.id, payload=role.to_dict())
+        return await self._state.http.create_role(teamId=self.id, payload=role.to_dict())
 
     async def remove_role(self, roleId: str):
-        await self._state.http.delete_role(teamId=self.id, roleId=roleId)
+        return await self._state.http.delete_role(teamId=self.id, roleId=roleId)
 
-    def list_roles(self):
-        pass
+    async def list_roles(self):
+        return await self._state.http.get_roles(teamId=self.id)
 
     async def assigne_role(self, userId: str, roleId: str):
-        await self._state.http.add_role_to_member(teamId=self.id, userId=userId, roleId=roleId)
+        return await self._state.http.add_role_to_member(teamId=self.id, userId=userId, roleId=roleId)
 
     async def unassigne_role(self, userId: str, roleId: str):
-        await self._state.http.remove_role_from_member(teamId=self.id, userId=userId, roleId=roleId)
+        return await self._state.http.remove_role_from_member(teamId=self.id, userId=userId, roleId=roleId)
 
+    def __str__(self) -> str:
+        return self.name
 
     def __repr__(self) -> str:
         return (

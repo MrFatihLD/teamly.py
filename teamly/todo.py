@@ -44,11 +44,10 @@ class TodoItem:
     ) -> None:
         self._state: ConnectionState = state
         self.channel: TodoChannel = channel
-        self.from_dict(data)
+        self._update(data)
 
-    def from_dict(self, data: Mapping):
+    def _update(self, data: Mapping):
         self.id: str = data['id']
-        self.channel_id: str = data['channelId']
         self.type: str = data['type']
         self.content: str = data['content']
 
@@ -59,6 +58,14 @@ class TodoItem:
         self.completed_by: Optional[str] = data.get('completedBy')
         self.completed_at: Optional[str] = data.get('completedAt')
         self.createdAt: str = data['createdAt']
+
+    async def edit(self, content: str | None, completed: bool = False):
+        if len(content) >= 256:
+            raise ValueError("Content is too long, max 256 characters")
+
+        data = await self._state.http.update_todo_item(channelId=self.channel.id,todoId=self.id,content=content,completed=completed)
+        self._update(data['todo'])
+
 
     def __repr__(self) -> str:
         return f"<TodoItem id={self.id} channelId={self.channel_id} type={self.type} content={self.content}>"

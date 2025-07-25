@@ -222,7 +222,7 @@ class HTTPClient:
                 if 200 <= status < 300:
                     logger.debug("Request successful with status {}", status)
                 elif 400 <= status < 500:
-                    logger.warning("Client error with status {}", status)
+                        logger.warning("Client error with status {}", status)
                 elif status >= 500:
                     logger.error("Server error with status {}", status)
                 else:
@@ -324,15 +324,15 @@ class HTTPClient:
         return await self.request(r)
 
     #Bans
-    async def get_banned_user(self, teamId: str, limit: str = 10):
+    async def get_banned_users(self, teamId: str, limit: str = 10) -> Dict[str, Any]:
         r = Route("GET","/teams/{teamId}/bans" + f"?limit={limit}", teamId=teamId)
         return await self.request(r)
 
-    async def unban(self, teamId: str, userId: str):
+    async def unban(self, teamId: str, userId: str) -> Dict[str, Any]:
         r = Route("DELETE","/teams/{teamId}/members/{userId}/ban", teamId=teamId, userId=userId)
         return await self.request(r)
 
-    async def ban(self, teamId: str, userId: str, reason: str):
+    async def ban(self, teamId: str, userId: str, reason: str) -> Dict[str, Any]:
         payload = {"reason": reason}
         r = Route("POST","/teams/{teamId}/members/{userId}/ban", teamId=teamId, userId=userId)
         return await self.request(r, json=payload)
@@ -356,7 +356,7 @@ class HTTPClient:
         r = Route("POST","/teams/{teamId}/roles", teamId=teamId)
         return await self.request(r, json=payload)
 
-    async def get_role(self, teamId: str):
+    async def get_roles(self, teamId: str):
         r = Route("GET","/teams/{teamId}/roles", teamId=teamId)
         return await self.request(r)
 

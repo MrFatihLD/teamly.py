@@ -25,11 +25,13 @@ SOFTWARE.
 from __future__ import annotations
 
 import teamly.abc
+from teamly.todo import TodoItem
 
 from .enums import ChannelType
 
 from .types.channel import (
-    TextChannelPayload,
+    TextChannel as TextChannelPayload,
+    DMChannel as DMChannelPayload,
     VoiceChannel as VoiceChannelPayload,
     AnnouncementChannel as AnnouncementChannelPayload,
     TodoChannel as TodoChannelPayload
@@ -43,6 +45,7 @@ if TYPE_CHECKING:
 
 __all__ = [
     'TextChannel',
+    'DMChannel',
     'VoiceChannel',
     'AnnouncementChannel',
     'TodoChannel'
@@ -102,7 +105,11 @@ class TextChannel(teamly.abc.MessageAble):
         return await self._state.http.react_to_message(self.id, messageId, emojiId)
 
 
+class DMChannel:
 
+    def __init__(self, state: ConnectionState, data: DMChannelPayload) -> None:
+        self._state: ConnectionState = state
+        
 
 class VoiceChannel:
 
@@ -225,6 +232,27 @@ class TodoChannel:
         self.created_at: str = data['createdAt']
         self.permissions: Dict[str,Any] = data['permissions'].get('role', {})
         self.additional_data: Dict[str,Any] = data.get('additionalData', {})
+
+    async def fetch_todoitems(self):
+        return self._state.http.get_todo_items(channelId=self.id)
+
+    async def create_todo(self, content: str):
+        if len(content) >= 256:
+            raise ValueError("Content is too long, max 256 characters")
+
+        todo = await self._state.http.create_todo_item(channelId=self.id, content=content)
+        return TodoItem(state=self._state, channel=self, data=todo['todo'])
+
+    async def delete_todo(self, todoId: str):
+        return await self._state.http.delete_todo_item(channelId=self.id, todoId=todoId)
+
+    async def clone_todoitem(self, todoId: str):
+        clone = await self._state.http.clone_todo_item(channelId=self.id, todoId=todoId)
+        return TodoItem(state=self._state,channel=self,data=clone['todo'])
+
+
+    def __str__(self) -> str:
+        return self.name
 
     def __repr__(self) -> str:
         return f"<TodoChannel id={self.id} name={self.name!r} type={self.type} teamId={self.team.id}>"

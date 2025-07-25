@@ -165,3 +165,6 @@ class Message(teamly.abc.MessageAble):
             f"<Message id={self.id} channelId={self.channel.id} type={self.type} content={self.content} "
             f"createdBy={self.author.username}>"
         )
+
+    class PrivateMessage:
+        pass

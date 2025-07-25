@@ -24,6 +24,8 @@ SOFTWARE.
 
 from __future__ import annotations
 
+from .message import Message
+from .user import User
 from typing import Any, Dict, List, Optional, TypedDict
 
 class _BaseChannel(TypedDict):
@@ -39,8 +41,16 @@ class _BaseChannel(TypedDict):
     permissions: Dict[str,Any]
     additionalData: Optional[Dict[str,Any]]
 
-class TextChannelPayload(_BaseChannel):
+class TextChannel(_BaseChannel):
     rateLimitPerUser: int
+
+class DMChannel(TypedDict):
+    id: str
+    users: List[User]
+    channelId: str
+    createdAt: str
+    lastMessage: Message
+
 
 class VoiceChannel(_BaseChannel):
     participants: Optional[List[str]]
