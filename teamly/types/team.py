@@ -39,11 +39,13 @@ class TeamPayload(TypedDict):
     banner: Optional[str]
     description: Optional[str]
     isVerified: bool
+    isSafeForTeen: bool
     isSuspended: Optional[bool]
     createdBy: str
     defaultChannelId: Optional[str]
     games: List[TeamGames]
     idDiscoverable: Optional[bool]
+    isTournament: bool
     discoverableInvite: Optional[str]
     createdAt: str
     memberCount: int

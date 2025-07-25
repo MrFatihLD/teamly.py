@@ -24,21 +24,30 @@ SOFTWARE.
 
 from __future__ import annotations
 
+from loguru import logger
 
 
 
 from .channel import TextChannel, VoiceChannel
-from .member import Member
 
 from .types.team import TeamPayload, TeamGames as TeamGamesPayload
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 if TYPE_CHECKING:
     from .state import ConnectionState
+    from .role import Role
 
 _TeamChannelTypes = Union[TextChannel,VoiceChannel]
 
+__all__ = ['Team']
+
 class TeamGames:
+
+    __slots__ = (
+        'id',
+        'platforms',
+        'region'
+    )
 
     def __init__(self, data: TeamGamesPayload) -> None:
         self.id: str = data['id']
@@ -47,30 +56,52 @@ class TeamGames:
 
 class Team:
 
+    __slots__ = (
+        '_state',
+        'id',
+        'name',
+        '_profile_picture',
+        'banner',
+        'description',
+        '_is_verified',
+        '_is_safe_for_teen',
+        '_is_suspended',
+        '_created_by',
+        '_default_channel_id',
+        'games',
+        '_is_discoverable',
+        '_is_tournament',
+        '_discoverable_invite',
+        '_created_at',
+        '_member_count'
+    )
+
     def __init__(self,*, state: ConnectionState, data: TeamPayload) -> None:
         self._state = state
-        self._channels: Dict[str, _TeamChannelTypes] = {}
-        self._members: Dict[str, Member] = {}
         self._update(data)
 
     def _update(self, data: TeamPayload):
         self.id: str = data['id']
         self.name: str = data['name']
-        self.profile_picture: Optional[str] = data.get('profilePicture')
+        self._profile_picture: Optional[str] = data.get('profilePicture')
         self.banner: Optional[str] = data.get('banner')
         self.description: Optional[str] = data.get('description')
 
-        self.is_verified: bool = data['isVerified']
-        self.is_suspended: bool = data['isSuspended']
-        self.created_by: str = data['createdBy']
-        self.default_channel_id: str = data.get('defaultChannelId')
+        self._is_verified: bool = data['isVerified']
+        self._is_safe_for_teen: bool = data.get('isSafeForTeen', False)
+        self._is_suspended: bool = data['isSuspended']
+        self._created_by: str = data['createdBy']
+        self._default_channel_id: str = data.get('defaultChannelId')
         self.games: List[TeamGames] = [TeamGames(g) for g in data.get('games')]
-        self.is_discoverable: bool = data.get('idDiscoverable', False)
-        self.discoverable_invite: Optional[str] = data.get('discoverableInvite')
-        self.created_at: str = data['createdAt']
-        self.member_count: int = data['memberCount']
+        self._is_discoverable: bool = data.get('idDiscoverable', False)
+        self._is_tournament: bool = data.get('isTournament', False)
+        self._discoverable_invite: Optional[str] = data.get('discoverableInvite')
+        self._created_at: str = data['createdAt']
+        self._member_count: int = data['memberCount']
 
-    async def update_team(
+    #Team
+
+    async def edit(
         self,
         *,
         name: str,
@@ -84,15 +115,100 @@ class Team:
         if len(description) > 1000:
             raise ValueError("\'description\' must be smaller or equel then 1000 characters")
 
-        all_args = locals()
-
         payload = {
-            key: value
-            for key, value in all_args.items()
-            if key in {"name","description","banner","profilePicture"} and value is not None
+            "name": name,
+            "description": description,
+            "banner": banner,
+            "profilePicture": profilePicture
         }
 
-        return self._state.http.update_team(self.id, payload=payload)
+        try:
+            await self._state.http.update_team(self.id, payload=payload)
+        except Exception as e:
+            logger.error(f"Exception error: {e}")
+
+    # async def edit_name(self, name: str):
+    #     if 3 <= len(name) <= 12:
+    #         await self._state.http.update_team(teamId=self.id, payload={"name": name})
+
+    # async def edit_description(self, description: str):
+    #     if len(description) > 1000:
+    #         await self._state.http.update_team(teamId=self.id, payload={"description", description})
+
+    def info(self) -> str:
+        return (
+            f"""
+            Team:
+                ID: {self.id}
+                Name: {self.name}
+                ProfilePicture: {self.profile_picture[:10] + '...' if self.profile_picture else 'N/A'}
+                Banner: {self.banner[:10] + '...' if self.banner else 'N/A'}
+                Description: {self.description[:25] + '...' if self.description else 'N/A'}
+                IsVerified: {self.is_verified}
+                IsSafeForTeen: {self._is_safe_for_teen}
+                IsSuspended: {self.is_suspended}
+                CreatedBy: {self._created_by}
+                CreatedAt: {self._created_at}
+                DefaultChannel: {self._default_channel_id if self._default_channel_id else 'N/A'}
+                Games: {[t.id for t in self.games]}
+                IsDiscoverable: {self._is_discoverable}
+                IsTournament: {self._is_tournament}
+                DiscoverableInvite: {self._discoverable_invite}
+            """
+        )
+
+    #Member
+
+    def fetch_members(self):
+        return self._state.cache.get_members(teamId=self.id)
+
+    def get_members_count(self):
+        return len(self._state.cache.get_members(teamId=self.id))
+
+    def get_member(self, userId: str):
+        return self._state.cache.get_member(teamId=self.id, userId=userId)
+
+
+    async def ban(self, userId: str, reason: str):
+        response = await self._state.http.ban(teamId=self.id, userId=userId, reason=reason)
+
+        if response['success']:
+            logger.info(f"banned user {userId!r} successfuly")
+        else:
+            logger.opt(colors=True).info(
+                f"<red>You do not have permissions to ban users in this team (teamId -> {self.id}). "
+                f"You need permission \"BAN_MEMBERS\""
+            )
+
+
+    async def unban(self, userId: str):
+        response = await self._state.http.unban(teamId=self.id, userId=userId)
+
+        if response['success']:
+            logger.info(f"unbanned user {userId!r} successfuly")
+        else:
+            logger.opt(colors=True).info(
+                f"<red>You do not have permissions to unban members in this team (teamId -> {self.id}). "
+                f"You need permission \"BAN_MEMBERS\""
+            )
+
+
+    #Role
+
+    async def add_role(self, role: Role):
+        await self._state.http.create_role(teamId=self.id, payload=role.to_dict())
+
+    async def remove_role(self, roleId: str):
+        await self._state.http.delete_role(teamId=self.id, roleId=roleId)
+
+    def list_roles(self):
+        pass
+
+    async def assigne_role(self, userId: str, roleId: str):
+        await self._state.http.add_role_to_member(teamId=self.id, userId=userId, roleId=roleId)
+
+    async def unassigne_role(self, userId: str, roleId: str):
+        await self._state.http.remove_role_from_member(teamId=self.id, userId=userId, roleId=roleId)
 
 
     def __repr__(self) -> str:

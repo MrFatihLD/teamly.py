@@ -213,6 +213,12 @@ class Cache:
 
     #Member
 
+    def get_members(self, teamId: str):
+        return self.__members[teamId].values
+
+    def get_member(self, teamId: str, userId: str):
+        return self.__members[teamId][userId] if userId in self.__members[teamId] else None
+
     def add_member(self, teamId: str, member: Member):
         if member.id not in self.__members[teamId]:
             self.__members[teamId][member.id] = member

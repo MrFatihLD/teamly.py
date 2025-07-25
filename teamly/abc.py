@@ -38,6 +38,9 @@ if TYPE_CHECKING:
     MessageAbleChannel = Union[TextChannel]
     StatusLiteral = Literal[Status.OFFLINE, Status.ONLINE, Status.IDLE, Status.DO_DO_DISTURB]
 
+class TeamChannel:
+    pass
+
 class MessageAble:
 
     def __init__(self,state: ConnectionState) -> None:

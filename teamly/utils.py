@@ -22,7 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
+import aiohttp
 import json
+from pathlib import Path
 from typing import Any
 
 
@@ -47,3 +49,31 @@ MISSING: Any = _MissingSentinel()
 @staticmethod
 def _to_json(data: Any):
     return json.loads(data)
+
+class FormDataBuilder:
+
+    def __init__(
+        self,
+        file_path: str,
+        *,
+        field_name: str,
+        type: str = "attachment"
+    ) -> None:
+        self.file_path: Path = Path(file_path)
+        self.field_name: str = field_name
+        self.type: str = type
+
+    def build(self) -> aiohttp.FormData:
+        if not self.file_path.exists() or not self.file_path.is_file():
+            raise FileNotFoundError(f"File not found: {self.file_path}")
+
+        form = aiohttp.FormData()
+        form.add_field(
+            self.field_name,
+            self.file_path.open('rb'),
+            filename=self.name,
+            content_type="application/octet-stream"
+        )
+        form.add_field('type', self.type)
+
+        return form

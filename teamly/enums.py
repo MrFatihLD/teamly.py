@@ -25,7 +25,7 @@ SOFTWARE.
 from __future__ import annotations
 
 
-from enum import Enum
+from enum import Enum, IntFlag
 
 
 class ChannelType(str, Enum):
@@ -52,3 +52,19 @@ class AppStatus(str, Enum):
 
     def __str__(self) -> str:
         return self.value
+
+class Permissions(IntFlag):
+    ADMINISTRATOR = 1 << 0
+    MANAGE_CHANNELS = 1 << 1
+    MANAGE_ROLES = 1 << 2
+    MANAGE_TEAM = 1 << 3
+    VIEW_AUDIT_LOG = 1 << 4
+    BAN_MEMBERS = 1 << 5
+    DELETE_MESSAGES = 1 << 6
+    MANAGE_APPLICATIONS = 1 << 7
+    JOIN_TOURNAMENTS = 1 << 8
+    CREATE_INVITES = 1 << 9
+    MENTION_EVERYONE_AND_HERE = 1 << 10
+    MANAGE_BLOGS = 1 << 11
+    KICK_MEMBERS = 1 << 12
+    MOVE_MEMBERS = 1 << 13
