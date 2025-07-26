@@ -25,7 +25,7 @@ Work is ongoing on these areas:
 ## Quick Example
 
 ```python
-from teamly
+import teamly
 
 client = teamly.Client()
 
