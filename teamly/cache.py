@@ -31,6 +31,7 @@ from typing import Dict, Optional, Union, Any, TYPE_CHECKING
 
 from loguru import logger
 
+from .utils import MISSING
 
 from .channel import TextChannel, VoiceChannel, _channel_factory
 from .http import HTTPClient
@@ -49,8 +50,6 @@ if TYPE_CHECKING:
 
     MessageAbleChannel = Union[TextChannel]
     Channel = Union[TextChannel, VoiceChannel]
-
-    from utils import MISSING
 
 __all__ = [
     "Cache"

@@ -1,4 +1,5 @@
 
+from __future__ import annotations
 
 from .types.role import Role as RolePayload
 from typing import TYPE_CHECKING, Dict, Optional
