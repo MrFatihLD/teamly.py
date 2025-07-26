@@ -43,7 +43,6 @@ class Role:
 
     def _update(self, data: RolePayload):
         self.id: str = data['id']
-        #self.team
         self.name: str = data['name']
 
         self._icon_url: Optional[str] = data.get('iconUrl')

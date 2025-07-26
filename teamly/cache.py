@@ -31,6 +31,7 @@ from typing import Dict, Optional, Union, Any, TYPE_CHECKING
 
 from loguru import logger
 
+
 from .channel import TextChannel, VoiceChannel, _channel_factory
 from .http import HTTPClient
 from .message import Message
@@ -190,6 +191,14 @@ class Cache:
 
     #Message Cache
 
+    def get_message(self, teamId: str, channelId: str, messageId: str):
+        if teamId in self.__messages:
+            if channelId in self.__channels[teamId]:
+                if self.__messages[teamId][channelId][messageId]:
+                    return self.__messages[teamId][channelId][messageId]
+                else:
+                    return None
+
     def add_message(self, teamId: str, channelId: str, message: Message):
         if channelId in self.__messages[teamId]:
             self.__messages[teamId][channelId][message.id] = message
@@ -203,7 +212,6 @@ class Cache:
                 upt_message = self.__messages[teamId][channelId][message.id]
                 self.__messages[teamId][channelId][message.id] = message
                 return upt_message
-
 
     def delete_message(self, teamId: str, channelId: str, messageId: str):
         if channelId in self.__messages[teamId]:

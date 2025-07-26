@@ -30,12 +30,15 @@ from teamly.user import User
 
 
 from .types.reaction import Reaction as ReactionPayload
-from typing import TYPE_CHECKING, Mapping, List
+from typing import TYPE_CHECKING, Mapping, List, Union
 
 if TYPE_CHECKING:
     from .state import ConnectionState
+    from .team import Team
     from .message import Message
-    from .abc import MessageAbleChannel
+    from .channel import TextChannel
+
+    MessageAbleChannel = Union[TextChannel]
 
 class PartialReaction:
 
@@ -62,18 +65,19 @@ class Reaction:
         self,
         *,
         state: ConnectionState,
+        team: Team,
         channel: MessageAbleChannel,
         message: Message,
         data: ReactionPayload
     ) -> None:
         self._state: ConnectionState = state
+        self.team: Team = team
         self.channel: MessageAbleChannel = channel
         self.message: Message = message
         self._update(data)
 
     def _update(self, data: Mapping):
         self._emoji_id: str = data['emojiId']
-        self.team_id: str = data['teamId']
         self.user: User = User(state=self._state, data=data['reactedBy'])
 
     @property
