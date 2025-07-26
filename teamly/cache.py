@@ -114,11 +114,11 @@ class Cache:
 
             if messages['messages']:
                 for message in messages['messages']:
-                    message_dict[message['id']] = Message(state=self._state, channel=channel, data=message)
+                    message_dict[message['id']] = Message(state=self._state,team=channel.team, channel=channel, data=message)
 
             if messages['replyMessages']:
                 for message in messages['replyMessages']:
-                    message_dict[message['id']] = Message(state=self._state, channel=channel, data=message)
+                    message_dict[message['id']] = Message(state=self._state,team=channel.team, channel=channel, data=message)
 
             return message_dict
         except Exception as e:
@@ -138,9 +138,13 @@ class Cache:
 
 
     #Team Cache
-    def get_team(self, teamId):
+    def get_team(self, teamId: str):
         if teamId in self.__teams:
             return self.__teams[teamId]
+
+    def update_team(self, teamId: str, updated_team: str):
+        if teamId in self.__teams:
+            self.__teams[teamId] = updated_team
 
 
     #Channel Cache
@@ -198,7 +202,6 @@ class Cache:
             if message.id in self.__messages[teamId][channelId]:
                 upt_message = self.__messages[teamId][channelId][message.id]
                 self.__messages[teamId][channelId][message.id] = message
-                logger.opt(colors=True).debug(f"<cyan>updated channel message {message.id!r} from cache successfuly</cyan>")
                 return upt_message
 
 

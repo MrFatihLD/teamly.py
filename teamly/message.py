@@ -36,6 +36,7 @@ if TYPE_CHECKING:
     from teamly.state import ConnectionState
 
     from .channel import TextChannel
+    from .team import Team
 
     MessageAbleChannel = Union[TextChannel]
 
@@ -64,12 +65,14 @@ class Message(teamly.abc.MessageAble):
         self,
         state: ConnectionState,
         *,
+        team: Team,
         channel: MessageAbleChannel,
         data: MessagePayload
     ) -> None:
         super().__init__(state=state)
         self._state: ConnectionState = state
         self.channel: MessageAbleChannel = channel
+        self.team: Team = team
         self.from_dict(data)
 
     def from_dict(self, data: MessagePayload):

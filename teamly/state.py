@@ -28,12 +28,13 @@ import json
 
 from loguru import logger
 
-from teamly.announcement import Announcement
-from teamly.application import Application
-from teamly.member import Member
-from teamly.message import Message
 
-
+from .team import Team
+from .role import Role
+from .announcement import Announcement
+from .application import Application
+from .member import Member
+from .message import Message
 from .cache import Cache
 from .todo import TodoItem
 from .channel import _channel_factory
@@ -95,14 +96,18 @@ class ConnectionState:
 
     def parse_message_send(self, data: Any):
         channel = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
-        message = Message(state=self,channel=channel, data=data['message'])
+        message = Message(state=self,team=data['teamId'], channel=channel, data=data['message'])
         self.dispatch("message",message)
 
     def parse_message_updated(self, data: Any):
-        self.dispatch("message_updated", data)
+        channel = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
+        message = Message(state=self,team=data['teamId'],channel=channel,data=data['message'])
+        upt_msg = self.cache.update_message(teamId=data['teamId'], channelId=data['channelId'], message=message) #noqa -> type: ignore
+        self.dispatch("message_updated", message)
 
     def parse_message_deleted(self, data: Any):
-        self.dispatch("message_deleted", data)
+        message = self.cache.delete_message(teamId=data['teamId'], channelId=data['channelId'], messageId=data['messageId'])
+        self.dispatch("message_deleted", message)
 
     def parse_message_reaction_added(self, data: Any):
         self.dispatch("message_reaction", data)
@@ -118,16 +123,24 @@ class ConnectionState:
 
 
     def parse_team_role_created(self, data: Any):
-        self.dispatch("team_role", data)
+        team = self.cache.get_team(teamId=data['teamId'])
+        if team:
+            role = Role(state=self,team=team,data=data['role'])
+            self.dispatch("team_role", role)
 
     def parse_team_role_deleted(self, data: Any):
         self.dispatch("team_role_deleted", data)
 
     def parse_team_roles_updated(self, data: Any):
-        self.dispatch("team_roles_updated", data)
+        team = self.cache.get_team(teamId=data['teamId'])
+        if team:
+            roles = [Role(state=self,team=team,data=role) for role in data['roles']]
+            self.dispatch("team_roles_updated", roles)
 
     def parse_team_updated(self, data: Any):
-        self.dispatch("team_updated", data)
+        team = Team(state=self,data=data['team'])
+        self.cache.update_team(teamId=data['team']['id'], updated_team=team)
+        self.dispatch("team_updated", team)
 
 
 
@@ -156,6 +169,7 @@ class ConnectionState:
         print(json.dumps(data,indent=4, ensure_ascii=False))
 
     def parse_user_left_team(self, data: Any):
+        self.cache.delete_member(teamId=data['teamId'], memberId=data['member']['id'])
         self.dispatch("user_left_team")
         print(json.dumps(data,indent=4, ensure_ascii=False))
 
@@ -250,5 +264,5 @@ class ConnectionState:
 
 
     def parse_voice_channel_move(self, data: Any):
-        self.dispatch("voice_channel_move")
+        self.dispatch("voice_channel_move",data)
         print(json.dumps(data,indent=4, ensure_ascii=False))
