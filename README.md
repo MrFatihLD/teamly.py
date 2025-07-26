@@ -25,9 +25,9 @@ Work is ongoing on these areas:
 ## Quick Example
 
 ```python
-from teamly import Client
+from teamly
 
-client = Client()
+client = teamly.Client()
 
 @client.event
 async def on_ready():
