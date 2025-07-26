@@ -46,8 +46,11 @@ if TYPE_CHECKING:
         VoiceChannel
     )
     from .message import Message
+
     MessageAbleChannel = Union[TextChannel]
     Channel = Union[TextChannel, VoiceChannel]
+
+    from utils import MISSING
 
 __all__ = [
     "Cache"
@@ -90,8 +93,8 @@ class Cache:
 
         for data in channels['channels']:
             factory = _channel_factory(data['type'])
-            channel: Channel = None
-            team: Team = None
+            channel: Channel = MISSING
+            team: Team = MISSING
 
             if teamId not in self.__channels:
                 self.__channels[teamId] = {}
