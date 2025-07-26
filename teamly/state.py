@@ -30,7 +30,7 @@ from loguru import logger
 
 from teamly.reaction import Reaction
 
-
+from .user import ClientUser
 from .team import Team
 from .role import Role
 from .announcement import Announcement
@@ -43,7 +43,7 @@ from .channel import _channel_factory
 from .blog import Blog
 from .http import HTTPClient
 
-from typing import Dict, Callable, Any
+from typing import Dict, Callable, Any, Optional
 
 
 class ConnectionState:
@@ -61,16 +61,18 @@ class ConnectionState:
         self.clear()
 
     def clear(self):
+        self._user: Optional[ClientUser] = None
         self.cache: Cache = Cache(state=self)
 
+    async def __setup_before_ready(self, data: Any):
+        await asyncio.wait_for(self.cache.setup_cache(data=data), timeout=15)
+        self._user = self.cache._user
+        self.dispatch('ready')
 
     def parse_ready(self, data: Any):
         logger.info("Bot connected successfuly")
         asyncio.create_task(self.__setup_before_ready(data), name = "setup_ready")
 
-    async def __setup_before_ready(self, data: Any):
-        await asyncio.wait_for(self.cache.setup_cache(data=data), timeout=15)
-        self.dispatch('ready')
 
 
 

@@ -48,7 +48,7 @@ class Message(teamly.abc.MessageAble):
         'id',
         'channel',
         'type',
-        'content',
+        '_content',
         '_attachment',
         '_created_by',
         'edited_at',
@@ -78,7 +78,7 @@ class Message(teamly.abc.MessageAble):
     def from_dict(self, data: MessagePayload):
         self.id: str = data['id']
         self.type: str = data['type']
-        self.content: Optional[str] = data.get('content')
+        self._content: str = data['content']
 
         self._attachment: Optional[List[Dict[str,str]]] = data.get('attachments')
         self._created_by: User = User(state=self._state, data=data['createdBy'])
@@ -93,17 +93,42 @@ class Message(teamly.abc.MessageAble):
 
     @property
     def author(self) -> User:
+        """
+        Returns the user who created (authored) the message.
+
+        This property provides access to the original author of the message.
+        It returns a `User` instance representing the user who sent or created the message.
+
+        Returns:
+            User: The user who authored the message.
+        """
         return self._created_by
 
     @property
-    def attachment(self):
+    def content(self) -> str:
+        """
+        Gets the message's text content.
+
+        Returns:
+            str: The message body.
+        """
+        return self.content
+
+    @property
+    def attachment(self) -> List[str | None]:
         if self._attachment:
             return [x.get('url') for x in self._attachment]
         else:
             return []
 
     @property
-    def repliedTo(self):
+    def repliedTo(self) -> str | None:
+        """
+        Gets the ID of the user this message is replying to.
+
+        Returns:
+            Optional[int]: The user ID, or None if the message is not a reply.
+        """
         if self._reply_to:
             return self._reply_to
         else:
@@ -117,21 +142,39 @@ class Message(teamly.abc.MessageAble):
             return []
 
     @property
-    def emojis(self):
+    def emojis(self) -> List[str | None]:
+        """
+        Returns a list of emoji IDs used in the message.
+
+        This method extracts and returns the IDs of all emojis present in the message content.
+        If the message does not contain any emojis, it returns an empty list.
+
+        Returns:
+            List[int]: A list of emoji IDs found in the message. Empty if none are present.
+        """
         if self._emojis:
             return [e.get('emojiId') for e in self._emojis]
         else:
             return []
 
     @property
-    def reactions(self):
+    def reactions(self) -> List[PartialReaction | None]:
         if self._reactions:
             return [PartialReaction(r) for r in self._reactions]
         else:
             return []
 
     @property
-    def mentions(self):
+    def mentions(self) -> List[str] | None:
+        """
+        Returns a list of user IDs mentioned in the message.
+
+        This method extracts all user mentions from the message content and
+        returns their corresponding user IDs. If no users are mentioned, it returns an empty list.
+
+        Returns:
+            List[int]: A list of mentioned user IDs. Empty if no mentions are present.
+        """
         if self._mentions:
             return self._mentions['users']
 
@@ -140,7 +183,7 @@ class Message(teamly.abc.MessageAble):
             "id": self.id,
             "channelId": self.channel.id,
             "type": self.type,
-            "content": self.content,
+            "content": self._content,
             "createdBy": self.author.to_dict(),
             "createdAt": self.created_at
         }

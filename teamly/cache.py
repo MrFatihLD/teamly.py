@@ -64,7 +64,7 @@ class Cache:
         self.clear()
 
     def clear(self):
-        self.__user: Optional[ClientUser] = None
+        self._user: Optional[ClientUser] = None
         self.__teams: Dict[str, Team] = {}
         self.__channels: Dict[str, Dict[str, Channel]] = {}
         self.__messages: Dict[str, Dict[str, OrderedDict[str, Message]]] = {}
@@ -72,8 +72,8 @@ class Cache:
 
     async def setup_cache(self, data: Any):
         #get ClietnUser Payload
-        self.__user = ClientUser(state=self._state, data=data['user'])
-        logger.info(f"Bot connected as {self.__user.username!r}")
+        self._user = ClientUser(state=self._state, data=data['user'])
+        logger.info(f"Bot connected as {self._user.username!r}")
         await self.__fetch_teams(data['teams'])
         tasks = []
         for team in self.__teams:
