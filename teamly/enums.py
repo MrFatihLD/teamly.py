@@ -68,3 +68,39 @@ class Permissions(IntFlag):
     MANAGE_BLOGS = 1 << 11
     KICK_MEMBERS = 1 << 12
     MOVE_MEMBERS = 1 << 13
+
+class TextChannelPermissions(IntFlag):
+    VIEW_CHANNEL = 1 << 0
+    MANAGE_MESSAGES = 1 << 1
+    SEND_MESSAGE = 1 << 2
+    USE_EXTERNAL_EMOJIS = 1 << 3
+    MANAGE_CHANNEL = 1 << 4
+    CAN_SEE_MESSAGE_HISTORY = 1 << 5
+
+class VoiceChannelPermissions(IntFlag):
+    VIEW_CHANNEL = 1 << 0
+    CONNECT = 1 << 1
+    SPEAK = 1 << 2
+    MUTE_MEMBERS = 1 << 3
+    DEAFEN_MEMBERS = 1 << 4
+    MOVE_MEMBERS = 1 << 5
+    MANAGE_CHANNEL = 1 << 6
+    DISCONNECT = 1 << 12
+
+class TodoChannelPermissions(IntFlag):
+    VIEW_CHANNEL = 1 << 0
+    MANAGE_TODOS = 1 << 1
+    CREATE_TODOS = 1 << 2
+    DELETE_TODOS = 1 << 3
+    EDIT_TODOS = 1 << 4
+    MANAGE_CHANNEL = 1 << 5
+
+class WatchStreamChannelPermissions(IntFlag):
+    VIEW_CHANNEL = 1 << 0
+    MANAGE_CHANNEL = 1 << 1
+
+class AnnouncementChannelPermissions(IntFlag):
+    VIEW_CHANNEL = 1 << 0
+    MANAGE_CHANNEL = 1 << 1
+    CREATE_ANNOUNCEMENTS = 1 << 2
+    DELETE_ANNOUNCEMENTS = 1 << 3

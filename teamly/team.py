@@ -29,12 +29,15 @@ from __future__ import annotations
 
 
 from .types.team import TeamPayload, TeamGames as TeamGamesPayload
-from typing import TYPE_CHECKING, List, Optional, Dict
+from typing import TYPE_CHECKING, List, Literal, Optional, Dict, Union
 
 if TYPE_CHECKING:
     from .state import ConnectionState
-    from .role import Role
     from .member import Member
+
+    from .channel import TextChannel, VoiceChannel, AnnouncementChannel, TodoChannel, WatchStreamChannel
+
+    TeamChannels = Union[TextChannel, VoiceChannel, AnnouncementChannel, TodoChannel, WatchStreamChannel]
 
 
 __all__ = ['Team']
@@ -98,9 +101,6 @@ class Team:
         Timestamp of when the team was created
     member_count: :class:`int`
         Number of members in the team
-
-    Methods
-    --------
     '''
 
     __slots__ = (
@@ -185,10 +185,72 @@ class Team:
 
         return "\n".join(info_list)
 
+    #Channel
+
+    async def create_channel(
+        self,
+        name: str,
+        *,
+        type: Literal['text','voice','watchstream'] = "text",
+        streamChannel: str | None = None,
+        streamPlatform: Literal['twitch','kick'] | None = None
+    ):
+        payload = {
+            "name": name,
+            "type": type,
+        }
+
+        if type == "watchstream":
+            if (streamChannel is None) or (streamPlatform is None):
+                raise ValueError("streamChannel and streamPlatform if the type is 'watchstream'")
+            else:
+                payload['additionalData'] = {
+                    "streamChannel": streamChannel,
+                    "streamPlatform": streamPlatform
+                }
+
+        return await self._state.http.create_channel(teamId=self.id, payload=payload)
+
+    async def delete_channel(self, channelId: str):
+        await self._state.http.delete_channel(teamId=self.id, channelId=channelId)
+
+    async def update_channel(
+        self,
+        channelId: str,
+        *,
+        name: str,
+        streamChannel: str | None = None,
+        streamPlatform: Literal['twitch','kick']
+    ):
+        channel = self._state.cache.get_channel(teamId=self.id, channelId=channelId)
+        payload = {}
+        if channel:
+            payload["name"] = name
+            if channel.type == 'watchstream':
+                payload['additionalData'] = {
+                    "streamChannel": streamChannel,
+                    "streamPlatform": streamPlatform
+                }
+            await self._state.http.update_channel(teamId=self.id, channelId=channel.id, payload=payload)
+
+    ###burasi yapilacak
+    # async def update_channel_permissions(self, channelId: str, roleId: str):
+    #     pass
+
+
+    async def duplicate_channel(self, channelId: str):
+        await self._state.http.duplicate_channel(teamId=self.id, channelId=channelId)
+
+    async def update_channel_priority(self, channels: List[TeamChannels]):
+        payload = {"channels": [channel.to_dict() for channel in channels]}
+        await self._state.http.update_channel_priorities(teamId=self.id, payload=payload)
+
+    async def get_channel(self, channelId: str):
+        self._state.cache.get_channel(teamId=self.id, channelId=channelId)
 
     #Member
 
-    def fetch_members(self) -> Dict[str, Member]:
+    def get_members(self) -> Dict[str, Member]:
         return self._state.cache.get_members(teamId=self.id)
 
     def get_member(self, userId: str):
@@ -219,11 +281,11 @@ class Team:
 
     #Role
 
-    async def add_role(self, role: Role):
-        return await self._state.http.create_role(teamId=self.id, payload=role.to_dict())
+    # async def add_role(self, role: Role):
+    #     return await self._state.http.create_role(teamId=self.id, payload=role.to_dict())
 
-    async def remove_role(self, roleId: str):
-        return await self._state.http.delete_role(teamId=self.id, roleId=roleId)
+    # async def remove_role(self, roleId: str):
+    #     return await self._state.http.delete_role(teamId=self.id, roleId=roleId)
 
     async def list_roles(self):
         return await self._state.http.get_roles(teamId=self.id)

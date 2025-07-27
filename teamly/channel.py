@@ -23,9 +23,11 @@ SOFTWARE.
 '''
 
 from __future__ import annotations
+import inspect
 
 import teamly.abc
-from teamly.todo import TodoItem
+from .todo import TodoItem
+from utils import immuteable
 
 from .enums import ChannelType
 
@@ -51,6 +53,7 @@ __all__ = [
     'TodoChannel'
 ]
 
+@immuteable
 class TextChannel(teamly.abc.MessageAble):
 
     __slots__ = (
@@ -78,9 +81,7 @@ class TextChannel(teamly.abc.MessageAble):
     ) -> None:
         self._state: ConnectionState = state
         self.team: Team = team
-        self._update(data)
 
-    def _update(self, data: TextChannelPayload):
         self.id: str = data['id']
         self.type: str = data['type']
         self.name: str = data['name']
@@ -94,9 +95,12 @@ class TextChannel(teamly.abc.MessageAble):
         self.permissions: Dict[str,Any] = data['permissions'].get('role', {})
         self.additional_data: Dict[str,Any] = data.get('additionalData', {})
 
-
-    def __repr__(self) -> str:
-        return f"<TextChannel id={self.id} name={self.name!r} type={self.type} teamId={self.team.id}>"
+    def to_dict(self):
+        return {
+            (k if '_' not in k else k[0] + ''.join(p.capitalize() for p in k.split('_')[1:])): v
+            for k,v in inspect.getmembers(self, lambda x: not callable(x))
+            if not k.startwith('_')
+        }
 
     async def delete_message(self, messageId: str):
         return await self._state.http.delete_message(self.id, messageId)
@@ -104,12 +108,14 @@ class TextChannel(teamly.abc.MessageAble):
     async def react_message(self, messageId: str, emojiId: str):
         return await self._state.http.react_to_message(self.id, messageId, emojiId)
 
+    def __repr__(self) -> str:
+        return f"<TextChannel id={self.id} name={self.name!r} type={self.type} teamId={self.team.id}>"
 
 class DMChannel:
 
     def __init__(self, state: ConnectionState, data: DMChannelPayload) -> None:
         self._state: ConnectionState = state
-        
+
 
 class VoiceChannel:
 

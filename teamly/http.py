@@ -252,7 +252,7 @@ class HTTPClient:
         r = Route("POST","/teams/{teamId}/channels/{channelId}/clone", teamId=teamId, channelId=channelId)
         return await self.request(r)
 
-    async def update_channel_priorities(self, teamId: str, channelId: str, payload: Dict[str, Any]):
+    async def update_channel_priorities(self, teamId: str, payload: Dict[str, Any]):
         r = Route("PUT","/teams/{teamId}/channelspriority", teamId=teamId)
         return await self.request(r,json=payload)
 
