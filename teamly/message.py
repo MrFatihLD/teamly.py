@@ -25,6 +25,7 @@ SOFTWARE.
 from __future__ import annotations
 
 import teamly.abc
+from teamly.member import Member
 
 from .reaction import PartialReaction
 from .user import User
@@ -36,23 +37,56 @@ if TYPE_CHECKING:
     from teamly.state import ConnectionState
 
     from .channel import TextChannel
-    from .team import Team
 
     MessageAbleChannel = Union[TextChannel]
 
 
 class Message(teamly.abc.MessageAble):
+    '''Represents a user message.
+
+    Attributese
+    ------------
+        id: :class:`str`
+            Unique identifier for the message.
+        channel: :class:`TextChannel`
+            channel where the message was posted
+        type: :class:`str`
+            Type of the message (e.g., 'text' for a text message)
+        content: :class:`str`
+            Content of the message (Markdown supported)
+        attachment: :class:`List[str | None]`
+            Attachments for the message (may be empty)
+        author: Union[:class:`Member`, :class:`User`]
+            The user who sent the message. If the user is still in the server, this will be a
+            :class:`Member` instance. If the user has left the server, it will be a :class:`User` instance instead.
+        editedAt: :class:`str`
+            Timestamp of when the message was last edited
+        replie_to: :class:`str`
+            ID of the message being replied to, or null if the message is not a reply
+        embeds: :class:`List[str | None]`
+            List of embeds included with the message
+        emojis: :class:`List[str | None]`
+            The emoji used in the message
+        nonce: :class:`str`
+            Unique identifier for this message instance, used to prevent duplicates
+        createdAt: :class:`str`
+            Timestamp of when the message was created
+        mentions: :class:`List[str] | None`
+            Information about users mentioned in the message
+    '''
+
+    author: Union[Member,User]
 
     __slots__ = (
         '_state',
         'id',
         'channel',
         'type',
-        '_content',
+        'content',
         '_attachment',
-        '_created_by',
+        'author',
         'edited_at',
-        '_reply_to',
+        'reply_to',
         '_embeds',
         '_emojis',
         '_reactions',
@@ -65,25 +99,34 @@ class Message(teamly.abc.MessageAble):
         self,
         state: ConnectionState,
         *,
-        team: Team,
         channel: MessageAbleChannel,
-        data: MessagePayload
+        data: Dict
     ) -> None:
         super().__init__(state=state)
         self._state: ConnectionState = state
         self.channel: MessageAbleChannel = channel
-        self.team: Team = team
-        self.from_dict(data)
 
-    def from_dict(self, data: MessagePayload):
+        try:
+            self.team = self.channel.team
+        except AttributeError:
+            self.team = self._state.cache.get_team(teamId=data['teamId'])
+
+        self._update(data)
+
+    def _update(self, data: MessagePayload):
         self.id: str = data['id']
         self.type: str = data['type']
-        self._content: str = data['content']
+        self.content: str = data['content']
 
         self._attachment: Optional[List[Dict[str,str]]] = data.get('attachments')
-        self._created_by: User = User(state=self._state, data=data['createdBy'])
+
+        try:
+            self.author = self._state.cache.get_member(teamId=self.team.id,userId=data['createdBy']['id'])
+        except AttributeError:
+            self.author = User(state=self._state, data=data['createdBy'])
+
         self.edited_at: Optional[str] = data.get('editedAt')
-        self._reply_to: Optional[str] = data.get('replyTo')
+        self.reply_to: Optional[str] = data.get('replyTo')
         self._embeds: Optional[List[Embed]] = data.get('embeds')
         self._emojis: Optional[List[Dict[str,str]]] = data.get('emojis')
         self._reactions: Optional[List[Dict[str,str]]] = data.get('reactions')
@@ -91,28 +134,6 @@ class Message(teamly.abc.MessageAble):
         self.created_at: str = data['createdAt']
         self._mentions: Dict[str,List[str]] = data.get('mentions')
 
-    @property
-    def author(self) -> User:
-        """
-        Returns the user who created (authored) the message.
-
-        This property provides access to the original author of the message.
-        It returns a `User` instance representing the user who sent or created the message.
-
-        Returns:
-            User: The user who authored the message.
-        """
-        return self._created_by
-
-    @property
-    def content(self) -> str:
-        """
-        Gets the message's text content.
-
-        Returns:
-            str: The message body.
-        """
-        return self.content
 
     @property
     def attachment(self) -> List[str | None]:
@@ -120,19 +141,6 @@ class Message(teamly.abc.MessageAble):
             return [x.get('url') for x in self._attachment]
         else:
             return []
-
-    @property
-    def repliedTo(self) -> str | None:
-        """
-        Gets the ID of the user this message is replying to.
-
-        Returns:
-            Optional[int]: The user ID, or None if the message is not a reply.
-        """
-        if self._reply_to:
-            return self._reply_to
-        else:
-            return None
 
     @property
     def embeds(self):
@@ -183,7 +191,7 @@ class Message(teamly.abc.MessageAble):
             "id": self.id,
             "channelId": self.channel.id,
             "type": self.type,
-            "content": self._content,
+            "content": self.content,
             "createdBy": self.author.to_dict(),
             "createdAt": self.created_at
         }
@@ -191,14 +199,14 @@ class Message(teamly.abc.MessageAble):
             result['attachment'] = self._attachment
         if self.edited_at:
             result['editedAt'] = self.edited_at
-        if self._reply_to:
-            result['replyTo'] = self._reply_to
-        if self.embeds:
-            result['embeds'] = self.embeds
-        if self.emojis:
-            result['emojis'] = self.emojis
-        if self.reactions:
-            result['reactions'] = self.reactions
+        if self.reply_to:
+            result['replyTo'] = self.reply_to
+        if self._embeds:
+            result['embeds'] = self._embeds
+        if self._emojis:
+            result['emojis'] = self._emojis
+        if self._reactions:
+            result['reactions'] = self._reactions
         if self.nonce:
             result['nonce'] = self.nonce
         if self.mentions:

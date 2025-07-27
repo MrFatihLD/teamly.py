@@ -24,20 +24,31 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from loguru import logger
 
 
 
 
 from .types.team import TeamPayload, TeamGames as TeamGamesPayload
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, Dict
 
 if TYPE_CHECKING:
     from .state import ConnectionState
     from .role import Role
+    from .member import Member
 
 
 __all__ = ['Team']
+
+def immuteable(cls):
+    original_setattr = cls.__setattr__
+
+    def new_setattr(self, name, value):
+        if hasattr(self, name):
+            raise AttributeError(f"'{name}' is immuteable and cannot be reassigned.")
+        original_setattr(self, name, value)
+
+    cls.__setattr__ = new_setattr
+    return cls
 
 class TeamGames:
 
@@ -52,50 +63,85 @@ class TeamGames:
         self.platforms: List[str] = data['platforms']
         self.region: str = data['region']
 
+
+@immuteable
 class Team:
+    '''Represents a Team
+
+    Attributese
+    -----------
+    id: :class:`str`
+        Unique identifier for the team
+    name: :class:`str`
+        Name of the team (3 <= name <= 12)
+    description: :class:`str`
+        A description of the team
+    profile_picture: :class:`str <url>`
+        URL to the profile picture of the team
+    banner: :class:`str <url>`
+        URL to the banner image of the team
+    is_verified: :class:`bool`
+        Indicates whether the team is verified
+    is_safe_for_teen: :class:`bool`
+        Indicates whether the team is safe for teens
+    created_by: :class:`str`
+        ID of the user who created the team
+    default_channel_id: :class:`str`
+        ID of the default channel for the team
+    games: :class:`TeamGames`
+        List of games associated with the team
+    is_discoverable: :class:`bool`
+        Indicates whether the team is discoverable
+    discoverable_invite: :class:`str <url> | None`
+        Invite link for the team if it's discoverable
+    created_at: :class:`str <date-time>`
+        Timestamp of when the team was created
+    member_count: :class:`int`
+        Number of members in the team
+
+    Methods
+    --------
+    '''
 
     __slots__ = (
         '_state',
         'id',
         'name',
-        '_profile_picture',
+        'profile_picture',
         'banner',
         'description',
-        '_is_verified',
-        '_is_safe_for_teen',
-        '_is_suspended',
-        '_created_by',
-        '_default_channel_id',
+        'is_verified',
+        'is_safe_for_teen',
+        'is_suspended',
+        'created_by',
+        'default_channel_id',
         'games',
-        '_is_discoverable',
-        '_is_tournament',
-        '_discoverable_invite',
-        '_created_at',
-        '_member_count'
+        'is_discoverable',
+        'is_tournament',
+        'discoverable_invite',
+        'created_at',
+        'member_count'
     )
 
     def __init__(self,*, state: ConnectionState, data: TeamPayload) -> None:
         self._state = state
-        self._update(data)
-
-    def _update(self, data: TeamPayload):
         self.id: str = data['id']
         self.name: str = data['name']
-        self._profile_picture: Optional[str] = data.get('profilePicture')
+        self.profile_picture: Optional[str] = data.get('profilePicture')
         self.banner: Optional[str] = data.get('banner')
         self.description: Optional[str] = data.get('description')
 
-        self._is_verified: bool = data['isVerified']
-        self._is_safe_for_teen: bool = data.get('isSafeForTeen', False)
-        self._is_suspended: bool = data['isSuspended']
-        self._created_by: str = data['createdBy']
-        self._default_channel_id: str = data.get('defaultChannelId')
+        self.is_verified: bool = data['isVerified']
+        self.is_safe_for_teen: bool = data.get('isSafeForTeen', False)
+        self.is_suspended: bool = data['isSuspended']
+        self.created_by: str = data['createdBy']
+        self.default_channel_id: str = data.get('defaultChannelId')
         self.games: List[TeamGames] = [TeamGames(g) for g in data.get('games')]
-        self._is_discoverable: bool = data.get('idDiscoverable', False)
-        self._is_tournament: bool = data.get('isTournament', False)
-        self._discoverable_invite: Optional[str] = data.get('discoverableInvite')
-        self._created_at: str = data['createdAt']
-        self._member_count: int = data['memberCount']
+        self.is_discoverable: bool = data.get('idDiscoverable', False)
+        self.is_tournament: bool = data.get('isTournament', False)
+        self.discoverable_invite: Optional[str] = data.get('discoverableInvite')
+        self.created_at: str = data['createdAt']
+        self.member_count: int = data['memberCount']
 
     #Team
 
@@ -108,10 +154,10 @@ class Team:
         profilePicture: Optional[str] = None
     ):
         if len(name) > 12:
-            raise ValueError("\'name\' must be smaller or equel then 12 characters")
+            raise ValueError("'name' must be smaller or equel then 12 characters")
 
         if len(description) > 1000:
-            raise ValueError("\'description\' must be smaller or equel then 1000 characters")
+            raise ValueError("'description' must be smaller or equel then 1000 characters")
 
         payload = {
             k:v
@@ -119,41 +165,31 @@ class Team:
             if v is not None
         }
 
-        try:
-            await self._state.http.update_team(self.id, payload=payload)
-        except Exception as e:
-            logger.error(f"Exception error: {e}")
+        await self._state.http.update_team(self.id, payload=payload)
 
 
     def info(self) -> str:
-        return (
-            f"""
-            Team:
-                ID: {self.id}
-                Name: {self.name}
-                ProfilePicture: {self.profile_picture[:10] + '...' if self.profile_picture else 'N/A'}
-                Banner: {self.banner[:10] + '...' if self.banner else 'N/A'}
-                Description: {self.description[:25] + '...' if self.description else 'N/A'}
-                IsVerified: {self.is_verified}
-                IsSafeForTeen: {self._is_safe_for_teen}
-                IsSuspended: {self.is_suspended}
-                CreatedBy: {self._created_by}
-                CreatedAt: {self._created_at}
-                DefaultChannel: {self._default_channel_id if self._default_channel_id else 'N/A'}
-                Games: {[t.id for t in self.games]}
-                IsDiscoverable: {self._is_discoverable}
-                IsTournament: {self._is_tournament}
-                DiscoverableInvite: {self._discoverable_invite}
-            """
-        )
+        info_list = ["Team:"]
+
+        for slot in self.__slots__:
+            value = getattr(self, slot, None)
+            display_value = "N/A" if value is None else value
+
+            parts = slot.split('_')
+            display_key = parts[0] + ''.join(word.capitalize() for word in parts)
+
+            if isinstance(display_key, str) and len(display_key) > 30:
+                display_value = display_key[:30] + "..."
+
+            info_list.append(f"\t{display_key}: {display_value}")
+
+        return "\n".join(info_list)
+
 
     #Member
 
-    def fetch_members(self):
+    def fetch_members(self) -> Dict[str, Member]:
         return self._state.cache.get_members(teamId=self.id)
-
-    def get_members_count(self):
-        return len(self._state.cache.get_members(teamId=self.id))
 
     def get_member(self, userId: str):
         return self._state.cache.get_member(teamId=self.id, userId=userId)
@@ -168,12 +204,18 @@ class Team:
         return await self._state.http.unban(teamId=self.id, userId=userId)
 
     async def get_banned_users(self, teamId: str, limit: int = 10):
+        if limit > 1000:
+            raise ValueError("Limit is to big! max value is 1000")
         return await self._state.http.get_banned_users(teamId=teamId, limit=limit)
 
 
     async def kick(self, userId: str):
-        return await self._state.http.kick_member(teamId=self.id, userId=userId)
+        try:
+            await self._state.http.kick_member(teamId=self.id, userId=userId)
+        except Exception:
+            return
 
+        self._state.cache.delete_member(teamId=self.id,memberId=userId)
 
     #Role
 

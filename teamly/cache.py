@@ -117,11 +117,11 @@ class Cache:
 
             if messages['messages']:
                 for message in messages['messages']:
-                    message_dict[message['id']] = Message(state=self._state,team=channel.team, channel=channel, data=message)
+                    message_dict[message['id']] = Message(state=self._state, channel=channel, data=message)
 
             if messages['replyMessages']:
                 for message in messages['replyMessages']:
-                    message_dict[message['id']] = Message(state=self._state,team=channel.team, channel=channel, data=message)
+                    message_dict[message['id']] = Message(state=self._state, channel=channel, data=message)
 
             return message_dict
         except Exception as e:
@@ -144,6 +144,8 @@ class Cache:
     def get_team(self, teamId: str):
         if teamId in self.__teams:
             return self.__teams[teamId]
+        else:
+            return "..."
 
     def update_team(self, teamId: str, updated_team: str):
         if teamId in self.__teams:
@@ -226,8 +228,8 @@ class Cache:
 
     #Member
 
-    def get_members(self, teamId: str):
-        return self.__members[teamId].values
+    def get_members(self, teamId: str) -> Dict[str, Member]:
+        return self.__members[teamId]
 
     def get_member(self, teamId: str, userId: str):
         return self.__members[teamId][userId] if userId in self.__members[teamId] else None

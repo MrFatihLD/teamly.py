@@ -220,4 +220,4 @@ class TeamlyWebSocket:
         await self.socket.close(code=code)
 
     async def send_heartbeat(self, data: Any):
-        await self.socket.send_str(data)
+        await self.socket.send_json(data)

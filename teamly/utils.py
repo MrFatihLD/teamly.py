@@ -77,3 +77,14 @@ class FormDataBuilder:
         form.add_field('type', self.type)
 
         return form
+
+def immuteable(cls):
+    original_setattr = cls.__setattr__
+
+    def new_setattr(self, name, value):
+        if hasattr(self, name):
+            raise AttributeError(f"'{name}' is immuteable and cannot be reassigned.")
+        original_setattr(self, name, value)
+
+    cls.__setattr__ = new_setattr
+    return cls
