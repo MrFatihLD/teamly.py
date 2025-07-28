@@ -221,3 +221,48 @@ class PermissionsOverwrite(BaseFlags):
                     self.deny |= (1 << i)
 
         return self
+
+
+    def has(self, name: str) -> Optional[bool]:
+        """Return the state of a permission in this overwrite.
+
+        Parameters
+        ----------
+        name: str
+            The permission name to check.
+
+        Returns
+        -------
+        Optional[bool]
+            ``True`` if the permission is explicitly allowed, ``False`` if it is
+            explicitly denied and ``None`` if it is not specified in this
+            overwrite.
+        """
+
+        type_map = {
+            "text": self.TEXT,
+            "voice": self.VOICE,
+            "todo": self.TODO,
+            "watchstream": self.WATCHSTREAM,
+            "announcement": self.ANNOUNCEMENT,
+        }
+
+        if not hasattr(self, "_PermissionsOverwrite__type"):
+            raise RuntimeError("PermissionsOverwrite not initialised correctly")
+
+        valid = type_map.get(self.__type)
+        if valid is None or name not in valid:
+            raise ValueError(f"'{name}' is not a valid permission for this channel type")
+
+        index = valid.index(name)
+        if self.__type == "voice" and index == 7:
+            index = 12
+
+        allowed = bool(self.allow & (1 << index))
+        denied = bool(self.deny & (1 << index))
+
+        if allowed:
+            return True
+        if denied:
+            return False
+        return None
