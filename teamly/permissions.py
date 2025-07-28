@@ -2,6 +2,8 @@
 from __future__ import annotations
 from typing import Optional, Self
 
+from teamly.flags import BaseFlags
+
 
 class Permissions:
 
@@ -25,56 +27,59 @@ class Permissions:
     def __init__(self, value: int = 0, **kwargs: Optional[bool]) -> None:
         self.value: int = value
 
-        for i, name in enumerate(self.VALUES):
-            if kwargs.get(name) is True:
+        for k,v in kwargs.items():
+            if k not in self.VALUES:
+                raise ValueError(f"Unknown permission: '{k}'")
+            if v is True:
+                i = self.VALUES.index(k)
                 self.value |= (1 << i)
 
     @classmethod
-    def none(cls) -> Self:
-        return cls(0)
+    def none(cls) -> int:
+        return 0
 
     @classmethod
     def all(cls) -> Self:
         return cls(0b0000_0011_1111_1111_1111)
 
     @property
-    def administrator(self):
+    def administrator(self) -> int:
         return 1 << 0
 
     @property
-    def manage_channels(self):
+    def manage_channels(self) -> int:
         return 1 << 1
 
     @property
-    def manage_roles(self):
+    def manage_roles(self) -> int:
         return 1 << 2
 
     @property
-    def manage_team(self):
+    def manage_team(self) -> int:
         return 1 << 3
 
     @property
-    def view_audit_log(self):
+    def view_audit_log(self) -> int:
         return 1 << 4
 
     @property
-    def ban_members(self):
+    def ban_members(self) -> int:
         return 1 << 5
 
     @property
-    def delete_messages(self):
+    def delete_messages(self) -> int:
         return 1 << 6
 
     @property
-    def manage_applications(self):
+    def manage_applications(self) -> int:
         return 1 << 7
 
     @property
-    def join_tournaments(self):
+    def join_tournaments(self) -> int:
         return 1 << 8
 
     @property
-    def create_invites(self):
+    def create_invites(self) -> int:
         return 1 << 9
 
     @property
@@ -114,5 +119,105 @@ class Permissions:
 
 
 
-class PermissionsOverwrite:
-    pass
+class PermissionsOverwrite(BaseFlags):
+
+    def __init__(self) -> None:
+        raise RuntimeError(
+            "Use PermissionsOverwrite.text(), .voice(), etc. — do not instantiate directly."
+        )
+
+    @classmethod
+    def text(cls, **kwargs: Optional[bool]) -> Self:
+        self = cls.__new__(cls)
+        self.__type = "text"
+        self.allow = Permissions.none()
+        self.deny = Permissions.none()
+        for i, name in enumerate(cls.TEXT):
+            if kwargs.keys() not in cls.TEXT:
+                raise ValueError(f"'{name}' is not a valid permission for this channel type")
+            if name in kwargs.keys():
+                bit = kwargs.get(name)
+                if bit is True:
+                    self.allow |= (1 << i)
+                if bit is False:
+                    self.deny |= ~(1 << i)
+
+        return self
+
+    @classmethod
+    def voice(cls, **kwargs: Optional[bool]) -> Self:
+        self = cls.__new__(cls)
+        self.__type = "voice"
+        self.allow = Permissions.none()
+        self.deny = Permissions.none()
+        for i, name in enumerate(cls.VOICE):
+            if kwargs.keys() not in cls.VOICE:
+                raise ValueError(f"'{name}' is not a valid permission for this channel type")
+            if name in kwargs.keys():
+                bit = kwargs.get(name)
+                if i != 7:
+                    if bit is True:
+                        self.allow |= (1 << i)
+                    if bit is False:
+                        self.deny |= ~(1 << i)
+                else:
+                    if bit is True:
+                        self.allow |= (1 << 12)
+                    if bit is False:
+                        self.deny |= ~(1 << 12)
+
+        return self
+
+    @classmethod
+    def todo(cls, **kwargs: Optional[bool]) -> Self:
+        self = cls.__new__(cls)
+        self.__type = "todo"
+        self.allow = Permissions.none()
+        self.deny = Permissions.none()
+        for i, name in enumerate(cls.TODO):
+            if kwargs.keys() not in cls.TODO:
+                raise ValueError(f"'{name}' is not a valid permission for this channel type")
+            if name in kwargs.keys():
+                bit = kwargs.get(name)
+                if bit is True:
+                    self.allow |= (1 << i)
+                if bit is False:
+                    self.deny |= (1 << i)
+
+        return self
+
+    @classmethod
+    def watchstream(cls, **kwargs: Optional[bool]) -> Self:
+        self = cls.__new__(cls)
+        self.__type = "watchstream"
+        self.allow = Permissions.none()
+        self.deny = Permissions.none()
+        for i, name in enumerate(cls.WATCHSTREAM):
+            if kwargs.keys() not in cls.WATCHSTREAM:
+                raise ValueError(f"'{name}' is not a valid permission for this channel type")
+            if name in kwargs.keys():
+                bit = kwargs.get(name)
+                if bit is True:
+                    self.allow |= (1 << i)
+                if bit is False:
+                    self.deny |= (1 << i)
+
+        return self
+
+    @classmethod
+    def announcement(cls, **kwargs: Optional[bool]):
+        self = cls.__new__(cls)
+        self.__type = "announcement"
+        self.allow = Permissions.none()
+        self.deny = Permissions.none()
+        for i, name in enumerate(cls.ANNOUNCEMENT):
+            if kwargs.keys() not in cls.ANNOUNCEMENT:
+                raise ValueError(f"'{name}' is not a valid permission for this channel type")
+            if name in kwargs.keys():
+                bit = kwargs.get(name)
+                if bit is True:
+                    self.allow |= (1 << i)
+                if bit is False:
+                    self.deny |= (1 << i)
+
+        return self
