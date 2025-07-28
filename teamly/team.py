@@ -245,8 +245,11 @@ class Team:
         payload = {"channels": [channel.to_dict() for channel in channels]}
         await self._state.http.update_channel_priorities(teamId=self.id, payload=payload)
 
+    async def get_channels(self):
+        return self._state.cache.get_channels(teamId=self.id)
+
     async def get_channel(self, channelId: str):
-        self._state.cache.get_channel(teamId=self.id, channelId=channelId)
+        return self._state.cache.get_channel(teamId=self.id, channelId=channelId)
 
     #Member
 
@@ -265,7 +268,7 @@ class Team:
     async def unban(self, userId: str):
         return await self._state.http.unban(teamId=self.id, userId=userId)
 
-    async def get_banned_users(self, teamId: str, limit: int = 10):
+    async def get_ban_list(self, teamId: str, limit: int = 10):
         if limit > 1000:
             raise ValueError("Limit is to big! max value is 1000")
         return await self._state.http.get_banned_users(teamId=teamId, limit=limit)
@@ -284,10 +287,13 @@ class Team:
     # async def add_role(self, role: Role):
     #     return await self._state.http.create_role(teamId=self.id, payload=role.to_dict())
 
-    # async def remove_role(self, roleId: str):
-    #     return await self._state.http.delete_role(teamId=self.id, roleId=roleId)
+    async def delete_role(self, roleId: str):
+        await self._state.http.delete_role(teamId=self.id, roleId=roleId)
 
-    async def list_roles(self):
+    async def clone_role(self, roleId: str):
+        await self._state.http.clone_role(teamId=self.id, roleId=roleId)
+
+    async def get_roles(self):
         return await self._state.http.get_roles(teamId=self.id)
 
     async def assigne_role(self, userId: str, roleId: str):

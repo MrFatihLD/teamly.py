@@ -175,6 +175,9 @@ class Cache:
         if channelId in self.__channels[teamId]:
             return self.__channels[teamId][channelId]
 
+    def get_channels(self, teamId: str) -> Dict[str, Channel]:
+            return self.__channels[teamId]
+
     #Voice Channel
     def voice_participants_joined(self,teamId: str, channelId: str, participantId: str):
         if self.__channels[teamId][channelId]:
