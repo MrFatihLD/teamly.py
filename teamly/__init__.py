@@ -28,10 +28,12 @@ from .client import *
 from .color import *
 from .embed import *
 from .enums import *
+from .flags import *
 from .gateway import *
 from .http import *
 from .member import *
 from .message import *
+from .permissions import *
 from .reaction import *
 from .role import *
 from .state import *

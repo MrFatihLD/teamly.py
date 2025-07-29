@@ -267,7 +267,7 @@ class HTTPClient:
         r = Route("PATCH","/teams/{teamId}/channels/{channelId}", teamId=teamId, channelId=channelId)
         return await self.request(r, json=payload)
 
-    async def update_channel_permissions(self, teamId: str, channelId: str, roleId: str, payload: Dict[str, Any]):
+    async def update_channel_permissions(self, teamId: str, channelId: str, roleId: str, payload: Dict[str, int]):
         r = Route("POST","/teams/{teamId}/channels/{channelId}/permissions/role/{roleId}", teamId=teamId, channelId=channelId, roleId=roleId)
         return await self.request(r,json=payload)
 

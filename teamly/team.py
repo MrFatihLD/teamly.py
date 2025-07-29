@@ -24,12 +24,11 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from teamly.reaction import CustomReaction
 from teamly import utils
 
+from .reaction import CustomReaction
 from .blog import Blog
 from .application import ApplicationSubmission
-from .permissions import PermissionsOverwrite
 from .role import Role
 
 
@@ -178,12 +177,12 @@ class Team:
             display_value = "N/A" if value is None else value
 
             parts = slot.split('_')
-            display_key = parts[0] + ''.join(word.capitalize() for word in parts)
+            display_key = parts[0] + ''.join(word.capitalize() for word in parts[1:])
 
             if isinstance(display_key, str) and len(display_key) > 30:
                 display_value = display_key[:30] + "..."
 
-            info_list.append(f"\t{display_key}: {display_value}")
+            info_list.append(f"   {display_key}: {display_value}")
 
         return "\n".join(info_list)
 
@@ -194,22 +193,23 @@ class Team:
         name: str,
         type: Literal['text','voice','watchstream'] = "text",
         *,
-        streamChannel: Optional[str] = None,
-        streamPlatform: Optional[Literal['twitch','kick']] = None
+        additionalData: Optional[Dict[str,str]] = None
     ):
         payload = {
             "name": name,
             "type": type,
         }
 
-        if type == "watchstream":
-            if (streamChannel is None) or (streamPlatform is None):
-                raise ValueError("streamChannel and streamPlatform if the type is 'watchstream'")
-            else:
-                payload['additionalData'] = {
-                    "streamChannel": streamChannel,
-                    "streamPlatform": streamPlatform
-                }
+        if (type == "watchstream") and (additionalData is None):
+            raise ValueError("if you create watchstream channel. You need a additionalData")
+
+        if additionalData:
+            if additionalData["streamChannel"] is None:
+                raise ValueError("You need to add a URL for the streamChannel")
+            if additionalData["streamPlatform"] not in ('twitch', 'kick'):
+                raise ValueError("Pls enter a valid streamPlatform")
+
+            payload["additionalData"] = additionalData
 
         return await self._state.http.create_channel(teamId=self.id, payload=payload)
 
@@ -221,27 +221,27 @@ class Team:
         channelId: str,
         name: str,
         *,
-        streamChannel: Optional[str] = None,
-        streamPlatform: Optional[Literal['twitch','kick']] = None
+        additionalData: Optional[Dict[str,str]] = None
     ):
         channel = self._state.cache.get_channel(teamId=self.id, channelId=channelId)
         payload = {}
         if channel:
             payload["name"] = name
-            if channel.type == 'watchstream':
-                payload['additionalData'] = {
-                    "streamChannel": streamChannel,
-                    "streamPlatform": streamPlatform
-                }
+            if additionalData:
+                if additionalData["streamChannel"] is None:
+                    raise ValueError("You need to add a URL for the streamChannel")
+                if additionalData["streamPlatform"] not in ('twitch', 'kick'):
+                    raise ValueError("Pls enter a valid streamPlatform")
+
+                payload["additionalData"] = additionalData
+
             await self._state.http.update_channel(teamId=self.id, channelId=channel.id, payload=payload)
 
     ##burasi yapilacak
-    async def update_channel_permissions(self, channelId: str, roleId: str, permission: PermissionsOverwrite):
+    async def update_channel_permissions(self, channelId: str, roleId: str, payload: Dict[str,int]):
         channel = self._state.cache.get_channel(teamId=self.id, channelId=channelId)
         if channel:
-            if permission.__type != channel.type:
-                raise TypeError("The permission type must be the same as the channel type.")
-            await self._state.http.update_channel_permissions(teamId=self.id, channelId=channelId, roleId=roleId,payload=permission.to_dict())
+            await self._state.http.update_channel_permissions(teamId=self.id, channelId=channelId, roleId=roleId,payload=payload)
 
 
     async def duplicate_channel(self, channelId: str):

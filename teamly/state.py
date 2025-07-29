@@ -67,7 +67,8 @@ class ConnectionState:
     async def __setup_before_ready(self, data: Any):
         await asyncio.wait_for(self.cache.setup_cache(data=data), timeout=15)
         self._user = self.cache._user
-        self.dispatch('ready')
+        team = self.cache.get_team(teamId="96461fea83ec104a") #test
+        self.dispatch('ready', team) #test
 
     def parse_ready(self, data: Any):
         logger.info("Bot connected successfuly")
@@ -81,7 +82,7 @@ class ConnectionState:
         team = self.cache.get_team(teamId=data['teamId'])
         if factory:
             channel = factory(state=self,team=team, data=data['channel'])
-            self.cache.add_channel(teamId=channel.team_id, channelId=channel.id, channel=channel)
+            self.cache.add_channel(teamId=channel.team.id, channelId=channel.id, channel=channel)
             self.dispatch('channel_created', channel)
 
     def parse_channel_deleted(self, data: Any):
@@ -93,7 +94,7 @@ class ConnectionState:
         team = self.cache.get_team(teamId=data['teamId'])
         if factory:
             channel = factory(state=self,team=team, data=data['channel'])
-            self.cache.update_channel(teamId=channel.team_id, channelId=channel.id, channel=channel)
+            self.cache.update_channel(teamId=channel.team.id, channelId=channel.id, channel=channel)
             self.dispatch('channel_updated', channel)
 
 

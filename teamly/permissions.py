@@ -1,9 +1,7 @@
 
 from __future__ import annotations
+
 from typing import Optional, Self
-
-from teamly.flags import BaseFlags
-
 
 class Permissions:
 
@@ -119,7 +117,47 @@ class Permissions:
 
 
 
-class PermissionsOverwrite(BaseFlags):
+class PermissionsOverwrite:
+    TEXT = (
+        'view_channel',
+        'manage_messages',
+        'send_messages',
+        'use_external_emojis',
+        'manage_channel',
+        'can_see_message_history'
+    )
+
+    VOICE = (
+        'view_channel',
+        'connect',
+        'speak',
+        'mute_members',
+        'deafen_members',
+        'move_members',
+        'manage_channel',
+        'disconnect'
+    )
+
+    TODO = (
+        'view_channel',
+        'manage_todos',
+        'create_todos',
+        'delete_todos',
+        'edit_todos',
+        'manage_channel'
+    )
+
+    WATCHSTREAM = (
+        'view_channel',
+        'manage_channel'
+    )
+
+    ANNOUNCEMENT = (
+        'view_channel',
+        'manage_channel',
+        'create_announcements',
+        'delete_announcements'
+    )
 
     def __init__(self) -> None:
         raise RuntimeError(
@@ -127,20 +165,22 @@ class PermissionsOverwrite(BaseFlags):
         )
 
     @classmethod
-    def text(cls, **kwargs: Optional[bool]) -> Self:
+    def text(cls, **kwargs: bool) -> Self:
         self = cls.__new__(cls)
         self._type = "text"
         self.allow = Permissions.none()
         self.deny = Permissions.none()
+
+        for key in kwargs:
+            if key not in cls.TEXT:
+                raise ValueError(f"'{key}' is not a valid permission for this channel type")
+
         for i, name in enumerate(cls.TEXT):
-            if kwargs.keys() not in cls.TEXT:
-                raise ValueError(f"'{name}' is not a valid permission for this channel type")
-            if name in kwargs.keys():
-                bit = kwargs.get(name)
-                if bit is True:
-                    self.allow |= (1 << i)
-                if bit is False:
-                    self.deny |= ~(1 << i)
+            bit = kwargs.get(name)
+            if bit is True:
+                self.allow |= (1 << i)
+            if bit is False:
+                self.deny |= ~(1 << i)
 
         return self
 
@@ -150,21 +190,17 @@ class PermissionsOverwrite(BaseFlags):
         self._type = "voice"
         self.allow = Permissions.none()
         self.deny = Permissions.none()
+
+        for key in kwargs:
+            if key not in cls.VOICE:
+                raise ValueError(f"'{key}' is not a valid permission for this channel type")
+
         for i, name in enumerate(cls.VOICE):
-            if kwargs.keys() not in cls.VOICE:
-                raise ValueError(f"'{name}' is not a valid permission for this channel type")
-            if name in kwargs.keys():
-                bit = kwargs.get(name)
-                if i != 7:
-                    if bit is True:
-                        self.allow |= (1 << i)
-                    if bit is False:
-                        self.deny |= ~(1 << i)
-                else:
-                    if bit is True:
-                        self.allow |= (1 << 12)
-                    if bit is False:
-                        self.deny |= ~(1 << 12)
+            bit = kwargs.get(name)
+            if bit is True:
+                self.allow |= (1 << i)
+            if bit is False:
+                self.deny |= ~(1 << i)
 
         return self
 
@@ -174,15 +210,17 @@ class PermissionsOverwrite(BaseFlags):
         self._type = "todo"
         self.allow = Permissions.none()
         self.deny = Permissions.none()
+
+        for key in kwargs:
+            if key not in cls.TODO:
+                raise ValueError(f"'{key}' is not a valid permission for this channel type")
+
         for i, name in enumerate(cls.TODO):
-            if kwargs.keys() not in cls.TODO:
-                raise ValueError(f"'{name}' is not a valid permission for this channel type")
-            if name in kwargs.keys():
-                bit = kwargs.get(name)
-                if bit is True:
-                    self.allow |= (1 << i)
-                if bit is False:
-                    self.deny |= (1 << i)
+            bit = kwargs.get(name)
+            if bit is True:
+                self.allow |= (1 << i)
+            if bit is False:
+                self.deny |= ~(1 << i)
 
         return self
 
@@ -192,15 +230,17 @@ class PermissionsOverwrite(BaseFlags):
         self._type = "watchstream"
         self.allow = Permissions.none()
         self.deny = Permissions.none()
+
+        for key in kwargs:
+            if key not in cls.WATCHSTREAM:
+                raise ValueError(f"'{key}' is not a valid permission for this channel type")
+
         for i, name in enumerate(cls.WATCHSTREAM):
-            if kwargs.keys() not in cls.WATCHSTREAM:
-                raise ValueError(f"'{name}' is not a valid permission for this channel type")
-            if name in kwargs.keys():
-                bit = kwargs.get(name)
-                if bit is True:
-                    self.allow |= (1 << i)
-                if bit is False:
-                    self.deny |= (1 << i)
+            bit = kwargs.get(name)
+            if bit is True:
+                self.allow |= (1 << i)
+            if bit is False:
+                self.deny |= ~(1 << i)
 
         return self
 
@@ -210,15 +250,17 @@ class PermissionsOverwrite(BaseFlags):
         self._type = "announcement"
         self.allow = Permissions.none()
         self.deny = Permissions.none()
+
+        for key in kwargs:
+            if key not in cls.ANNOUNCEMENT:
+                raise ValueError(f"'{key}' is not a valid permission for this channel type")
+
         for i, name in enumerate(cls.ANNOUNCEMENT):
-            if kwargs.keys() not in cls.ANNOUNCEMENT:
-                raise ValueError(f"'{name}' is not a valid permission for this channel type")
-            if name in kwargs.keys():
-                bit = kwargs.get(name)
-                if bit is True:
-                    self.allow |= (1 << i)
-                if bit is False:
-                    self.deny |= (1 << i)
+            bit = kwargs.get(name)
+            if bit is True:
+                self.allow |= (1 << i)
+            if bit is False:
+                self.deny |= ~(1 << i)
 
         return self
 
