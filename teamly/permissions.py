@@ -180,7 +180,7 @@ class PermissionsOverwrite:
             if bit is True:
                 self.allow |= (1 << i)
             if bit is False:
-                self.deny |= ~(1 << i)
+                self.deny |= (1 << i)
 
         return self
 
@@ -200,7 +200,7 @@ class PermissionsOverwrite:
             if bit is True:
                 self.allow |= (1 << i)
             if bit is False:
-                self.deny |= ~(1 << i)
+                self.deny |= (1 << i)
 
         return self
 
@@ -220,7 +220,7 @@ class PermissionsOverwrite:
             if bit is True:
                 self.allow |= (1 << i)
             if bit is False:
-                self.deny |= ~(1 << i)
+                self.deny |= (1 << i)
 
         return self
 
@@ -240,7 +240,7 @@ class PermissionsOverwrite:
             if bit is True:
                 self.allow |= (1 << i)
             if bit is False:
-                self.deny |= ~(1 << i)
+                self.deny |= (1 << i)
 
         return self
 
@@ -260,7 +260,7 @@ class PermissionsOverwrite:
             if bit is True:
                 self.allow |= (1 << i)
             if bit is False:
-                self.deny |= ~(1 << i)
+                self.deny |= (1 << i)
 
         return self
 
