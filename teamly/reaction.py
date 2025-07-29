@@ -29,8 +29,8 @@ from teamly.user import User
 
 
 
-from .types.reaction import Reaction as ReactionPayload
-from typing import TYPE_CHECKING, Mapping, List, Union
+from .types.reaction import Reaction as ReactionPayload, CustomReaction as CustomReactionPayload
+from typing import TYPE_CHECKING, Mapping, List, Union, Any
 
 if TYPE_CHECKING:
     from .state import ConnectionState
@@ -86,3 +86,39 @@ class Reaction:
 
     def __repr__(self) -> str:
         return f"<Reaction emojiId={self._emoji_id} username={self.user.username}>"
+
+class CustomReaction:
+
+    __slots__ = (
+        '_state',
+        'id',
+        'name',
+        'created_by',
+        'updated_by',
+        'updated_at',
+        'url',
+        'created_at'
+    )
+
+    def __init__(self, state: ConnectionState, data: CustomReactionPayload) -> None:
+        self._state: ConnectionState = state
+
+        self.id: str = data['id']
+        self.name: str = data['name']
+        self.created_by: str = data['createdBy']
+        self.updated_by: str = data.get('updatedBy')
+        self.updated_at: str = data.get('updatedAt')
+        self.url: str = data['url']
+        self.created_at: str = data['createdAt']
+
+    @classmethod
+    def new(cls, name: str, emoji: Any):
+        self = cls.__new__(cls)
+
+        self.name = name
+        self.emoji = emoji
+
+        return {"name":name,"emoji":emoji}
+
+    def __repr__(self) -> str:
+        return f"<CustomReaction id={self.id} name={self.name} url={self.url}>"

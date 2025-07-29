@@ -25,9 +25,9 @@ SOFTWARE.
 from __future__ import annotations
 import inspect
 
+from teamly import utils
 import teamly.abc
 from .todo import TodoItem
-from utils import immuteable
 
 from .enums import ChannelType
 
@@ -53,7 +53,7 @@ __all__ = [
     'TodoChannel'
 ]
 
-@immuteable
+@utils.immuteable
 class TextChannel(teamly.abc.MessageAble):
 
     __slots__ = (
@@ -97,9 +97,9 @@ class TextChannel(teamly.abc.MessageAble):
 
     def to_dict(self):
         return {
-            (k if '_' not in k else k[0] + ''.join(p.capitalize() for p in k.split('_')[1:])): v
+            utils.snake_to_camel(k):v
             for k,v in inspect.getmembers(self, lambda x: not callable(x))
-            if not k.startwith('_')
+            if not k.startswith('_')
         }
 
     async def delete_message(self, messageId: str):

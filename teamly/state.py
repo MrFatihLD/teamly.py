@@ -34,7 +34,7 @@ from .user import ClientUser
 from .team import Team
 from .role import Role
 from .announcement import Announcement
-from .application import Application
+from .application import ApplicationSubmission
 from .member import Member
 from .message import Message
 from .cache import Cache
@@ -263,13 +263,13 @@ class ConnectionState:
     def parse_application_created(self, data: Any):
         team = self.cache.get_team(teamId=data['teamId'])
         if team:
-            app = Application(state=self,team=team,data=data)
+            app = ApplicationSubmission(state=self,team=team,data=data)
             self.dispatch("application", app)
 
     def parse_application_updated(self, data: Any):
         team = self.cache.get_team(teamId=data['teamId'])
         if team:
-            app = Application(state=self,team=team,data=data['application'])
+            app = ApplicationSubmission(state=self,team=team,data=data['application'])
             self.dispatch("application_updated", app)
 
 

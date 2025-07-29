@@ -46,9 +46,15 @@ class _MissingSentinel:
 
 MISSING: Any = _MissingSentinel()
 
-@staticmethod
 def _to_json(data: Any):
     return json.loads(data)
+
+def snake_to_camel(name: str):
+    if '_' not in name:
+        return name
+    return name.split('_')[0] + ''.join(p.capitalize() for p in name.split('_')[1:])
+
+
 
 class FormDataBuilder:
 

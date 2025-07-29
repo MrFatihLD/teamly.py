@@ -24,7 +24,7 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from typing import TypedDict
+from typing import Optional, TypedDict
 
 from teamly.user import User
 
@@ -36,3 +36,12 @@ class Reaction(TypedDict):
     channelId: str
     teamId: str
     reactedBy: User
+
+class CustomReaction(TypedDict):
+    id: str
+    name: str
+    createdBy: str
+    updatedBy: Optional[str]
+    updatedAt: Optional[str]
+    url: str
+    createdAt: str

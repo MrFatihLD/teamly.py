@@ -43,7 +43,7 @@ class Answers:
         self.optional: bool = data['optional']
         self.options: List[str] = data['options']
 
-class Application:
+class ApplicationSubmission:
 
     def __init__(
         self,
@@ -63,6 +63,8 @@ class Application:
         self.answers: Answers = data['answers']
         self.status: AppStatus = data['status']
         self._created_at: str = data['createdAt']
+
+
 
     async def update_status(self, status = Literal['accepted','rejected']):
         await self._state.http.update_application_status(teamId=self.team.id, applicationId=self.id, status=status)

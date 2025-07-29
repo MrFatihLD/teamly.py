@@ -1,8 +1,12 @@
 
 from __future__ import annotations
+import inspect
+
+from teamly import utils
+
 
 from .types.role import Role as RolePayload
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Dict, Optional, Self
 
 if TYPE_CHECKING:
     from .state import ConnectionState
@@ -18,14 +22,14 @@ class Role:
         'id',
         'name',
         '_icon_url',
-        '_color',
-        '_color2',
+        'color',
+        'color2',
         'permissions',
-        'priority',
+        '_priority',
         '_created_at',
         '_updated_at',
-        '_is_displayed_separately',
-        '_is_self_assignable',
+        'is_displayed_separately',
+        'is_self_assignable',
         '_icon_emoji_id',
         'mentionable',
         '_bot_scope'
@@ -40,42 +44,48 @@ class Role:
     ) -> None:
         self._state: ConnectionState = state
         self.team: Team = team
-        self._update(data)
 
-    def _update(self, data: RolePayload):
         self.id: str = data['id']
         self.name: str = data['name']
 
         self._icon_url: Optional[str] = data.get('iconUrl')
-        self._color: str = data['color']
-        self._color2: Optional[str] = data.get('color2')
+        self.color: str = data['color']
+        self.color2: Optional[str] = data.get('color2')
         self.permissions: int = data.get('permissions', 0)
-        self.priority: int = data.get('priority', 0)
+        self._priority: int = data.get('priority', 0)
         self._created_at: str = data['createdAt']
         self._updated_at: Optional[str] = data.get('updatedAt')
-        self._is_displayed_separately: bool = data.get('isDisplayedSeparately', True)
-        self._is_self_assignable: bool = data.get('isSelfAssignable', False)
+        self.is_displayed_separately: bool = data.get('isDisplayedSeparately', True)
+        self.is_self_assignable: bool = data.get('isSelfAssignable', False)
         self._icon_emoji_id: Optional[str] = data.get('iconEmojiId')
         self.mentionable: bool = data.get('mentionable', True)
         self._bot_scope: Dict[str,str] = data.get('botScope',{})
 
+    @classmethod
+    def new(
+        cls,
+        name: str,
+        *,
+        permissions: int = 0,
+        color: str,
+        color2: Optional[str] = None,
+        isDisplayedSeparately: Optional[bool] = None
+    ) -> Self:
+        self = cls.__new__(cls)
+
+        self.name = name
+        self.permissions = permissions
+        self.color = color
+        self.color2 = color2
+        self.is_displayed_separately = isDisplayedSeparately
+
+        return self
+
     def to_dict(self):
         return {
-            "id": self.id,
-            "teamId": self.team.id,
-            "name": self.name,
-            "iconUrl": self._icon_url,
-            "color": self._color,
-            "color2": self._color2,
-            "permissions": self.permissions,
-            "priority": self.priority,
-            "createdAt": self._created_at,
-            "updatedAt": self._updated_at,
-            "isDisplayedSeparately": self._is_displayed_separately,
-            "isSelfAssignable": self._is_self_assignable,
-            "iconEmojiId": self._icon_emoji_id,
-            "mentionable": self.mentionable,
-            "botScope": self._bot_scope
+            utils.snake_to_camel(k):v
+            for k,v in inspect.getmembers(self, lambda x: not callable(x))
+            if not k.startswith('_')
         }
 
     def __repr__(self) -> str:

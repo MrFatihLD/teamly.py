@@ -267,8 +267,7 @@ class HTTPClient:
         r = Route("PATCH","/teams/{teamId}/channels/{channelId}", teamId=teamId, channelId=channelId)
         return await self.request(r, json=payload)
 
-    async def update_channel_permissions(self, teamId: str, channelId: str, roleId: str, allow: int, deny: int):
-        payload = {"allow": allow, "deny": deny}
+    async def update_channel_permissions(self, teamId: str, channelId: str, roleId: str, payload: Dict[str, Any]):
         r = Route("POST","/teams/{teamId}/channels/{channelId}/permissions/role/{roleId}", teamId=teamId, channelId=channelId, roleId=roleId)
         return await self.request(r,json=payload)
 
@@ -457,7 +456,8 @@ class HTTPClient:
         r = Route("GET","/teams/{teamId}/reactions", teamId=teamId)
         return await self.request(r)
 
-    async def create_new_custom_reaction_for_team(self, teamId: str, name: str, payload: aiohttp.FormData):
+    async def create_new_custom_reaction_for_team(self, teamId: str, name: str, emoji: Any):
+        payload = {"name":name,"emoji":emoji}
         r = Route("POST","/teams/{teamId}/reactions", teamId=teamId)
         return await self.request(r, data=payload)
 
@@ -531,7 +531,7 @@ class HTTPClient:
 
 
     #Blog
-    async def get_blog_post(self, teamId: str):
+    async def get_blog_posts(self, teamId: str):
         r = Route("GET","/teams/{teamId}/blogs", teamId=teamId)
         return await self.request(r)
 

@@ -24,12 +24,18 @@ SOFTWARE.
 
 from __future__ import annotations
 
+from teamly.reaction import CustomReaction
+from teamly import utils
 
+from .blog import Blog
+from .application import ApplicationSubmission
+from .permissions import PermissionsOverwrite
+from .role import Role
 
 
 
 from .types.team import TeamPayload, TeamGames as TeamGamesPayload
-from typing import TYPE_CHECKING, List, Literal, Optional, Dict, Union
+from typing import TYPE_CHECKING, List, Literal, Optional, Dict, Union, Any
 
 if TYPE_CHECKING:
     from .state import ConnectionState
@@ -42,16 +48,6 @@ if TYPE_CHECKING:
 
 __all__ = ['Team']
 
-def immuteable(cls):
-    original_setattr = cls.__setattr__
-
-    def new_setattr(self, name, value):
-        if hasattr(self, name):
-            raise AttributeError(f"'{name}' is immuteable and cannot be reassigned.")
-        original_setattr(self, name, value)
-
-    cls.__setattr__ = new_setattr
-    return cls
 
 class TeamGames:
 
@@ -67,7 +63,7 @@ class TeamGames:
         self.region: str = data['region']
 
 
-@immuteable
+@utils.immuteable
 class Team:
     '''Represents a Team
 
@@ -127,9 +123,9 @@ class Team:
         self._state = state
         self.id: str = data['id']
         self.name: str = data['name']
+        self.description: Optional[str] = data.get('description')
         self.profile_picture: Optional[str] = data.get('profilePicture')
         self.banner: Optional[str] = data.get('banner')
-        self.description: Optional[str] = data.get('description')
 
         self.is_verified: bool = data['isVerified']
         self.is_safe_for_teen: bool = data.get('isSafeForTeen', False)
@@ -142,6 +138,9 @@ class Team:
         self.discoverable_invite: Optional[str] = data.get('discoverableInvite')
         self.created_at: str = data['createdAt']
         self.member_count: int = data['memberCount']
+
+    def to_dict(self):
+        pass
 
     #Team
 
@@ -160,10 +159,13 @@ class Team:
             raise ValueError("'description' must be smaller or equel then 1000 characters")
 
         payload = {
-            k:v
-            for k,v in locals().items()
-            if v is not None
+            "name": name,
+            "description": description,
         }
+        if banner:
+            payload["banner"] = banner
+        if profilePicture:
+            payload["profilePicture"] = profilePicture
 
         await self._state.http.update_team(self.id, payload=payload)
 
@@ -171,7 +173,7 @@ class Team:
     def info(self) -> str:
         info_list = ["Team:"]
 
-        for slot in self.__slots__:
+        for slot in self.__slots__[1:]:
             value = getattr(self, slot, None)
             display_value = "N/A" if value is None else value
 
@@ -190,10 +192,10 @@ class Team:
     async def create_channel(
         self,
         name: str,
-        *,
         type: Literal['text','voice','watchstream'] = "text",
-        streamChannel: str | None = None,
-        streamPlatform: Literal['twitch','kick'] | None = None
+        *,
+        streamChannel: Optional[str] = None,
+        streamPlatform: Optional[Literal['twitch','kick']] = None
     ):
         payload = {
             "name": name,
@@ -217,10 +219,10 @@ class Team:
     async def update_channel(
         self,
         channelId: str,
-        *,
         name: str,
-        streamChannel: str | None = None,
-        streamPlatform: Literal['twitch','kick']
+        *,
+        streamChannel: Optional[str] = None,
+        streamPlatform: Optional[Literal['twitch','kick']] = None
     ):
         channel = self._state.cache.get_channel(teamId=self.id, channelId=channelId)
         payload = {}
@@ -233,9 +235,13 @@ class Team:
                 }
             await self._state.http.update_channel(teamId=self.id, channelId=channel.id, payload=payload)
 
-    ###burasi yapilacak
-    # async def update_channel_permissions(self, channelId: str, roleId: str):
-    #     pass
+    ##burasi yapilacak
+    async def update_channel_permissions(self, channelId: str, roleId: str, permission: PermissionsOverwrite):
+        channel = self._state.cache.get_channel(teamId=self.id, channelId=channelId)
+        if channel:
+            if permission.__type != channel.type:
+                raise TypeError("The permission type must be the same as the channel type.")
+            await self._state.http.update_channel_permissions(teamId=self.id, channelId=channelId, roleId=roleId,payload=permission.to_dict())
 
 
     async def duplicate_channel(self, channelId: str):
@@ -284,8 +290,15 @@ class Team:
 
     #Role
 
-    # async def add_role(self, role: Role):
-    #     return await self._state.http.create_role(teamId=self.id, payload=role.to_dict())
+    async def add_role(self, role: Role):
+        return await self._state.http.create_role(teamId=self.id, payload=role.to_dict())
+
+    async def update_role(self,roleId: str, role: Role):
+        return await self._state.http.update_role(teamId=self.id,roleId=roleId, payload=role)
+
+    async def update_role_priorities(self, roles: List[str]):
+        payload = {"roles": roles}
+        return await self._state.http.update_role_priorities(teamId=self.id, payload=payload)
 
     async def delete_role(self, roleId: str):
         await self._state.http.delete_role(teamId=self.id, roleId=roleId)
@@ -301,6 +314,58 @@ class Team:
 
     async def unassigne_role(self, userId: str, roleId: str):
         return await self._state.http.remove_role_from_member(teamId=self.id, userId=userId, roleId=roleId)
+
+    #Application
+
+    async def get_application_submission(self):
+        application = await self._state.http.get_application_submissions(teamId=self.id)
+        return ApplicationSubmission(state=self._state,team=self,data=application)
+
+    async def update_application_status(self, applicationId: str, status: Literal['accepted', 'rejected']):
+        return await self._state.http.update_application_status(teamId=self.id, applicationId=applicationId, status=status)
+
+    async def update_team_application_status(self, enable: bool):
+        return await self._state.http.update_team_application_status(teamId=self.id, enable=enable)
+
+    async def update_team_application_questions(self, description: str):
+        pass
+
+    async def get_application(self, applicationId: str):
+        return await self._state.http.get_application_by_id(teamId=self.id, applicationId=applicationId)
+
+
+    #Reactions
+
+    async def get_team_custom_reactions(self):
+        reactions = await self._state.http.get_team_custom_reactions(teamId=self.id)
+        return [CustomReaction(state=self._state, data=r) for r in reactions['reactions']]
+
+    async def create_new_custom_reaction(self, name: str, emoji: Any):
+        await self._state.http.create_new_custom_reaction_for_team(teamId=self.id,name=name, emoji=emoji)
+
+    async def update_team_custom_reaction(self,reactionId: str, name: str):
+        await self._state.http.update_custom_reaction(teamId=self.id, reactionId=reactionId, name=name)
+
+    async def delete_team_custom_reaction(self, reactionId: str):
+        await self._state.http.delete_custom_reaction(teamId=self.id, reactionId=reactionId)
+
+
+    #Blog
+
+    async def get_blog_posts(self) -> List[Blog]:
+        blogs = await self._state.http.get_blog_posts(teamId=self.id)
+        return [Blog(state=self._state, team=self, data=data) for data in blogs]
+
+    async def create_blog_post(self, title: str, content: str, heroImage: Optional[str] = None):
+        payload = {
+            "title": title,
+            "content": content,
+            "heroImage": heroImage
+        }
+        return await self._state.http.create_blog_post(teamId=self.id, payload=payload)
+
+    async def delete_blog_post(self, blogId: str):
+        return await self._state.http.delete_blog_post(teamId=self.id, blogId=blogId)
 
     def __str__(self) -> str:
         return self.name

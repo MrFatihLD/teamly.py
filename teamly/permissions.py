@@ -129,7 +129,7 @@ class PermissionsOverwrite(BaseFlags):
     @classmethod
     def text(cls, **kwargs: Optional[bool]) -> Self:
         self = cls.__new__(cls)
-        self.__type = "text"
+        self._type = "text"
         self.allow = Permissions.none()
         self.deny = Permissions.none()
         for i, name in enumerate(cls.TEXT):
@@ -147,7 +147,7 @@ class PermissionsOverwrite(BaseFlags):
     @classmethod
     def voice(cls, **kwargs: Optional[bool]) -> Self:
         self = cls.__new__(cls)
-        self.__type = "voice"
+        self._type = "voice"
         self.allow = Permissions.none()
         self.deny = Permissions.none()
         for i, name in enumerate(cls.VOICE):
@@ -171,7 +171,7 @@ class PermissionsOverwrite(BaseFlags):
     @classmethod
     def todo(cls, **kwargs: Optional[bool]) -> Self:
         self = cls.__new__(cls)
-        self.__type = "todo"
+        self._type = "todo"
         self.allow = Permissions.none()
         self.deny = Permissions.none()
         for i, name in enumerate(cls.TODO):
@@ -189,7 +189,7 @@ class PermissionsOverwrite(BaseFlags):
     @classmethod
     def watchstream(cls, **kwargs: Optional[bool]) -> Self:
         self = cls.__new__(cls)
-        self.__type = "watchstream"
+        self._type = "watchstream"
         self.allow = Permissions.none()
         self.deny = Permissions.none()
         for i, name in enumerate(cls.WATCHSTREAM):
@@ -207,7 +207,7 @@ class PermissionsOverwrite(BaseFlags):
     @classmethod
     def announcement(cls, **kwargs: Optional[bool]):
         self = cls.__new__(cls)
-        self.__type = "announcement"
+        self._type = "announcement"
         self.allow = Permissions.none()
         self.deny = Permissions.none()
         for i, name in enumerate(cls.ANNOUNCEMENT):
@@ -247,7 +247,7 @@ class PermissionsOverwrite(BaseFlags):
             "announcement": self.ANNOUNCEMENT,
         }
 
-        if not hasattr(self, "_PermissionsOverwrite__type"):
+        if not hasattr(self, "_type"):
             raise RuntimeError("PermissionsOverwrite not initialised correctly")
 
         valid = type_map.get(self.__type)
@@ -266,3 +266,6 @@ class PermissionsOverwrite(BaseFlags):
         if denied:
             return False
         return None
+
+    def to_dict(self):
+        return {"allow": self.allow,"deny": self.deny}
