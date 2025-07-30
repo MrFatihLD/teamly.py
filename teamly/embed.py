@@ -22,89 +22,35 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
-from typing import Optional, Dict
-
+from typing import Optional, Dict, Self
+from .types.embed import Embed as EmbedPayload
 from .color import Color
-
 
 class Embed:
 
     __slots__ = (
-        "title",
-        "description",
-        "url",
-        "color",
-        "_author",
-        "_thumbnail",
-        "_image",
-        "_footer",
+        'title',
+        'description',
+        'url',
+        'color',
+        '_author',
+        '_thumbnail',
+        '_image',
+        '_footer'
     )
 
-    def __init__(
-        self,
-        *,
-        title: Optional[str] = None,
-        description: Optional[str] = None,
-        url: Optional[str] = None,
-        color: Optional[Color] = None
-    ):
-        if title and len(title) > 16:
-            raise ValueError("title must be 16 characters or fewer")
-        if description and len(description) > 1024:
-            raise ValueError("description must be 1024 characters or fewer")
+    def __init__(self, data: EmbedPayload) -> None:
+        self.title: Optional[str] = data.get("title")
+        self.description: Optional[str] = data.get("description")
+        self.url: Optional[str] = data.get("url")
+        self.color: Optional[Color] = Color(data["color"]) if data.get("color") is not None else None
+        self._author: Optional[Dict[str,str]] = data.get("author")
+        self._thumbnail: Optional[Dict[str,str]] = data.get("thumbnail")
+        self._image: Optional[str] = data.get("image")
+        self._footer: Optional[Dict[str,str]] = data.get("footer")
 
-        self.title = title
-        self.description = description
-        self.url = url
-        self.color = int(color) if color else None
-
-        self._author: Optional[Dict[str, str]] = None
-        self._thumbnail: Optional[Dict[str, str]] = None
-        self._image: Optional[Dict[str, str]] = None
-        self._footer: Optional[Dict[str, str]] = None
-
-    @property
-    def author(self) -> Dict[str,str] | None:
-        return self._author if self._author else None
-
-    @property
-    def thumbnail(self) -> str | None:
-        return self._thumbnail['url'] if self._thumbnail else None
-
-    @property
-    def image(self) -> str | None:
-        return self._image['url'] if self._image else None
-
-    @property
-    def footer(self) -> Dict[str,str] | None:
-        return self._footer if self._footer else None
-
-    def set_author(self, *, name: Optional[str] = None, icon_url: Optional[str] = None):
-        self._author = {}
-        if name:
-            self._author["name"] = name
-        if icon_url:
-            self._author["icon_url"] = icon_url
-        return self
-
-    def set_thumbnail(self, *, url: str):
-        self._thumbnail = {"url": url}
-        return self
-
-    def set_image(self, *, url: str):
-        self._image = {"url": url}
-        return self
-
-    def set_footer(self, *, text: Optional[str] = None, icon_url: Optional[str] = None):
-        self._footer = {}
-        if text:
-            self._footer["text"] = text
-        if icon_url:
-            self._footer["icon_url"] = icon_url
-        return self
-
-    def to_dict(self) -> Dict:
-        data = {
+    def to_dict(self):
+        payload = {
             "title": self.title,
             "description": self.description,
             "url": self.url,
@@ -112,18 +58,70 @@ class Embed:
             "author": self._author,
             "thumbnail": self._thumbnail,
             "image": self._image,
-            "footer": self._footer,
+            "footer": self._footer
         }
-        return {k: v for k, v in data.items() if v is not None}
+
+        return payload
+
+    @property
+    def author(self):
+        if self._author:
+            return self._author.get("name"),self._author.get("icon_url")
+
+    @property
+    def thumbnail(self):
+        if self._thumbnail:
+            return self._thumbnail["url"]
+
+    @property
+    def image(self):
+        if self._image:
+            return self._image["url"]
+
+    @property
+    def footer(self):
+        if self._footer:
+            return self._footer.get("text"),self._footer.get("icon_url")
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def new(
+        cls,
+        title: Optional[str] = None,
+        *,
+        description: Optional[str] = None,
+        url: Optional[str] = None,
+        color: Optional[Color] = None,
+        author_name: Optional[str] = None,
+        author_icon_url: Optional[str] = None,
+        thumbnail: Optional[str] = None,
+        image: Optional[str] = None,
+        footer_text: str = None,
+        footer_icon_url: str = None
+    ) -> Self:
         self = cls.__new__(cls)
 
-        self.title = data.get('title')
-        self.description = data.get('description')
-        self.url = data.get('url')
-        self._author = data.get('author')
-        self._thumbnail = data.get('thumbnail')
-        self._image = data.get('image')
-        self._footer = data.get('footer')
+        if len(title) > 16:
+            raise ValueError("The title is to long, title should 16 or less then 16 characters")
+        self.title = title
+
+        if len(description) > 1024:
+            raise ValueError("The description is to long, description should 1024 or less then 1012 characters")
+        self.description = description
+
+        self.url = url
+        self.color = color
+
+        if author_name:
+            if len(author_name) > 16:
+                raise ValueError("The author name is to long, author name should 16 or less then 16 characters")
+        self._author = {"name":author_name,"icon_url": author_icon_url}
+
+        self._thumbnail = {"url": thumbnail}
+        self._image = {"url": image}
+
+        if footer_text:
+            if len(footer_text) > 16:
+                raise ValueError("The footer text is to long, footer text should 16 or less then 16 characters")
+        self._footer = {"text":footer_text,"icon_url":footer_icon_url}
+
+        return self
