@@ -26,13 +26,14 @@ from __future__ import annotations
 
 
 from .http import message_handler
-from typing import Any, Dict, List, TYPE_CHECKING, Union, Literal
+from typing import List, TYPE_CHECKING, Optional, Union, Literal, overload
 
 
 if TYPE_CHECKING:
     from .channel import TextChannel
     from .enums import Status
     from .state import ConnectionState
+    from .embed import Embed
 
 
     MessageAbleChannel = Union[TextChannel]
@@ -46,18 +47,50 @@ class MessageAble:
     def __init__(self,state: ConnectionState) -> None:
         self._state: ConnectionState = state
 
+    @overload
+    async def send(
+        self,
+        content: str,
+        /
+    ) -> None: ...
+
+    @overload
     async def send(
         self,
         content: str,
         *,
-        embeds: str = None,
-        attachment: List[Dict[str,Any]] = None,
-        replyTo: str = None
-    ):
+        embeds: Embed
+    ) -> None: ...
+
+    @overload
+    async def send(
+        self,
+        content: str,
+        *,
+        embeds: Embed,
+        replyTo: Optional[str] = None
+    ) -> None: ...
+
+    @overload
+    async def send(
+        self,
+        content: str,
+        *,
+        embeds: Optional[List[Embed]] = None,
+        replyTo: Optional[str] = None
+    ) -> None: ...
+
+    async def send(
+        self,
+        content: Optional[str] = None,
+        *,
+        embeds: Union[Embed, Optional[List[Embed]], None] = None,
+        replyTo: Optional[str] = None
+    ) -> None:
+
         payload = await message_handler(
             content,
             embeds=embeds,
-            attachment=attachment,
             replyTo=replyTo
         )
 

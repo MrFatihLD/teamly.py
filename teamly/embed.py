@@ -26,6 +26,8 @@ from typing import Optional, Dict, Self
 from .types.embed import Embed as EmbedPayload
 from .color import Color
 
+__all__ = ['Embed']
+
 class Embed:
 
     __slots__ = (

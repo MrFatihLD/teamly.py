@@ -45,23 +45,17 @@ if TYPE_CHECKING:
 
 async def message_handler(
     content: Optional[str],
-    *,
-    embeds: Optional[List[Embed]],
-    attachment: List[Dict[str,Any]],
+    embeds: Union[Embed,Optional[List[Embed]], None],
     replyTo: str
 ):
     payload = {}
 
     if len(content) > 2000:
         raise ValueError("the content must equel or lower then 2000 characters")
-    else:
-        payload['content'] = content
+    payload['content'] = content
 
     if embeds:
-       payload['embeds'] = embeds
-
-    if attachment:
-       payload['attachment'] = attachment
+        payload["embeds"] = [e.to_dict() for e in embeds] if type(embeds) is list else embeds.to_dict()
 
     if replyTo:
        payload['replyTo'] = replyTo
