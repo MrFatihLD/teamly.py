@@ -66,7 +66,7 @@ class Cache:
         self._user: Optional[ClientUser] = None
         self._teams: Dict[str, Team] = {}
         self._channels: Dict[str, Dict[str, Channel]] = {}
-        self._messages: Dict[str, Dict[str, OrderedDict[str, Message]]] = {}
+        self._messages: Dict[str, Dict[str, OrderedDict[str, Message]]] = OrderedDict()
         self._members: Dict[str, Dict[str, Member]] = {}
 
     async def setup_cache(self, data: Any):
@@ -109,29 +109,40 @@ class Cache:
 
     async def __fetch_channel_messages(self, channel: MessageAbleChannel, limit: int = 1000):
         try:
-            cache: Dict[str,Member] = {}
-            i = 0
+            cache: OrderedDict[str,Member] = OrderedDict()
             remaining = limit
             offset = 0
 
             while remaining > 0:
                 fetch_count = min(50, remaining)
-                messages = await self._http.get_channel_messages(channelId=channel.id, offset=str(offset), limit=str(fetch_count))
-                messages = json.loads(messages)
-                for message in messages['messages']:
-                    i += 1
-                    print("looping",i)
-                    if message['replyTo'] is not None:
-                        message['replyTo'] = next((reply for reply in messages['replyMessages'] if reply['id'] == message['replyTo']), message['replyTo'])
 
-                    cache[message['id']] = Message(state=self._state, channel=channel, data=message)
+                response = await self._http.get_channel_messages(
+                    channelId=channel.id, offset=offset, limit=fetch_count
+                )
+                data = json.loads(response)
+                messages = data.get("messages",[])
 
-                remaining -= fetch_count
-                offset += fetch_count
+                for message in messages:
+                    if message.get("replyTo") is not None:
+                        message["replyTo"] = next(
+                            (
+                                reply
+                                for reply in data.get("replyMessages", [])
+                                if reply["id"] == message["replyTo"]
+                            ),
+                            message["replyTo"]
+                        )
 
-                if len(messages) <= 50:
-                    remaining = 0
-                    print("success")
+                    cache[message["id"]] = Message(
+                        state=self._state, channel=channel, data=message
+                    )
+
+                count = len(messages)
+                remaining -= count
+                offset += count
+
+                if count < fetch_count:
+                    break
 
             return cache
         except Exception as e:
