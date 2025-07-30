@@ -67,8 +67,6 @@ class ConnectionState:
     async def __setup_before_ready(self, data: Any):
         await asyncio.wait_for(self.cache.setup_cache(data=data), timeout=15)
         self._user = self.cache._user
-        team = self.cache.get_team(teamId="96461fea83ec104a") #test
-        self.dispatch('ready', team) #test
 
     def parse_ready(self, data: Any):
         logger.info("Bot connected successfuly")

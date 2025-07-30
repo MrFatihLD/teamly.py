@@ -23,7 +23,6 @@ SOFTWARE.
 '''
 
 from __future__ import annotations
-import inspect
 
 from teamly import utils
 import teamly.abc
@@ -58,9 +57,9 @@ class TextChannel(teamly.abc.MessageAble):
 
     __slots__ = (
         '_state',
-        'team',
         'id',
         'type',
+        'team',
         'name',
         'description',
         'created_by',
@@ -68,8 +67,8 @@ class TextChannel(teamly.abc.MessageAble):
         'priority',
         'rate_limit_per_user',
         'created_at',
-        'permissions',
-        'additional_data'
+        '_permissions',
+        '_additional_data'
     )
 
     def __init__(
@@ -92,21 +91,58 @@ class TextChannel(teamly.abc.MessageAble):
         self.priority: int = data['priority']
         self.rate_limit_per_user: int = data['rateLimitPerUser']
         self.created_at: str = data['createdAt']
-        self.permissions: Dict[str,Any] = data['permissions'].get('role', {})
-        self.additional_data: Dict[str,Any] = data.get('additionalData', {})
+        self._permissions: Dict[str,Any] = data['permissions'].get('role', {})
+        self._additional_data: Dict[str,Any] = data.get('additionalData', {})
 
     def to_dict(self):
-        return {
-            utils.snake_to_camel(k):v
-            for k,v in inspect.getmembers(self, lambda x: not callable(x))
-            if not k.startswith('_')
+        payload = {
+            "id": self.id,
+            "type": self.type,
+            "teamId": self.team.id,
+            "name": self.name,
+            "description": self.description,
+            "createdBy": self.created_by,
+            "parentId": self.parent_id,
+            "priority": self.priority,
+            "rateLimitPerUser": self.rate_limit_per_user,
+            "createdAt": self.created_at,
         }
+        if self._permissions:
+            payload["permissions"] = self._permissions
+        if self._additional_data:
+            payload['addtionalData'] = self._additional_data
+
+        return payload
+
+    async def edit(self, name: str):
+        if not 1 <= len(name) <= 20:
+            raise ValueError("Enter 'name' between 1 and 20 character")
+        payload = {"name": name}
+        return await self._state.http.update_channel(teamId=self.team.id,channelId=self.id, payload=payload)
+
+    async def edit_permissions(self, roleId: str, payload: Dict[str,int]):
+        await self._state.http.update_channel_permissions(teamId=self.team.id, channelId=self.id, roleId=roleId, payload=payload)
+
+    async def duplicate(self):
+        '''Duplicates the current channel'''
+        await self._state.http.duplicate_channel(teamId=self.team.id, channelId=self.id)
+
+
 
     async def delete_message(self, messageId: str):
         return await self._state.http.delete_message(self.id, messageId)
 
     async def react_message(self, messageId: str, emojiId: str):
         return await self._state.http.react_to_message(self.id, messageId, emojiId)
+
+    async def delete_reaction(self, messageId: str, emojiId: str):
+        return await self._state.http.delete_reaction_from_message(channelId=self.id, messageId=messageId, emojiId=emojiId)
+
+    async def get_message(self, messageId: str):
+        await self._state.cache.get_message(teamId=self.team.id, channelId=self.id, messageId=messageId)
+
+    async def get_messages(self, limit: int = 50):
+        pass
 
     def __repr__(self) -> str:
         return f"<TextChannel id={self.id} name={self.name!r} type={self.type} teamId={self.team.id}>"

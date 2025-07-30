@@ -61,4 +61,4 @@ class Member(User,_UserTag):
         return cls(state=state, data=cast(MemberPayload, member_data))
 
     def __repr__(self) -> str:
-        return f"<Member username={self._user.username} joined_at={self.joined_at} roles={self.roles} teamId={self.teamId}>"
+        return f"<Member username={self.username} joined_at={self.joined_at} roles={self.roles} teamId={self.teamId}>"

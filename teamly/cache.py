@@ -30,7 +30,6 @@ import json
 from typing import Dict, Optional, Union, Any, TYPE_CHECKING
 
 from loguru import logger
-
 from .utils import MISSING
 
 from .channel import TextChannel, VoiceChannel, _channel_factory
@@ -65,10 +64,10 @@ class Cache:
 
     def clear(self):
         self._user: Optional[ClientUser] = None
-        self.__teams: Dict[str, Team] = {}
-        self.__channels: Dict[str, Dict[str, Channel]] = {}
-        self.__messages: Dict[str, Dict[str, OrderedDict[str, Message]]] = {}
-        self.__members: Dict[str, Dict[str, Member]] = {}
+        self._teams: Dict[str, Team] = {}
+        self._channels: Dict[str, Dict[str, Channel]] = {}
+        self._messages: Dict[str, Dict[str, OrderedDict[str, Message]]] = {}
+        self._members: Dict[str, Dict[str, Member]] = {}
 
     async def setup_cache(self, data: Any):
         #get ClietnUser Payload
@@ -76,7 +75,7 @@ class Cache:
         logger.info(f"Bot connected as {self._user.username!r}")
         await self.__fetch_teams(data['teams'])
         tasks = []
-        for team in self.__teams:
+        for team in self._teams:
             tasks.append(self.__fetch_channels(team))
             tasks.append(self.__fetch_team_members(team))
 
@@ -84,7 +83,7 @@ class Cache:
 
     async def __fetch_teams(self, teams: Dict[str, Any]):
         for team in teams:
-            self.__teams[team['id']] = Team(state=self._state, data=team)
+            self._teams[team['id']] = Team(state=self._state, data=team)
 
     async def __fetch_channels(self, teamId: str):
         channels = await self._http.get_channels(teamId)
@@ -95,22 +94,22 @@ class Cache:
             channel: Channel = MISSING
             team: Team = MISSING
 
-            if teamId not in self.__channels:
-                self.__channels[teamId] = {}
+            if teamId not in self._channels:
+                self._channels[teamId] = {}
 
             if factory:
-                team = self.__teams[teamId]
-                self.__channels[teamId][data['id']] = channel = factory(state=self._state,team=team, data=data)
+                team = self._teams[teamId]
+                self._channels[teamId][data['id']] = channel = factory(state=self._state,team=team, data=data)
 
-            if teamId not in self.__messages:
-                self.__messages[teamId] = OrderedDict()
+            if teamId not in self._messages:
+                self._messages[teamId] = OrderedDict()
 
             if data['type'] == 'text':
-                self.__messages[teamId][channel.id] = await self.__fetch_channel_messages(channel=channel)
+                self._messages[teamId][channel.id] = await self.__fetch_channel_messages(channel=channel)
 
     async def __fetch_channel_messages(self, channel: MessageAbleChannel):
         try:
-            messages = await self._http.get_channel_messages(channelId=channel.id, limit=50)
+            messages = await self._http.get_channel_messages(channelId=channel.id, limit='50')
             messages = json.loads(messages)
 
             message_dict = {}
@@ -132,62 +131,62 @@ class Cache:
         members = await self._http.get_member(teamId, "")
         members = json.loads(members)
 
-        if teamId not in self.__members:
-            self.__members[teamId] = {}
+        if teamId not in self._members:
+            self._members[teamId] = {}
 
         for member in members['members']:
-            if member['id'] not in self.__members:
-                self.__members[member['id']] = Member(state=self._state, data=member)
+            if member['id'] not in self._members[teamId]:
+                self._members[teamId][member['id']] = Member(state=self._state, data=member)
 
 
     #Team Cache
     def get_team(self, teamId: str):
-        if teamId in self.__teams:
-            return self.__teams[teamId]
+        if teamId in self._teams:
+            return self._teams[teamId]
         else:
             return "..."
 
     def update_team(self, teamId: str, updated_team: str):
-        if teamId in self.__teams:
-            self.__teams[teamId] = updated_team
+        if teamId in self._teams:
+            self._teams[teamId] = updated_team
 
 
     #Channel Cache
     def add_channel(self, teamId: str, channelId: str, channel: MessageAbleChannel):
-        if teamId not in self.__channels:
-            self.__channels[teamId] = {}
+        if teamId not in self._channels:
+            self._channels[teamId] = {}
 
-        if channelId not in self.__channels[teamId]:
-            self.__channels[teamId][channelId] = channel
+        if channelId not in self._channels[teamId]:
+            self._channels[teamId][channelId] = channel
             logger.opt(colors=True).debug(f"<cyan>Added channel {channelId!r} to cache successfuly</cyan>")
 
     def delete_channel(self, teamId: str, channelId: str):
-        if channelId in self.__channels[teamId]:
-            self.__channels[teamId].pop(channelId)
+        if channelId in self._channels[teamId]:
+            self._channels[teamId].pop(channelId)
             logger.opt(colors=True).debug(f"<cyan>Deleted channel {channelId!r} from cache successfuly</cyan>")
 
     def update_channel(self, teamId: str, channelId: str, channel: MessageAbleChannel):
-        if channelId in self.__channels[teamId]:
-            self.__channels[teamId][channelId] = channel
+        if channelId in self._channels[teamId]:
+            self._channels[teamId][channelId] = channel
             logger.opt(colors=True).debug(f"<cyan>Updated channel {channelId!r} from cache successfuly</cyan>")
 
     def get_channel(self, teamId: str, channelId: str) -> Channel | None:
-        if channelId in self.__channels[teamId]:
-            return self.__channels[teamId][channelId]
+        if channelId in self._channels[teamId]:
+            return self._channels[teamId][channelId]
 
     def get_channels(self, teamId: str) -> Dict[str, Channel]:
-            return self.__channels[teamId]
+            return self._channels[teamId]
 
     #Voice Channel
     def voice_participants_joined(self,teamId: str, channelId: str, participantId: str):
-        if self.__channels[teamId][channelId]:
-            voice = self.__channels[teamId][channelId]
+        if self._channels[teamId][channelId]:
+            voice = self._channels[teamId][channelId]
             if not any(p.get('id') == participantId for p in voice._participants):
                 voice._participants.append({"id": participantId})
 
     def voice_participants_leaved(self, teamId:str, channelId: str, participantId: str):
-        if self.__channels[teamId][channelId]:
-            voice = self.__channels[teamId][channelId]
+        if self._channels[teamId][channelId]:
+            voice = self._channels[teamId][channelId]
             for par in voice._participants:
                 if par.get('id') == participantId:
                     voice._participants.remove({"id": participantId})
@@ -195,32 +194,37 @@ class Cache:
 
     #Message Cache
 
-    def get_message(self, teamId: str, channelId: str, messageId: str):
-        if teamId in self.__messages:
-            if channelId in self.__channels[teamId]:
-                if self.__messages[teamId][channelId][messageId]:
-                    return self.__messages[teamId][channelId][messageId]
+    async def get_message(self, teamId: str, channelId: str, messageId: str):
+        if teamId in self._messages:
+            if channelId in self._channels[teamId]:
+                if self._messages[teamId][channelId][messageId]:
+                    return self._messages[teamId][channelId][messageId]
                 else:
-                    return None
+                    message = await self._state.http.get_channel_message_by_id(channelId=channelId, messageId=messageId)
+                    channel = self.get_channel(teamId=teamId, channelId=channelId)
+                    return Message(state=self._state, channel=channel, data=message)
+
+    async def get_messages(self, teamId: str, channelId: str,limit: int = 50):
+        pass
 
     def add_message(self, teamId: str, channelId: str, message: Message):
-        if channelId in self.__messages[teamId]:
-            self.__messages[teamId][channelId][message.id] = message
+        if channelId in self._messages[teamId]:
+            self._messages[teamId][channelId][message.id] = message
 
-        if len(self.__messages[teamId][channelId]) > self.maxLength:
-            self.__messages[teamId][channelId].popitem(last=False)
+        if len(self._messages[teamId][channelId]) > self.maxLength:
+            self._messages[teamId][channelId].popitem(last=False)
 
     def update_message(self, teamId: str, channelId: str, message: Message):
-        if channelId in self.__messages[teamId]:
-            if message.id in self.__messages[teamId][channelId]:
-                upt_message = self.__messages[teamId][channelId][message.id]
-                self.__messages[teamId][channelId][message.id] = message
+        if channelId in self._messages[teamId]:
+            if message.id in self._messages[teamId][channelId]:
+                upt_message = self._messages[teamId][channelId][message.id]
+                self._messages[teamId][channelId][message.id] = message
                 return upt_message
 
     def delete_message(self, teamId: str, channelId: str, messageId: str):
-        if channelId in self.__messages[teamId]:
-            if messageId in self.__messages[channelId][messageId]:
-                message = self.__messages[teamId][channelId].pop(messageId)
+        if channelId in self._messages[teamId]:
+            if messageId in self._messages[channelId][messageId]:
+                message = self._messages[teamId][channelId].pop(messageId)
                 logger.opt(colors=True).debug(f"<cyan>deleted channel message {messageId!r} from cache successfuly</cyan>")
                 return message
 
@@ -229,15 +233,15 @@ class Cache:
     #Member
 
     def get_members(self, teamId: str) -> Dict[str, Member]:
-        return self.__members[teamId]
+        return self._members[teamId]
 
     def get_member(self, teamId: str, userId: str):
-        return self.__members[teamId][userId] if userId in self.__members[teamId] else None
+        return self._members[teamId][userId] if userId in self._members[teamId] else None
 
     def add_member(self, teamId: str, member: Member):
-        if member.id not in self.__members[teamId]:
-            self.__members[teamId][member.id] = member
+        if member.id not in self._members[teamId]:
+            self._members[teamId][member.id] = member
 
     def delete_member(self, teamId: str, memberId: str):
-        if memberId in self.__members[teamId]:
-            self.__members[teamId].pop(memberId)
+        if memberId in self._members[teamId]:
+            self._members[teamId].pop(memberId)

@@ -251,10 +251,10 @@ class Team:
         payload = {"channels": [channel.to_dict() for channel in channels]}
         await self._state.http.update_channel_priorities(teamId=self.id, payload=payload)
 
-    async def get_channels(self):
+    def get_channels(self):
         return self._state.cache.get_channels(teamId=self.id)
 
-    async def get_channel(self, channelId: str):
+    def get_channel(self, channelId: str):
         return self._state.cache.get_channel(teamId=self.id, channelId=channelId)
 
     #Member
