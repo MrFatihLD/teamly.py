@@ -107,25 +107,38 @@ class Cache:
             if data['type'] == 'text':
                 self._messages[teamId][channel.id] = await self.__fetch_channel_messages(channel=channel)
 
-    async def __fetch_channel_messages(self, channel: MessageAbleChannel):
+    async def __fetch_channel_messages(self, channel: MessageAbleChannel, limit: int = 1000):
         try:
-            messages = await self._http.get_channel_messages(channelId=channel.id, limit='50')
-            messages = json.loads(messages)
+            cache: Dict[str,Member] = {}
+            i = 0
+            remaining = limit
+            offset = 0
 
-            message_dict = {}
-
-            if messages['messages']:
+            while remaining > 0:
+                fetch_count = min(50, remaining)
+                messages = await self._http.get_channel_messages(channelId=channel.id, offset=str(offset), limit=str(fetch_count))
+                messages = json.loads(messages)
                 for message in messages['messages']:
-                    message_dict[message['id']] = Message(state=self._state, channel=channel, data=message)
+                    i += 1
+                    print("looping",i)
+                    if message['replyTo'] is not None:
+                        message['replyTo'] = next((reply for reply in messages['replyMessages'] if reply['id'] == message['replyTo']), message['replyTo'])
 
-            if messages['replyMessages']:
-                for message in messages['replyMessages']:
-                    message_dict[message['id']] = Message(state=self._state, channel=channel, data=message)
+                    cache[message['id']] = Message(state=self._state, channel=channel, data=message)
 
-            return message_dict
+                remaining -= fetch_count
+                offset += fetch_count
+
+                if len(messages) <= 50:
+                    remaining = 0
+                    print("success")
+
+            return cache
         except Exception as e:
             logger.error(f"Exception error: {e}")
-            return {}
+
+
+
 
     async def __fetch_team_members(self, teamId: str):
         members = await self._http.get_member(teamId, "")
@@ -204,7 +217,7 @@ class Cache:
                     channel = self.get_channel(teamId=teamId, channelId=channelId)
                     return Message(state=self._state, channel=channel, data=message)
 
-    async def get_messages(self, teamId: str, channelId: str,limit: int = 50):
+    async def get_messages(self,channelId: str,offset: int = 0, limit: int = 130):
         pass
 
     def add_message(self, teamId: str, channelId: str, message: Message):

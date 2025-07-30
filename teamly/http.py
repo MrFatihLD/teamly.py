@@ -282,7 +282,7 @@ class HTTPClient:
         r = Route("DELETE","/channels/{channelId}/messages/{messageId}",messageId=messageId, channelId=channelId)
         return await self.request(r)
 
-    async def get_channel_messages(self, channelId: str, offset: str = '0', limit: str = '15'):
+    async def get_channel_messages(self, channelId: str, offset: str = '0', limit: str = '50'):
         r = Route("GET","/channels/{channelId}/messages" + f"?offset={offset}&limit={limit}", channelId=channelId)
         return await self.request(r)
 
