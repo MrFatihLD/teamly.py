@@ -31,7 +31,7 @@ from .reaction import PartialReaction
 from .user import User
 from .embed import Embed
 from .types.message import Message as MessagePayload
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 if TYPE_CHECKING:
     from teamly.state import ConnectionState
@@ -126,7 +126,7 @@ class Message(teamly.abc.MessageAble):
             self.author = User(state=self._state, data=data['createdBy'])
 
         self.edited_at: Optional[str] = data.get('editedAt')
-        self.reply_to: Optional[str] = data.get('replyTo')
+        self.reply_to: Optional[Dict[str,Any]] = data.get('replyTo')
         self._embeds: Optional[List[Embed]] = data.get('embeds')
         self._emojis: Optional[List[Dict[str,str]]] = data.get('emojis')
         self._reactions: Optional[List[Dict[str,str]]] = data.get('reactions')

@@ -56,10 +56,10 @@ __all__ = [
 
 class Cache:
 
-    def __init__(self, state: ConnectionState) -> None:
+    def __init__(self, state: ConnectionState, cach_size: int = 1000) -> None:
         self._state: ConnectionState = state
         self._http: HTTPClient = self._state.http
-        self.maxLength: int = 100
+        self.cache_size: int = cach_size
         self.clear()
 
     def clear(self):
@@ -219,38 +219,36 @@ class Cache:
     #Message Cache
 
     async def get_message(self, teamId: str, channelId: str, messageId: str):
-        if teamId in self._messages:
-            if channelId in self._channels[teamId]:
-                if self._messages[teamId][channelId][messageId]:
-                    return self._messages[teamId][channelId][messageId]
-                else:
-                    message = await self._state.http.get_channel_message_by_id(channelId=channelId, messageId=messageId)
-                    channel = self.get_channel(teamId=teamId, channelId=channelId)
-                    return Message(state=self._state, channel=channel, data=message)
+        if teamId in self._messages and channelId in self._messages[teamId]:
+            if self._messages[teamId][channelId][messageId]:
+                return self._messages[teamId][channelId][messageId]
+
 
     async def get_messages(self,channelId: str,offset: int = 0, limit: int = 130):
         pass
 
     def add_message(self, teamId: str, channelId: str, message: Message):
-        if channelId in self._messages[teamId]:
+        if channelId not in self._messages[teamId]:
+            self._messages[teamId][channelId] = OrderedDict()
+
+        od = self._messages[teamId][channelId]
+        od[message.id] = message
+        od.move_to_end(message.id, last=False)
+
+        if len(self._messages[teamId][channelId]) > self.cache_size:
+            self._messages[teamId][channelId].popitem(last=True)
+
+    def update_message(self, teamId: str, channelId: str, message: Message) -> Message | None:
+        if (channelId in self._messages[teamId]) and (message.id in self._messages[teamId][channelId]):
+            upt_message = self._messages[teamId][channelId][message.id]
             self._messages[teamId][channelId][message.id] = message
-
-        if len(self._messages[teamId][channelId]) > self.maxLength:
-            self._messages[teamId][channelId].popitem(last=False)
-
-    def update_message(self, teamId: str, channelId: str, message: Message):
-        if channelId in self._messages[teamId]:
-            if message.id in self._messages[teamId][channelId]:
-                upt_message = self._messages[teamId][channelId][message.id]
-                self._messages[teamId][channelId][message.id] = message
-                return upt_message
+            return upt_message
 
     def delete_message(self, teamId: str, channelId: str, messageId: str):
-        if channelId in self._messages[teamId]:
-            if messageId in self._messages[channelId][messageId]:
-                message = self._messages[teamId][channelId].pop(messageId)
-                logger.opt(colors=True).debug(f"<cyan>deleted channel message {messageId!r} from cache successfuly</cyan>")
-                return message
+        if channelId in self._messages[teamId] and messageId in self._messages[channelId][messageId]:
+            message = self._messages[teamId][channelId].pop(messageId)
+            logger.opt(colors=True).debug(f"<cyan>deleted channel message {messageId!r} from cache successfuly</cyan>")
+            return message
 
 
 

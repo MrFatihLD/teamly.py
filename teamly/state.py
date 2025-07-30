@@ -65,8 +65,14 @@ class ConnectionState:
         self.cache: Cache = Cache(state=self)
 
     async def __setup_before_ready(self, data: Any):
-        await asyncio.wait_for(self.cache.setup_cache(data=data), timeout=15)
+        try:
+            await asyncio.wait_for(self.cache.setup_cache(data=data), timeout=15)
+        except asyncio.TimeoutError:
+            logger.warning("Cache setup timed out; using partial cache")
+        except Exception as e:
+            logger.exception(f"Cache setup failed: {e}")
         self._user = self.cache._user
+        self.dispatch("ready")
 
     def parse_ready(self, data: Any):
         logger.info("Bot connected successfuly")
