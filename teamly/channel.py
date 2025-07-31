@@ -25,7 +25,6 @@ SOFTWARE.
 from __future__ import annotations
 
 from teamly import utils
-import teamly.abc
 from .todo import TodoItem
 
 from .enums import ChannelType
@@ -53,7 +52,7 @@ __all__ = [
 ]
 
 @utils.immuteable
-class TextChannel(teamly.abc.MessageAble):
+class TextChannel:
 
     __slots__ = (
         '_state',

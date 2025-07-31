@@ -101,3 +101,71 @@ class MessageAble:
         )
 
         return await self._state.http.create_message(self.channel.id, payload)
+
+
+    async def edit(self, content: str, embeds: Optional[List[Embed]]):
+        payload = {}
+
+        if len(content) > 2000:
+            raise ValueError("the content must equal or lower than 2000")
+        payload["content"] = content
+
+        if embeds:
+            payload["embeds"] = [e.to_dict() for e in embeds] if embeds is list else embeds.to_dict()
+
+        return await self._state.http.update_channel_message(self.channel.id,self.id, payload=payload)
+
+    async def delete(self):
+        return await self._state.http.delete_message(self.channel.id,self.id)
+
+    @overload
+    async def reply(
+        self,
+        content: str,
+        /
+    ) -> None: ...
+
+    @overload
+    async def reply(
+        self,
+        content: str,
+        *,
+        embeds: Embed
+    ) -> None: ...
+
+    @overload
+    async def reply(
+        self,
+        content: str,
+        *,
+        embeds: Embed,
+    ) -> None: ...
+
+    @overload
+    async def reply(
+        self,
+        content: str,
+        *,
+        embeds: Optional[List[Embed]] = None,
+    ) -> None: ...
+
+    async def reply(
+        self,
+        content: Optional[str] = None,
+        *,
+        embeds: Union[Embed, Optional[List[Embed]], None] = None,
+        attachments: Optional[List[Attachment]] = None,
+    ) -> None:
+
+        if embeds is not None and embeds is not list:
+            embeds = [embeds]
+
+        payload = await message_handler(
+            state=self._state,
+            content=content,
+            embeds=embeds,
+            attachment=attachments,
+            replyTo=self.id
+        )
+
+        return await self._state.http.create_message(self.channel.id, payload)

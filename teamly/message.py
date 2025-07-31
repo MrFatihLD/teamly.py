@@ -25,8 +25,8 @@ SOFTWARE.
 from __future__ import annotations
 
 import teamly.abc
-from teamly.member import Member
 
+from .member import Member
 from .reaction import PartialReaction
 from .user import User
 from .embed import Embed
@@ -34,8 +34,8 @@ from .types.message import Message as MessagePayload
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 if TYPE_CHECKING:
-    from teamly.state import ConnectionState
-
+    from .state import ConnectionState
+    from .embed import Embed
     from .channel import TextChannel
 
     MessageAbleChannel = Union[TextChannel]
@@ -105,11 +105,7 @@ class Message(teamly.abc.MessageAble):
         super().__init__(state=state)
         self._state: ConnectionState = state
         self.channel: MessageAbleChannel = channel
-
-        try:
-            self.team = self.channel.team
-        except AttributeError:
-            self.team = self._state.cache.get_team(teamId=data['teamId'])
+        self.team = self.channel.team
 
         self._update(data)
 
@@ -117,7 +113,6 @@ class Message(teamly.abc.MessageAble):
         self.id: str = data['id']
         self.type: str = data['type']
         self.content: str = data['content']
-
         self._attachment: Optional[List[Dict[str,str]]] = data.get('attachments')
 
         try:
@@ -213,6 +208,7 @@ class Message(teamly.abc.MessageAble):
             result['mentions'] = self.mentions
 
         return result
+
 
     def __repr__(self) -> str:
         return (
