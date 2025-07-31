@@ -48,9 +48,10 @@ from typing import Dict, Callable, Any, Optional
 
 class ConnectionState:
 
-    def __init__(self, dispatch: Callable[...,Any],http: HTTPClient) -> None:
+    def __init__(self, dispatch: Callable[...,Any],http: HTTPClient, cache_size: int) -> None:
         self.http: HTTPClient = http
         self.dispatch: Callable[...,Any] = dispatch
+        self.cache_size: int = cache_size
 
         self.parsers: Dict[str, Callable[[Any], None]]
         self.parsers = parsers = {}
@@ -62,7 +63,7 @@ class ConnectionState:
 
     def clear(self):
         self._user: Optional[ClientUser] = None
-        self.cache: Cache = Cache(state=self)
+        self.cache: Cache = Cache(state=self, cach_size=self.cache_size)
 
     async def __setup_before_ready(self, data: Any):
         try:

@@ -56,7 +56,7 @@ __all__ = [
 
 class Cache:
 
-    def __init__(self, state: ConnectionState, cach_size: int = 1000) -> None:
+    def __init__(self, state: ConnectionState, cach_size: int) -> None:
         self._state: ConnectionState = state
         self._http: HTTPClient = self._state.http
         self.cache_size: int = cach_size
@@ -107,10 +107,10 @@ class Cache:
             if data['type'] == 'text':
                 self._messages[teamId][channel.id] = await self.__fetch_channel_messages(channel=channel)
 
-    async def __fetch_channel_messages(self, channel: MessageAbleChannel, limit: int = 1000):
+    async def __fetch_channel_messages(self, channel: MessageAbleChannel):
         try:
             cache: OrderedDict[str,Member] = OrderedDict()
-            remaining = limit
+            remaining = self.cache_size
             offset = 0
 
             while remaining > 0:

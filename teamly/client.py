@@ -69,10 +69,12 @@ class Client:
     def __init__(
         self,
         *,
-        enable_debug: bool = False
+        enable_debug: bool = False,
+        cache_size: int = 1000
     ) -> None:
         self.loop: asyncio.AbstractEventLoop = _loop
         self.http: HTTPClient = HTTPClient(self.loop)
+        self.cache_size: int = cache_size
         self.ws: TeamlyWebSocket = None #type: ignore
         self._listener: Dict[str,List[str]] = {}
 
@@ -204,7 +206,7 @@ class Client:
         await self.http.close()
 
     def _get_state(self):
-        return ConnectionState(dispatch=self.dispatch,http=self.http)
+        return ConnectionState(dispatch=self.dispatch,http=self.http, cache_size=self.cache_size)
 
     @property
     def user(self) -> Optional[ClientUser]:

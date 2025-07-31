@@ -86,7 +86,7 @@ class Message(teamly.abc.MessageAble):
         '_attachment',
         'author',
         'edited_at',
-        'reply_to',
+        '_reply_to',
         '_embeds',
         '_emojis',
         '_reactions',
@@ -121,7 +121,7 @@ class Message(teamly.abc.MessageAble):
             self.author = User(state=self._state, data=data['createdBy'])
 
         self.edited_at: Optional[str] = data.get('editedAt')
-        self.reply_to: Optional[Dict[str,Any]] = data.get('replyTo')
+        self._reply_to: Optional[Dict[str,Any]] = data.get('replyTo')
         self._embeds: Optional[List[Embed]] = data.get('embeds')
         self._emojis: Optional[List[Dict[str,str]]] = data.get('emojis')
         self._reactions: Optional[List[Dict[str,str]]] = data.get('reactions')
@@ -194,8 +194,8 @@ class Message(teamly.abc.MessageAble):
             result['attachment'] = self._attachment
         if self.edited_at:
             result['editedAt'] = self.edited_at
-        if self.reply_to:
-            result['replyTo'] = self.reply_to
+        if self._reply_to:
+            result['replyTo'] = self._reply_to
         if self._embeds:
             result['embeds'] = self._embeds
         if self._emojis:
