@@ -42,14 +42,15 @@ from loguru import logger
 if TYPE_CHECKING:
     from .embed import Embed
     from .attachment import Attachment
+    from .state import ConnectionState
 
 
 async def message_handler(
+    state: ConnectionState,
     content: Optional[str],
-    *,
     embeds: Union[Embed,Optional[List[Embed]], None],
-    attachment: Optional[Attachment] = None,
-    replyTo: str
+    attachment: Optional[List[Attachment]] = None,
+    replyTo: Optional[str] = None
 ):
     payload = {}
 
@@ -59,6 +60,16 @@ async def message_handler(
 
     if embeds:
         payload["embeds"] = [e.to_dict() for e in embeds] if type(embeds) is list else embeds.to_dict()
+
+    if attachment:
+        payload["attachment"] = []
+
+        for a in attachment:
+            response = await state.http.upload_attachment(a._formdata)
+            json.loads(response)
+            url = response["url"]
+            a.url = url
+            payload["attachment"].append(a.to_dict())
 
     if replyTo:
        payload['replyTo'] = replyTo

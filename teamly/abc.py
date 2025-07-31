@@ -24,6 +24,7 @@ SOFTWARE.
 
 from __future__ import annotations
 
+from .http import message_handler
 
 from typing import List, TYPE_CHECKING, Optional, Union, Literal, overload
 
@@ -84,14 +85,18 @@ class MessageAble:
         content: Optional[str] = None,
         *,
         embeds: Union[Embed, Optional[List[Embed]], None] = None,
-        attachement: Optional[Attachment] = None,
+        attachments: Optional[List[Attachment]] = None,
         replyTo: Optional[str] = None
     ) -> None:
 
-        payload = await self._state.http.message_handler(
-            content,
+        if embeds is not None and embeds is not list:
+            embeds = [embeds]
+
+        payload = await message_handler(
+            state=self._state,
+            content=content,
             embeds=embeds,
-            attachement=attachement,
+            attachment=attachments,
             replyTo=replyTo
         )
 
