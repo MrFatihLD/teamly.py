@@ -25,7 +25,6 @@ SOFTWARE.
 from __future__ import annotations
 
 
-from .http import message_handler
 from typing import List, TYPE_CHECKING, Optional, Union, Literal, overload
 
 
@@ -34,7 +33,7 @@ if TYPE_CHECKING:
     from .enums import Status
     from .state import ConnectionState
     from .embed import Embed
-
+    from .attachment import Attachment
 
     MessageAbleChannel = Union[TextChannel]
     StatusLiteral = Literal[Status.OFFLINE, Status.ONLINE, Status.IDLE, Status.DO_DO_DISTURB]
@@ -85,12 +84,14 @@ class MessageAble:
         content: Optional[str] = None,
         *,
         embeds: Union[Embed, Optional[List[Embed]], None] = None,
+        attachement: Optional[Attachment] = None,
         replyTo: Optional[str] = None
     ) -> None:
 
-        payload = await message_handler(
+        payload = await self._state.http.message_handler(
             content,
             embeds=embeds,
+            attachement=attachement,
             replyTo=replyTo
         )
 

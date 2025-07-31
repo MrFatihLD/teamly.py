@@ -24,8 +24,9 @@ SOFTWARE.
 
 import aiohttp
 import json
-from pathlib import Path
-from typing import Any
+
+
+from typing import Union, Dict, Any
 
 
 class _MissingSentinel:
@@ -49,40 +50,21 @@ MISSING: Any = _MissingSentinel()
 def _to_json(data: Any):
     return json.loads(data)
 
+async def json_or_text(response: aiohttp.ClientResponse) -> Union[Dict[str, Any], str]:
+    text = await response.text(encoding='utf-8')
+    try:
+        if response.headers['content-type'] == 'application/json':
+            return json.loads(text)
+    except KeyError:
+        pass
+
+    return text
+
 def snake_to_camel(name: str):
     if '_' not in name:
         return name
     return name.split('_')[0] + ''.join(p.capitalize() for p in name.split('_')[1:])
 
-
-
-class FormDataBuilder:
-
-    def __init__(
-        self,
-        file_path: str,
-        *,
-        field_name: str,
-        type: str = "attachment"
-    ) -> None:
-        self.file_path: Path = Path(file_path)
-        self.field_name: str = field_name
-        self.type: str = type
-
-    def build(self) -> aiohttp.FormData:
-        if not self.file_path.exists() or not self.file_path.is_file():
-            raise FileNotFoundError(f"File not found: {self.file_path}")
-
-        form = aiohttp.FormData()
-        form.add_field(
-            self.field_name,
-            self.file_path.open('rb'),
-            filename=self.name,
-            content_type="application/octet-stream"
-        )
-        form.add_field('type', self.type)
-
-        return form
 
 def immuteable(cls):
     original_setattr = cls.__setattr__

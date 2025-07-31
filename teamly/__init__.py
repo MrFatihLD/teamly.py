@@ -21,6 +21,7 @@ from . import (
 )
 from .announcement import *
 from .application import *
+from .attachment import *
 from .blog import *
 from .cache import *
 from .channel import *

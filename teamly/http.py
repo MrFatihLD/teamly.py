@@ -34,18 +34,21 @@ import time
 
 
 
-from .utils import MISSING
+from .utils import MISSING, json_or_text
 from typing import TYPE_CHECKING, Any, Dict, List, Literal, Union, Optional
 from urllib.parse import quote
 from loguru import logger
 
 if TYPE_CHECKING:
     from .embed import Embed
+    from .attachment import Attachment
 
 
 async def message_handler(
     content: Optional[str],
+    *,
     embeds: Union[Embed,Optional[List[Embed]], None],
+    attachment: Optional[Attachment] = None,
     replyTo: str
 ):
     payload = {}
@@ -62,18 +65,6 @@ async def message_handler(
 
     return payload
 
-
-async def json_or_text(response: aiohttp.ClientResponse) -> Union[Dict[str, Any], str]:
-    text = await response.text(encoding='utf-8')
-    try:
-        if response.headers['content-type'] == 'application/json':
-            #logger.warning("returning as json file")
-            return json.loads(text)
-    except KeyError:
-        pass
-
-    #logger.warning("returning as text file")
-    return text
 
 class Route:
     '''
