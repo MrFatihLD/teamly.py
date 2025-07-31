@@ -245,10 +245,12 @@ class Cache:
             return upt_message
 
     def delete_message(self, teamId: str, channelId: str, messageId: str):
-        if channelId in self._messages[teamId] and messageId in self._messages[channelId][messageId]:
-            message = self._messages[teamId][channelId].pop(messageId)
-            logger.opt(colors=True).debug(f"<cyan>deleted channel message {messageId!r} from cache successfuly</cyan>")
-            return message
+        if teamId in self._messages:
+            if channelId in self._messages[teamId]:
+                if messageId in self._messages[teamId][channelId]:
+                    message = self._messages[teamId][channelId].pop(messageId)
+                    logger.opt(colors=True).debug(f"<cyan>deleted channel message {messageId!r} from cache successfuly</cyan>")
+                    return message
 
 
 

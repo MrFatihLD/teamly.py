@@ -106,12 +106,13 @@ class ConnectionState:
     def parse_message_send(self, data: Any):
         channel = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
         message = Message(state=self, channel=channel, data=data['message'])
+        self.cache.add_message(teamId=data['teamId'],channelId=data['channelId'], message=message)
         self.dispatch("message",message)
 
     def parse_message_updated(self, data: Any):
         channel = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
         message = Message(state=self,channel=channel,data=data['message'])
-        upt_msg = self.cache.update_message(teamId=data['teamId'], channelId=data['channelId'], message=message) #noqa -> type: ignore
+        self.cache.update_message(teamId=data['teamId'], channelId=data['channelId'], message=message) #noqa -> type: ignore
         self.dispatch("message_updated", message)
 
     def parse_message_deleted(self, data: Any):

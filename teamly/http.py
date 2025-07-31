@@ -110,7 +110,7 @@ class Route:
 class RateLimit:
     """Simple rate limiter for HTTP requests."""
 
-    def __init__(self, count: int = 5, per: float = 1.0) -> None:
+    def __init__(self, count: int = 50, per: float = 1.0) -> None:
         self.max: int = count
         self.remaining: int = count
         self.window: float = 0.0
