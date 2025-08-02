@@ -327,8 +327,8 @@ class Team:
     async def update_team_application_status(self, enable: bool):
         return await self._state.http.update_team_application_status(teamId=self.id, enable=enable)
 
-    async def update_team_application_questions(self, description: str):
-        pass
+    async def update_team_application_questions(self, payload: Dict[str,List[Dict[str,str]]]):
+        return await self._state.http.update_team_application_questions(teamId=self.id, payload=payload)
 
     async def get_application(self, applicationId: str):
         return await self._state.http.get_application_by_id(teamId=self.id, applicationId=applicationId)
@@ -366,6 +366,56 @@ class Team:
 
     async def delete_blog_post(self, blogId: str):
         return await self._state.http.delete_blog_post(teamId=self.id, blogId=blogId)
+
+
+    #category
+
+    async def create_category(self, name: str):
+        return await self._state.http.create_category(teamId=self.id,name=name)
+
+    async def update_category(self, categoryId: str, name: str):
+        return await self._state.http.update_category(teamId=self.id, categoryId=categoryId, name=name)
+
+    async def update_category_permissions(self, categoryId: str, roleId: str, **kwargs: Optional[bool]):
+        CATEGORY = (
+            'view_channels',
+            'manage_channels'
+        )
+        allow = 0
+        deny = 0
+
+        for key in kwargs:
+            if key not in CATEGORY:
+                raise ValueError(f"'{key}' is not a valid permission for the category")
+
+        for i, name in enumerate(CATEGORY):
+            bit = kwargs.get(name)
+            if bit is True:
+                allow |= (1 << i)
+            if bit is False:
+                deny |= (1 << i)
+
+        return await self._state.http.update_category_role_permission(
+            teamId=self.id,
+            categoryId=categoryId,
+            roleId=roleId,
+            allow=allow,
+            deny=deny
+       )
+
+    async def delete_category(self, categoryId: str):
+        return await self._state.http.delete_category(teamId=self.id, categoryId=categoryId)
+
+    async def delete_channel_from_category(self, categoryId: str, channelId: str):
+        return await self._state.http.delete_channel_from_category(teamId=self.id, categoryId=categoryId, channelId=channelId)
+
+    async def set_channel_priority_of_category(self, categoryId: str, channelIds: List[str]):
+        payload = {"channels": channelIds}
+        return await self._state.http.set_channel_priority_of_category(teamId=self.id, categoryId=categoryId, payload=payload)
+
+    async def set_category_priority(self, categoryIds: List[str]):
+        payload = {"categories": categoryIds}
+        return await self._state.http.set_team_category_priority(teamId=self.id, payload=payload)
 
     def __str__(self) -> str:
         return self.name
