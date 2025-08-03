@@ -24,7 +24,10 @@ SOFTWARE.
 
 from __future__ import annotations
 
+from loguru import logger
+
 from teamly import utils
+from teamly.category import Category
 
 from .reaction import CustomReaction
 from .blog import Blog
@@ -369,6 +372,14 @@ class Team:
 
 
     #category
+
+    async def get_category(self, categoryId: str) -> Category | None:
+        data = await self._state.http.get_channels(teamId=self.id)
+        for category in data["categories"]:
+            if category['id'] == categoryId:
+                return Category(state=self._state, team=self, data=category)
+        logger.error("Category not found.")
+        return None
 
     async def create_category(self, name: str):
         return await self._state.http.create_category(teamId=self.id,name=name)
