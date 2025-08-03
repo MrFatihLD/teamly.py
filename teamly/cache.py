@@ -26,7 +26,6 @@ from __future__ import annotations
 
 import asyncio
 from collections import OrderedDict
-import json
 from typing import Dict, Optional, Union, Any, TYPE_CHECKING
 
 from loguru import logger
@@ -87,7 +86,6 @@ class Cache:
 
     async def __fetch_channels(self, teamId: str):
         channels = await self._http.get_channels(teamId)
-        channels = json.loads(channels)
 
         for data in channels['channels']:
             factory = _channel_factory(data['type'])
@@ -119,15 +117,14 @@ class Cache:
                 response = await self._http.get_channel_messages(
                     channelId=channel.id, offset=offset, limit=fetch_count
                 )
-                data = json.loads(response)
-                messages = data.get("messages",[])
+                messages = response.get("messages",[])
 
                 for message in messages:
                     if message.get("replyTo") is not None:
                         message["replyTo"] = next(
                             (
                                 reply
-                                for reply in data.get("replyMessages", [])
+                                for reply in response.get("replyMessages", [])
                                 if reply["id"] == message["replyTo"]
                             ),
                             message["replyTo"]
@@ -153,7 +150,6 @@ class Cache:
 
     async def __fetch_team_members(self, teamId: str):
         members = await self._http.get_member(teamId, "")
-        members = json.loads(members)
 
         if teamId not in self._members:
             self._members[teamId] = {}
@@ -186,8 +182,9 @@ class Cache:
 
     def delete_channel(self, teamId: str, channelId: str):
         if channelId in self._channels[teamId]:
-            self._channels[teamId].pop(channelId)
+            channel = self._channels[teamId].pop(channelId)
             logger.opt(colors=True).debug(f"<cyan>Deleted channel {channelId!r} from cache successfuly</cyan>")
+            return channel
 
     def update_channel(self, teamId: str, channelId: str, channel: MessageAbleChannel):
         if channelId in self._channels[teamId]:
@@ -195,8 +192,12 @@ class Cache:
             logger.opt(colors=True).debug(f"<cyan>Updated channel {channelId!r} from cache successfuly</cyan>")
 
     def get_channel(self, teamId: str, channelId: str) -> Channel | None:
-        if channelId in self._channels[teamId]:
-            return self._channels[teamId][channelId]
+        if teamId not in self._channels:
+            raise ValueError(f"no team with the Id:{teamId}. Wrong Id or the team is not cached yet.")
+        if channelId not in self._channels[teamId]:
+            raise ValueError(f"no channel with the Id:{channelId}. Wrong Id or the channel is not cached yet")
+
+        return self._channels[teamId][channelId]
 
     def get_channels(self, teamId: str) -> Dict[str, Channel]:
             return self._channels[teamId]

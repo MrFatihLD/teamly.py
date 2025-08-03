@@ -26,6 +26,7 @@ import aiohttp
 import json
 
 
+from datetime import datetime
 from typing import Union, Dict, Any
 
 
@@ -53,17 +54,16 @@ def _to_json(data: Any):
 async def json_or_text(response: aiohttp.ClientResponse) -> Union[Dict[str, Any], str]:
     text = await response.text(encoding='utf-8')
     try:
-        if response.headers['content-type'] == 'application/json':
+        if 'application/json' in response.headers['content-type']:
             return json.loads(text)
     except KeyError:
         pass
 
     return text
 
-def snake_to_camel(name: str):
-    if '_' not in name:
-        return name
-    return name.split('_')[0] + ''.join(p.capitalize() for p in name.split('_')[1:])
+
+def _to_datetime(date: datetime):
+    pass
 
 
 def immuteable(cls):

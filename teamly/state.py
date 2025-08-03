@@ -67,17 +67,18 @@ class ConnectionState:
 
     async def __setup_before_ready(self, data: Any):
         try:
-            await asyncio.wait_for(self.cache.setup_cache(data=data), timeout=15)
+            await asyncio.wait_for(self.cache.setup_cache(data=data), timeout=20)
         except asyncio.TimeoutError:
             logger.warning("Cache setup timed out; using partial cache")
         except Exception as e:
             logger.exception(f"Cache setup failed: {e}")
         self._user = self.cache._user
-        self.dispatch("ready")
+        team = self.cache.get_team(teamId="96461fea83ec104a")
+        self.dispatch("ready", team)
 
     def parse_ready(self, data: Any):
         logger.info("Bot connected successfuly")
-        asyncio.create_task(self.__setup_before_ready(data), name = "setup_ready")
+        asyncio.create_task(self.__setup_before_ready(data), name="setup_ready")
 
 
 
@@ -88,11 +89,11 @@ class ConnectionState:
         if factory:
             channel = factory(state=self,team=team, data=data['channel'])
             self.cache.add_channel(teamId=channel.team.id, channelId=channel.id, channel=channel)
-            self.dispatch('channel_created', channel)
+            self.dispatch('channel', channel)
 
     def parse_channel_deleted(self, data: Any):
-        self.cache.delete_channel(teamId=data['teamId'], channelId=data['channelId'])
-        self.dispatch('channel_deleted',data)
+        channel = self.cache.delete_channel(teamId=data['teamId'], channelId=data['channelId'])
+        self.dispatch('channel_deleted',channel)
 
     def parse_channel_updated(self, data: Any):
         factory = _channel_factory(data['channel']['type'])

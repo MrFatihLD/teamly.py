@@ -64,6 +64,13 @@ class TeamGames:
         self.platforms: List[str] = data['platforms']
         self.region: str = data['region']
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "platforms": self.platforms,
+            "region": self.region
+        }
+
 
 @utils.immuteable
 class Team:
@@ -142,7 +149,22 @@ class Team:
         self.member_count: int = data['memberCount']
 
     def to_dict(self):
-        pass
+        return {
+            "id": self.id,
+            "name": self.name,
+            "profilePicture": self.profile_picture,
+            "banner": self.banner,
+            "description": self.description,
+            "isVerified": self.is_verified,
+            "isSuspended": self.is_suspended,
+            "createdBy": self.created_by,
+            "defaultChannelId": self.default_channel_id,
+            "games": [g.to_dict() for g in self.games],
+            "isDiscoverable": self.is_discoverable,
+            "discoverableInvite": self.discoverable_invite,
+            "createdAt": self.created_at,
+            "memberCount": self.member_count
+        }
 
     #Team
 
@@ -169,8 +191,8 @@ class Team:
         if profilePicture:
             payload["profilePicture"] = profilePicture
 
-        await self._state.http.update_team(self.id, payload=payload)
-
+        data = await self._state.http.update_team(self.id, payload=payload)
+        return data
 
     def info(self) -> str:
         info_list = ["Team:"]
@@ -194,16 +216,16 @@ class Team:
     async def create_channel(
         self,
         name: str,
-        type: Literal['text','voice','watchstream'] = "text",
+        channel_type: Literal['text','voice','watchstream'] = "text",
         *,
         additionalData: Optional[Dict[str,str]] = None
-    ):
+    ) -> str:
         payload = {
             "name": name,
-            "type": type,
+            "type": channel_type,
         }
 
-        if (type == "watchstream") and (additionalData is None):
+        if (channel_type == "watchstream") and (additionalData is None):
             raise ValueError("if you create watchstream channel. You need a additionalData")
 
         if additionalData:
@@ -214,7 +236,10 @@ class Team:
 
             payload["additionalData"] = additionalData
 
-        return await self._state.http.create_channel(teamId=self.id, payload=payload)
+        data = await self._state.http.create_channel(teamId=self.id, payload=payload) #noqa
+        return data['channel']['id']
+
+
 
     async def delete_channel(self, channelId: str):
         await self._state.http.delete_channel(teamId=self.id, channelId=channelId)

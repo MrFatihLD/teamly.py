@@ -48,7 +48,8 @@ __all__ = [
     'DMChannel',
     'VoiceChannel',
     'AnnouncementChannel',
-    'TodoChannel'
+    'TodoChannel',
+    'WatchStreamChannel'
 ]
 
 @utils.immuteable
@@ -125,6 +126,9 @@ class TextChannel:
     async def duplicate(self):
         '''Duplicates the current channel'''
         await self._state.http.duplicate_channel(teamId=self.team.id, channelId=self.id)
+
+    async def delete(self):
+        await self._state.http.delete_channel(teamId=self.team.id, channelId=self.id)
 
 
 
