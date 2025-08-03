@@ -27,8 +27,8 @@ from __future__ import annotations
 from loguru import logger
 
 from teamly import utils
-from teamly.category import Category
 
+from .category import Category
 from .reaction import CustomReaction
 from .blog import Blog
 from .application import ApplicationSubmission
