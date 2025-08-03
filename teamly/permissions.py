@@ -103,13 +103,20 @@ class Permissions:
             raise ValueError(f"Unknown permission: {name}")
         return bool(self.value & (1 << index))
 
-    def enable(self, name: str) -> None:
-        index = self.VALUES.index(name)
-        self.value |= (1 << index)
 
-    def disable(self, name: str) -> None:
-        index = self.VALUES.index(name)
-        self.value &= ~(1 << index)
+    def define(self, **kwargs: Optional[bool]):
+        for key in kwargs:
+            if key not in self.VALUES:
+                raise ValueError(f"'{key}' is not a valid permission for this channel type")
+
+        for i, name in enumerate(self.VALUES):
+            bit = kwargs.get(name)
+            if bit is True:
+                self.allow |= (1 << i)
+            if bit is False:
+                self.deny |= (1 << i)
+
+        return self
 
     def __repr__(self) -> str:
         enabled = [name for i, name in enumerate(self.VALUES) if self.value & (1 << i)]

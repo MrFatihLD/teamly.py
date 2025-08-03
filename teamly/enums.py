@@ -25,7 +25,7 @@ SOFTWARE.
 from __future__ import annotations
 
 
-from enum import Enum, IntFlag
+from enum import Enum
 
 
 class ChannelType(str, Enum):
@@ -52,55 +52,3 @@ class AppStatus(str, Enum):
 
     def __str__(self) -> str:
         return self.value
-
-class Permissions(IntFlag):
-    ADMINISTRATOR = 1 << 0
-    MANAGE_CHANNELS = 1 << 1
-    MANAGE_ROLES = 1 << 2
-    MANAGE_TEAM = 1 << 3
-    VIEW_AUDIT_LOG = 1 << 4
-    BAN_MEMBERS = 1 << 5
-    DELETE_MESSAGES = 1 << 6
-    MANAGE_APPLICATIONS = 1 << 7
-    JOIN_TOURNAMENTS = 1 << 8
-    CREATE_INVITES = 1 << 9
-    MENTION_EVERYONE_AND_HERE = 1 << 10
-    MANAGE_BLOGS = 1 << 11
-    KICK_MEMBERS = 1 << 12
-    MOVE_MEMBERS = 1 << 13
-
-class TextChannelPermissions(IntFlag):
-    VIEW_CHANNEL = 1 << 0
-    MANAGE_MESSAGES = 1 << 1
-    SEND_MESSAGE = 1 << 2
-    USE_EXTERNAL_EMOJIS = 1 << 3
-    MANAGE_CHANNEL = 1 << 4
-    CAN_SEE_MESSAGE_HISTORY = 1 << 5
-
-class VoiceChannelPermissions(IntFlag):
-    VIEW_CHANNEL = 1 << 0
-    CONNECT = 1 << 1
-    SPEAK = 1 << 2
-    MUTE_MEMBERS = 1 << 3
-    DEAFEN_MEMBERS = 1 << 4
-    MOVE_MEMBERS = 1 << 5
-    MANAGE_CHANNEL = 1 << 6
-    DISCONNECT = 1 << 12
-
-class TodoChannelPermissions(IntFlag):
-    VIEW_CHANNEL = 1 << 0
-    MANAGE_TODOS = 1 << 1
-    CREATE_TODOS = 1 << 2
-    DELETE_TODOS = 1 << 3
-    EDIT_TODOS = 1 << 4
-    MANAGE_CHANNEL = 1 << 5
-
-class WatchStreamChannelPermissions(IntFlag):
-    VIEW_CHANNEL = 1 << 0
-    MANAGE_CHANNEL = 1 << 1
-
-class AnnouncementChannelPermissions(IntFlag):
-    VIEW_CHANNEL = 1 << 0
-    MANAGE_CHANNEL = 1 << 1
-    CREATE_ANNOUNCEMENTS = 1 << 2
-    DELETE_ANNOUNCEMENTS = 1 << 3

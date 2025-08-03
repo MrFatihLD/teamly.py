@@ -275,8 +275,8 @@ class Team:
     async def duplicate_channel(self, channelId: str):
         await self._state.http.duplicate_channel(teamId=self.id, channelId=channelId)
 
-    async def update_channel_priority(self, channels: List[TeamChannels]):
-        payload = {"channels": [channel.to_dict() for channel in channels]}
+    async def update_channel_priority(self, channels: List[Dict[str,Any]]):
+        payload = {"channels": channels}
         await self._state.http.update_channel_priorities(teamId=self.id, payload=payload)
 
     def get_channels(self):
@@ -318,8 +318,8 @@ class Team:
 
     #Role
 
-    async def add_role(self, role: Role):
-        return await self._state.http.create_role(teamId=self.id, payload=role.to_dict())
+    async def add_role(self, role: Dict[str, Any]):
+        return await self._state.http.create_role(teamId=self.id, payload=role)
 
     async def update_role(self,roleId: str, role: Role):
         return await self._state.http.update_role(teamId=self.id,roleId=roleId, payload=role)

@@ -218,7 +218,7 @@ class HTTPClient:
                 if 200 <= status < 300:
                     logger.debug("Request successful with status {}", status)
                 elif 400 <= status < 500:
-                        logger.warning("Client error with status {}", status)
+                        logger.warning(f"Client error with status {status}. {data['message']}")
                 elif status >= 500:
                     logger.error("Server error with status {}", status)
                 else:

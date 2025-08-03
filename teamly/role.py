@@ -1,12 +1,10 @@
 
 from __future__ import annotations
-import inspect
 
-from teamly import utils
 
 
 from .types.role import Role as RolePayload
-from typing import TYPE_CHECKING, Dict, Optional, Self
+from typing import TYPE_CHECKING, Dict, Optional, Any
 
 if TYPE_CHECKING:
     from .state import ConnectionState
@@ -70,7 +68,7 @@ class Role:
         color: str,
         color2: Optional[str] = None,
         isDisplayedSeparately: Optional[bool] = None
-    ) -> Self:
+    ) -> Dict[str, Any]:
         self = cls.__new__(cls)
 
         self.name = name
@@ -79,14 +77,36 @@ class Role:
         self.color2 = color2
         self.is_displayed_separately = isDisplayedSeparately
 
-        return self
+        payload = {
+            "name": self.name,
+            "permissions": self.permissions,
+            "color": str(self.color),
+            "color2": str(self.color2),
+            "isDisplayedSeparately": self.is_displayed_separately
+        }
+
+        return payload
 
     def to_dict(self):
-        return {
-            utils.snake_to_camel(k):v
-            for k,v in inspect.getmembers(self, lambda x: not callable(x))
-            if not k.startswith('_')
+        payload = {
+            "id": self.id,
+            "teamId": self.team.id,
+            "name": self.name,
+            "iconUrl": self._icon_url,
+            "color": self.color,
+            "color2": self.color2,
+            "permissions": self.permissions,
+            "priority": self._priority,
+            "createAt": self._created_at,
+            "updatedAt": self._updated_at,
+            "isDisplayedSeparately": self.is_displayed_separately,
+            "isSelfAssigneable": self.is_self_assignable,
+            "iconEmojiId": self._icon_emoji_id,
+            "mentionable": self.mentionable,
+            "botScope": self._bot_scope
         }
+
+        return payload
 
     def __repr__(self) -> str:
         return f"<Role id={self.id} name={self.name} permissions={self.permissions} teamId={self.team.id}>"

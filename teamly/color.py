@@ -79,6 +79,10 @@ class Color:
 
         return f"<Color #{self.value:06X}>"
 
+    @property
+    def hex(self):
+        return f"#{self.value:06X}"
+
     def to_rgb(self) -> Tuple[int, int, int]:
         """
         Converts the color to an (R, G, B) tuple.
