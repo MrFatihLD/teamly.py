@@ -24,6 +24,9 @@ SOFTWARE.
 
 from __future__ import annotations
 
+import teamly.abc
+
+
 from teamly import utils
 from .todo import TodoItem
 
@@ -53,7 +56,7 @@ __all__ = [
 ]
 
 @utils.immuteable
-class TextChannel:
+class TextChannel(teamly.abc.TeamChannel, teamly.abc.MessageAble):
 
     __slots__ = (
         '_state',
@@ -113,39 +116,6 @@ class TextChannel:
             payload['addtionalData'] = self._additional_data
 
         return payload
-
-    async def edit(self, name: str):
-        if not 1 <= len(name) <= 20:
-            raise ValueError("Enter 'name' between 1 and 20 character")
-        payload = {"name": name}
-        return await self._state.http.update_channel(teamId=self.team.id,channelId=self.id, payload=payload)
-
-    async def edit_permissions(self, roleId: str, payload: Dict[str,int]):
-        await self._state.http.update_channel_permissions(teamId=self.team.id, channelId=self.id, roleId=roleId, payload=payload)
-
-    async def duplicate(self):
-        '''Duplicates the current channel'''
-        await self._state.http.duplicate_channel(teamId=self.team.id, channelId=self.id)
-
-    async def delete(self):
-        await self._state.http.delete_channel(teamId=self.team.id, channelId=self.id)
-
-
-
-    async def delete_message(self, messageId: str):
-        return await self._state.http.delete_message(self.id, messageId)
-
-    async def react_message(self, messageId: str, emojiId: str):
-        return await self._state.http.react_to_message(self.id, messageId, emojiId)
-
-    async def delete_reaction(self, messageId: str, emojiId: str):
-        return await self._state.http.delete_reaction_from_message(channelId=self.id, messageId=messageId, emojiId=emojiId)
-
-    async def get_message(self, messageId: str):
-        await self._state.cache.get_message(teamId=self.team.id, channelId=self.id, messageId=messageId)
-
-    async def get_messages(self, limit: int = 50):
-        pass
 
     def __repr__(self) -> str:
         return f"<TextChannel id={self.id} name={self.name!r} type={self.type} teamId={self.team.id}>"

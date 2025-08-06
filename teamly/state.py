@@ -168,7 +168,6 @@ class ConnectionState:
         channel = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
         todo_item = TodoItem(state=self,channel=channel, data=data['todo'])
         self.dispatch("todo_item", todo_item)
-        print(json.dumps(data,indent=4, ensure_ascii=False))
 
     def parse_todo_item_deleted(self, data: Any):
         self.dispatch("todo_item_deleted", data)

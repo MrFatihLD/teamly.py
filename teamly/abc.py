@@ -26,23 +26,55 @@ from __future__ import annotations
 
 from .http import message_handler
 
-from typing import List, TYPE_CHECKING, Optional, Union, Literal, overload
+from typing import Dict, List, TYPE_CHECKING, Optional, Union, Literal, overload
 
 
 if TYPE_CHECKING:
-    from .channel import TextChannel
+    from .channel import (
+        TextChannel,
+        VoiceChannel,
+        WatchStreamChannel,
+        TodoChannel,
+        AnnouncementChannel
+    )
     from .enums import Status
     from .state import ConnectionState
     from .embed import Embed
     from .attachment import Attachment
+    from .team import Team
 
     MessageAbleChannel = Union[TextChannel]
+    TeamChannels = Union[TextChannel, VoiceChannel, WatchStreamChannel, TodoChannel, AnnouncementChannel]
     StatusLiteral = Literal[Status.OFFLINE, Status.ONLINE, Status.IDLE, Status.DO_DO_DISTURB]
 
 class TeamChannel:
-    pass
+
+    if TYPE_CHECKING:
+        team: Team
+        id: str
+
+    def __init__(self, state: ConnectionState) -> None:
+        self._state: ConnectionState = state
+
+    async def update(self, name: str):
+        if not 1 <= len(name) <= 20:
+            raise ValueError("Enter 'name' between 1 and 20 characters.")
+
+    async def update_permissions(self, roleId: str, payload: Dict[str,int]):
+        await self._state.http.update_channel_permissions(teamId=self.team.id, channelId=self.id, roleId=roleId, payload=payload)
+
+    async def duplicate(self):
+        await self._state.http.duplicate_channel(teamId=self.team.id, channelId=self.id)
+
+    async def delete(self):
+        await self._state.http.delete_channel(teamId=self.team.id, channelId=self.id)
+
+
 
 class MessageAble:
+
+    if TYPE_CHECKING:
+        channel: MessageAbleChannel
 
     def __init__(self,state: ConnectionState) -> None:
         self._state: ConnectionState = state
@@ -169,3 +201,13 @@ class MessageAble:
         )
 
         return await self._state.http.create_message(self.channel.id, payload)
+
+
+    async def delete_message(self, messageId: str):
+        await self._state.http.delete_message(channelId=self.channel.id, messageId=messageId)
+
+    async def react_message(self, messageId: str, emojiId: str):
+        await self._state.http.react_to_message(channelId=self.channel.id, messageId=messageId, emojiId=emojiId)
+
+    async def delete_reaction(self, messageId: str, emojiId: str):
+        await self._state.http.delete_reaction_from_message(channelId=self.channel.id, messageId=messageId, emojiId=emojiId)

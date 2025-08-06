@@ -35,6 +35,21 @@ if TYPE_CHECKING:
 
 class TodoItem:
 
+    __slots__ = (
+        '_state',
+        'channel',
+        'id',
+        'type',
+        'content',
+        'created_by',
+        'edited_by',
+        'edited_at',
+        'completed',
+        'completed_by',
+        'completed_at',
+        'created_at'
+    )
+
     def __init__(
         self,
         *,
@@ -57,7 +72,7 @@ class TodoItem:
         self.completed: bool = data['completed']
         self.completed_by: Optional[str] = data.get('completedBy')
         self.completed_at: Optional[str] = data.get('completedAt')
-        self.createdAt: str = data['createdAt']
+        self.created_at: str = data['createdAt']
 
     async def edit(self, content: str | None, completed: bool = False):
         if len(content) >= 256:
