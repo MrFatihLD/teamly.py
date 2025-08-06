@@ -219,10 +219,11 @@ class Cache:
 
     #Message Cache
 
-    async def get_message(self, teamId: str, channelId: str, messageId: str):
+    def get_message(self, teamId: str, channelId: str, messageId: str) -> Message | None:
         if teamId in self._messages and channelId in self._messages[teamId]:
             if self._messages[teamId][channelId][messageId]:
-                return self._messages[teamId][channelId][messageId]
+                message = self._messages[teamId][channelId][messageId]
+                return message
 
 
     async def get_messages(self,channelId: str,offset: int = 0, limit: int = 130):

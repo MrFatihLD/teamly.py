@@ -122,17 +122,17 @@ class ConnectionState:
         self.dispatch("message_deleted", message)
 
     def parse_message_reaction_added(self, data: Any):
-        team = self.cache.get_team(teamId=data['teamId'])
-        channel = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
-        message = self.cache.get_message(teamId=data['teamId'], channelId=data['channelId'], messageId=data['messageId'])
-        reaction = Reaction(state=self, team=team, channel=channel, message=message, data=data)
+        reaction = data
+        message = self.cache.get_message(teamId=data['teamId'],channelId=data['channelId'], messageId=data['messageId'])
+        if message:
+            reaction = Reaction(state=self, team=message.team, channel=message.channel, message=message, data=data)
         self.dispatch("message_reaction", reaction)
 
     def parse_message_reaction_removed(self, data: Any):
-        team = self.cache.get_team(teamId=data['teamId'])
-        channel = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
+        reaction = data
         message = self.cache.get_message(teamId=data['teamId'], channelId=data['channelId'], messageId=data['messageId'])
-        reaction = Reaction(state=self, team=team, channel=channel, message=message, data=data)
+        if message:
+            reaction = Reaction(state=self, team=message.team, channel=message.channel, message=message, data=data)
         self.dispatch("message_reaction_removed", reaction)
 
 
