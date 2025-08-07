@@ -43,9 +43,9 @@ class Blog:
         'id',
         'title',
         'content',
-        '_created_at',
-        '_created_by',
-        '_edited_at',
+        'created_at',
+        'created_by',
+        'edited_at',
         'team',
         '_hero_image'
     )
@@ -59,46 +59,28 @@ class Blog:
     ) -> None:
         self._state: ConnectionState = state
         self.team: Team = team
-        self._update(data)
 
-    def _update(self, data: BlogPayload):
         self.id: str = data['id']
         self.title: str = data['title']
         self.content: str = data['content']
 
-        self._created_at: str = data['createdAt']
-        self._created_by: str = data['createdBy']
-        self._edited_at: Optional[str] = data.get('editedAt')
+        self.created_at: str = data['createdAt']
+        self.created_by: str = data['createdBy']
+        self.edited_at: Optional[str] = data.get('editedAt')
         self._hero_image: Optional[str] = data.get('heroImage')
-
-    @property
-    def createdAt(self):
-        return self._created_at
-
-    @property
-    def createdBy(self):
-        return self._created_by
-
-    @property
-    def editedAt(self):
-        return self._edited_at if self._edited_at else None
 
     @property
     def heroImage(self):
         return self._hero_image if self._hero_image else None
 
-
-
     def to_dict(self):
-        result = {
+        return {
             "id": self.id,
             "title": self.title,
             "content": self.content,
-            "createdAt": self._created_at,
-            "createdBy": self._created_by,
-            "editedAt": self._edited_at,
+            "createdAt": self.created_at,
+            "createdBy": self.created_by,
+            "editedAt": self.edited_at,
             "teamId": self.team.id,
             "heroImage": self._hero_image
         }
-
-        return result
