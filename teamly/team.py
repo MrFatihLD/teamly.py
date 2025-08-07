@@ -216,7 +216,7 @@ class Team:
     async def create_channel(
         self,
         name: str,
-        channel_type: Literal['text','voice','watchstream'] = "text",
+        channel_type: Literal['text','voice','watchstream','todo'] = "text",
         *,
         additionalData: Optional[Dict[str,str]] = None
     ) -> str:
@@ -282,7 +282,7 @@ class Team:
     def get_channels(self):
         return self._state.cache.get_channels(teamId=self.id)
 
-    def get_channel(self, channelId: str):
+    def get_channel(self, channelId: str) -> TeamChannels | None:
         return self._state.cache.get_channel(teamId=self.id, channelId=channelId)
 
     #Member

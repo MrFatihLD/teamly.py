@@ -209,7 +209,6 @@ class TeamlyWebSocket:
         else:
             func(data)
 
-        #print(json.dumps(msg,indent=4,ensure_ascii=False))
 
     async def close(self, code: int = 4000) -> None:
         if self._keep_alive:

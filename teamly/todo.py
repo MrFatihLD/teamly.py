@@ -26,7 +26,7 @@ from __future__ import annotations
 
 
 from .types.todo import TodoItem as TodoItemPayload
-from typing import TYPE_CHECKING, Mapping, Optional
+from typing import TYPE_CHECKING, Optional
 
 
 if TYPE_CHECKING:
@@ -59,9 +59,7 @@ class TodoItem:
     ) -> None:
         self._state: ConnectionState = state
         self.channel: TodoChannel = channel
-        self._update(data)
 
-    def _update(self, data: Mapping):
         self.id: str = data['id']
         self.type: str = data['type']
         self.content: str = data['content']
@@ -78,9 +76,13 @@ class TodoItem:
         if len(content) >= 256:
             raise ValueError("Content is too long, max 256 characters")
 
-        data = await self._state.http.update_todo_item(channelId=self.channel.id,todoId=self.id,content=content,completed=completed)
-        self._update(data['todo'])
+        await self._state.http.update_todo_item(channelId=self.channel.id,todoId=self.id,content=content,completed=completed)
 
+    def to_dict(self):
+        return {
+            "content": self.content,
+            "completed": self.completed
+        }
 
     def __repr__(self) -> str:
         return f"<TodoItem id={self.id} channelId={self.channel_id} type={self.type} content={self.content}>"

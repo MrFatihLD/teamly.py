@@ -28,8 +28,8 @@ import json
 
 from loguru import logger
 
-from teamly.reaction import Reaction
 
+from .reaction import Reaction
 from .user import ClientUser
 from .team import Team
 from .role import Role
@@ -174,7 +174,7 @@ class ConnectionState:
 
     def parse_todo_item_updated(self, data: Any):
         channel = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
-        todo_item = TodoItem(state=self,channel=channel, data=data)
+        todo_item = TodoItem(state=self,channel=channel, data=data['todo'])
         self.dispatch("todo_item_updated", todo_item)
 
 

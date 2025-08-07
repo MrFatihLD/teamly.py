@@ -248,6 +248,20 @@ class TodoChannel:
         self.permissions: Dict[str,Any] = data['permissions'].get('role', {})
         self.additional_data: Dict[str,Any] = data.get('additionalData', {})
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "type": self.type,
+            "teamId": self.team.id,
+            "name": self.name,
+            "description": self.description,
+            "createdBy": self.created_by,
+            "parentId": self.parent_id,
+            "priority": self.priority,
+            "permissions": self.permissions,
+            "additionalData": self.additional_data
+        }
+
     async def fetch_todoitems(self):
         return self._state.http.get_todo_items(channelId=self.id)
 
@@ -255,8 +269,7 @@ class TodoChannel:
         if len(content) >= 256:
             raise ValueError("Content is too long, max 256 characters")
 
-        todo = await self._state.http.create_todo_item(channelId=self.id, content=content)
-        return TodoItem(state=self._state, channel=self, data=todo['todo'])
+        await self._state.http.create_todo_item(channelId=self.id, content=content)
 
     async def delete_todo(self, todoId: str):
         return await self._state.http.delete_todo_item(channelId=self.id, todoId=todoId)
