@@ -25,12 +25,7 @@ SOFTWARE.
 from __future__ import annotations
 
 
-from typing import List, Optional, TypedDict
-
-class TeamGames(TypedDict):
-    id: str
-    platforms: List[str]
-    region: str
+from typing import List, Optional, TypedDict, Dict
 
 class TeamPayload(TypedDict):
     id: str
@@ -43,7 +38,7 @@ class TeamPayload(TypedDict):
     isSuspended: Optional[bool]
     createdBy: str
     defaultChannelId: Optional[str]
-    games: List[TeamGames]
+    games: List[Dict[str,str]]
     idDiscoverable: Optional[bool]
     isTournament: bool
     discoverableInvite: Optional[str]

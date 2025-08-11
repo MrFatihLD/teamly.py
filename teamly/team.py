@@ -27,7 +27,6 @@ from __future__ import annotations
 from loguru import logger
 
 from teamly import utils
-
 from .category import Category
 from .reaction import CustomReaction
 from .blog import Blog
@@ -36,40 +35,32 @@ from .role import Role
 
 
 
-from .types.team import TeamPayload, TeamGames as TeamGamesPayload
-from typing import TYPE_CHECKING, List, Literal, Optional, Dict, Union, Any
+from .types.team import TeamPayload
+from typing import (
+    TYPE_CHECKING,
+    List,
+    Literal,
+    Optional,
+    Dict,
+    Union,
+    Any
+)
 
 if TYPE_CHECKING:
     from .state import ConnectionState
     from .member import Member
-
-    from .channel import TextChannel, VoiceChannel, AnnouncementChannel, TodoChannel, WatchStreamChannel
+    from .channel import (
+        TextChannel,
+        VoiceChannel,
+        AnnouncementChannel,
+        TodoChannel,
+        WatchStreamChannel
+    )
 
     TeamChannels = Union[TextChannel, VoiceChannel, AnnouncementChannel, TodoChannel, WatchStreamChannel]
 
 
 __all__ = ['Team']
-
-
-class TeamGames:
-
-    __slots__ = (
-        'id',
-        'platforms',
-        'region'
-    )
-
-    def __init__(self, data: TeamGamesPayload) -> None:
-        self.id: str = data['id']
-        self.platforms: List[str] = data['platforms']
-        self.region: str = data['region']
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "platforms": self.platforms,
-            "region": self.region
-        }
 
 
 @utils.immuteable
@@ -141,7 +132,7 @@ class Team:
         self.is_suspended: bool = data['isSuspended']
         self.created_by: str = data['createdBy']
         self.default_channel_id: str = data.get('defaultChannelId')
-        self.games: List[TeamGames] = [TeamGames(g) for g in data.get('games')]
+        self.games: List[Dict[str,str]] = data.get('games')
         self.is_discoverable: bool = data.get('idDiscoverable', False)
         self.is_tournament: bool = data.get('isTournament', False)
         self.discoverable_invite: Optional[str] = data.get('discoverableInvite')
@@ -159,7 +150,7 @@ class Team:
             "isSuspended": self.is_suspended,
             "createdBy": self.created_by,
             "defaultChannelId": self.default_channel_id,
-            "games": [g.to_dict() for g in self.games],
+            "games": self.games,
             "isDiscoverable": self.is_discoverable,
             "discoverableInvite": self.discoverable_invite,
             "createdAt": self.created_at,
@@ -170,12 +161,26 @@ class Team:
 
     async def edit(
         self,
-        *,
         name: str,
+        *,
         description: Optional[str] = None,
         banner: Optional[str] = None,
         profilePicture: Optional[str] = None
     ):
+        '''edit Team
+
+        Parameters
+        -----------
+        name: :class:`str`:
+            name of the team. `(n <= 12)`
+        description: :class:`str`:
+            description of the team.
+        banner: :class:`str`:
+            banner for the team `<url>`
+        profilePicture: :class:`str`:
+            profile picture for the team `<url>`
+        '''
+
         if len(name) > 12:
             raise ValueError("'name' must be smaller or equel then 12 characters")
 
@@ -194,32 +199,26 @@ class Team:
         data = await self._state.http.update_team(self.id, payload=payload)
         return data
 
-    def info(self) -> str:
-        info_list = ["Team:"]
-
-        for slot in self.__slots__[1:]:
-            value = getattr(self, slot, None)
-            display_value = "N/A" if value is None else value
-
-            parts = slot.split('_')
-            display_key = parts[0] + ''.join(word.capitalize() for word in parts[1:])
-
-            if isinstance(display_key, str) and len(display_key) > 30:
-                display_value = display_key[:30] + "..."
-
-            info_list.append(f"   {display_key}: {display_value}")
-
-        return "\n".join(info_list)
-
     #Channel
 
     async def create_channel(
         self,
         name: str,
-        channel_type: Literal['text','voice','watchstream','todo'] = "text",
+        channel_type: Literal['text','voice','watchstream','todo','announcement'] = "text",
         *,
         additionalData: Optional[Dict[str,str]] = None
-    ) -> str:
+    ):
+        '''
+        Parameters
+        ---
+
+        name: :class:`str`:
+            name of the channel
+        channel_type: :class:`str`:
+            type of the channel `(text,voice,watchstream,todo,announcement)`
+
+        if `channel_type` is watchstream. The `additionalData` should not be none.
+        '''
         payload = {
             "name": name,
             "type": channel_type,
@@ -236,8 +235,7 @@ class Team:
 
             payload["additionalData"] = additionalData
 
-        data = await self._state.http.create_channel(teamId=self.id, payload=payload) #noqa
-        return data['channel']['id']
+        await self._state.http.create_channel(teamId=self.id, payload=payload) #noqa
 
 
 
@@ -251,6 +249,16 @@ class Team:
         *,
         additionalData: Optional[Dict[str,str]] = None
     ):
+        '''
+        Parameters
+        ---
+        channelId: :class:`str`:
+            channelId that will be updated
+        name: :class:`str`:
+            new name for the channel
+        additionalData: :class:`Optional[str]`:
+            new additionalData for the channel
+        '''
         channel = self._state.cache.get_channel(teamId=self.id, channelId=channelId)
         payload = {}
         if channel:
@@ -267,6 +275,20 @@ class Team:
 
     ##burasi yapilacak
     async def update_channel_permissions(self, channelId: str, roleId: str, payload: Dict[str,int]):
+        '''
+        Parameters
+        ---
+        channelId: :class:`str`:
+            channelId that will be update permissions
+        roleId: :class:`str`:
+            role that will get permissions update
+        payload: :class:`Dict[str,int]`:
+            payload for permissions.
+            example: {
+                "allow": 143,
+                "deny": 65
+            }
+        '''
         channel = self._state.cache.get_channel(teamId=self.id, channelId=channelId)
         if channel:
             await self._state.http.update_channel_permissions(teamId=self.id, channelId=channelId, roleId=roleId,payload=payload)

@@ -24,24 +24,13 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Literal, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Literal
 
 if TYPE_CHECKING:
     from .state import ConnectionState
     from .user import User
     from .team import Team
-    from .enums import AppStatus
-    from types.application import Application as ApplicationPayload, Answers as AnswersPayload
-
-
-class Answers:
-
-    def __init__(self, data: AnswersPayload) -> None:
-        self.question_id: str = data['questionId']
-        self.answer: Optional[Union[str, List[str]]] = data.get('answer')
-        self.question: str = data['question']
-        self.optional: bool = data['optional']
-        self.options: List[str] = data['options']
+    from types.application import Application as ApplicationPayload
 
 class ApplicationSubmission:
 
@@ -54,17 +43,27 @@ class ApplicationSubmission:
     ) -> None:
         self._state: ConnectionState = state
         self.team: Team = team
-        self._update(data)
 
-    def _update(self, data: ApplicationPayload):
         self.id: str = data['id']
         self.type: str = data['type']
         self._submitted_by: User = data['submittedBy']
-        self.answers: Answers = data['answers']
-        self.status: AppStatus = data['status']
+        self.answers: List[Dict[str,Any]] = data['answers']
+        self.status: Literal['pending','approved','rejected'] = data['status']
         self._created_at: str = data['createdAt']
 
+    @property
+    def submittedBy(self):
+        return self._submitted_by
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "type": self.type,
+            "submittedBy": self._submitted_by,
+            "answers": self.answers,
+            "status": self.status,
+            "createdAt": self._created_at
+        }
 
     async def update_status(self, status = Literal['accepted','rejected']):
         await self._state.http.update_application_status(teamId=self.team.id, applicationId=self.id, status=status)

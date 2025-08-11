@@ -73,8 +73,8 @@ class ConnectionState:
         except Exception as e:
             logger.exception(f"Cache setup failed: {e}")
         self._user = self.cache._user
-        team = self.cache.get_team(teamId="96461fea83ec104a")
-        self.dispatch("ready", team)
+
+        self.dispatch("ready")
 
     def parse_ready(self, data: Any):
         logger.info("Bot connected successfuly")
@@ -226,7 +226,7 @@ class ConnectionState:
 
     def parse_blog_created(self, data: Any):
         team = self.cache.get_team(teamId=data['teamId'])
-        blog = Blog(state=self,team=team, data=data)
+        blog = Blog(state=self,team=team, data=data['blog'])
         self.dispatch("blog", blog)
 
     def parse_blog_deleted(self, data: Any):

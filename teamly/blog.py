@@ -47,7 +47,7 @@ class Blog:
         'created_by',
         'edited_at',
         'team',
-        '_hero_image'
+        'hero_image'
     )
 
     def __init__(
@@ -67,11 +67,8 @@ class Blog:
         self.created_at: str = data['createdAt']
         self.created_by: str = data['createdBy']
         self.edited_at: Optional[str] = data.get('editedAt')
-        self._hero_image: Optional[str] = data.get('heroImage')
+        self.hero_image: Optional[str] = data.get('heroImage')
 
-    @property
-    def heroImage(self):
-        return self._hero_image if self._hero_image else None
 
     def to_dict(self):
         return {
@@ -82,5 +79,8 @@ class Blog:
             "createdBy": self.created_by,
             "editedAt": self.edited_at,
             "teamId": self.team.id,
-            "heroImage": self._hero_image
+            "heroImage": self.hero_image
         }
+
+    def __repr__(self) -> str:
+        return f"<Blog id={self.id} title={self.title!r} content={self.content!r}>"
