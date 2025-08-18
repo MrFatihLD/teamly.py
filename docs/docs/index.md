@@ -16,13 +16,19 @@ Its goal is to provide a **modern**, **fast**, and **feature-rich** integration 
     Expect breaking changes, incomplete features, and active development.
     It is **not recommended for production use** at this time.
 
----
+
 
 ## **Getting Started**
+
+---
+
 Is this your first time using the library? This is the place to get started!
 
 - **First stepts:** [Introduction](getting-started/introduction.md) | [Quickstart](getting-started/quickstart.md)
 
 ## **Guick Start**
+
+---
+
 A quick start for the **teamly.py** API wrapper:
 **[Guick Start](guide/quick-start)**
