@@ -40,11 +40,6 @@ from .user import ClientUser
 
 if TYPE_CHECKING:
     from .state import ConnectionState
-    from .channel import (
-        TextChannel,
-        VoiceChannel
-    )
-    from .message import Message
 
     MessageAbleChannel = Union[TextChannel]
     Channel = Union[TextChannel, VoiceChannel]
