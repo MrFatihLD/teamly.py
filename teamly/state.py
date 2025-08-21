@@ -183,42 +183,35 @@ class ConnectionState:
     def parse_user_joined_team(self, data: Any):
         member = Member._new_member(state=self, data=data['user'], teamId=data['teamId'])
         self.cache.add_member(teamId=data['teamId'], member=member)
-        self.dispatch("user_joined_team")
-        print('parse_user_joined_team')
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        self.dispatch("user_joined_team", member)
 
     def parse_user_left_team(self, data: Any):
+        member = data['member']
         self.cache.delete_member(teamId=data['teamId'], memberId=data['member']['id'])
-        self.dispatch("user_left_team")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        self.dispatch("user_left_team", member)
 
 
     def parse_user_joined_voice_channel(self, data: Any):
-        print(data)
-        self.cache.voice_participants_joined(teamId=data['teamId'], channelId=data['channelId'],participantId=data['user']['id'])
+        self.cache.voice_participants_joined(teamId=data['teamId'], channelId=data['channelId'],participantId=data['member']['id'])
         voice = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
-        self.dispatch("user_joinded_voice_channel",voice)
+        self.dispatch("user_joinded_voice_channel", voice)
 
     def parse_user_left_voice_channel(self, data: Any):
-        self.cache.voice_participants_leaved(teamId=data['teamId'], channelId=data['channelId'],participantId=data['user']['id'])
+        self.cache.voice_participants_leaved(teamId=data['teamId'], channelId=data['channelId'],participantId=data['member']['id'])
         voice = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
         self.dispatch("user_left_voice_channel", voice)
 
 
     def parse_user_profile_updated(self, data: Any):
-        self.dispatch("user_profile_updated")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        self.dispatch("user_profile_updated", data)
 
     def parse_user_role_added(self, data: Any):
         self.dispatch("user_role_added")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
 
     def parse_user_role_removed(self, data: Any):
         self.dispatch("user_role_removed")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
 
     def parse_user_updated_voice_metadata(self, data: Any):
-        print(data)
         self.dispatch("user_updated_voice_metadata")
 
 
