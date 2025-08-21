@@ -24,7 +24,6 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from teamly.reaction import PartialReaction
 from teamly.user import User
 from .types.announcement import (
     Announcement as AnnouncementPayload,
@@ -41,6 +40,21 @@ if TYPE_CHECKING:
 
 class Announcement:
 
+    __slots__ = (
+        "_state",
+        "channel",
+        "id",
+        "title",
+        "content",
+        "created_by",
+        "_attachments",
+        "_emojis",
+        "_mentions",
+        "_reactions",
+        "created_at",
+        "edited_at"
+    )
+
     def __init__(
         self,
         *,
@@ -50,61 +64,34 @@ class Announcement:
     ) -> None:
         self._state: ConnectionState = state
         self.channel = channel
-        self._update(data=data)
 
-    def _update(self, data: AnnouncementPayload):
         self.id: str = data['id']
         self.title: str = data['title']
         self.content: str = data['content']
 
-        self._created_by: User = User(state=self._state, data=data['createdBy'])
+        self.created_by: User = User(state=self._state, data=data['createdBy'])
         self._attachments: Optional[List[AnnouncementMedia]] = data.get('attachments')
         self._emojis: Optional[List[AnnouncementEmojis]] = data.get('emojis')
         self._mentions: Optional[AnnouncementMentions] = data.get('mentions')
         self._reactions: Optional[List[AnnouncementReactionsPayload]] = data.get('reactions')
 
-        self._created_at: str = data['createdAt']
-        self._edited_at: Optional[str] = data.get('editedAt')
+        self.created_at: str = data['createdAt']
+        self.edited_at: Optional[str] = data.get('editedAt')
 
-    @property
-    def user(self):
-        return self._created_by
-
-    @property
-    def attachments(self):
-        if self._attachments:
-            return [x.get('url') for x in self._attachments]
-        else:
-            return []
-
-    @property
-    def emojis(self):
-        if self._emojis:
-            return [x.get('emojis') for x in self._emojis]
-        else:
-            return []
-
-    @property
-    def mentions(self):
-        if self._mentions:
-            return self._mentions['users']
-        else:
-            return []
-
-    @property
-    def reactions(self):
-        if self._reactions:
-            return [PartialReaction(r) for r in self._reactions]
-        else:
-            return []
-
-    @property
-    def createdAt(self):
-        return self._created_at
-
-    @property
-    def editedAt(self):
-        return self._edited_at
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "channelId": self.channel.id,
+            "title": self.title,
+            "content": self.content,
+            "createdBy": self.created_by,
+            "attachments": self._attachments,
+            "emojis": self._emojis,
+            "mentions": self._mentions,
+            "reactions": self._reactions,
+            "createdAt": self.created_at,
+            "editedAt": self.edited_at
+        }
 
     def __repr__(self) -> str:
         return f"<Announcement id={self.id} title={self.title!r} channelId={self.channel.id}>"
