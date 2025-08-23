@@ -126,7 +126,7 @@ class DMChannel:
         self._state: ConnectionState = state
 
 
-class VoiceChannel:
+class VoiceChannel(teamly.abc.TeamChannel):
 
     __slots__ = (
         '_state',
