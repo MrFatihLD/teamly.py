@@ -193,12 +193,12 @@ class ConnectionState:
 
 
     def parse_user_joined_voice_channel(self, data: Any):
-        self.cache.voice_participants_joined(teamId=data['teamId'], channelId=data['channelId'],participantId=data['member']['id'])
+        self.cache.voice_participants_joined(teamId=data['teamId'], channelId=data['channelId'],participantId=data['user']['id'])
         voice = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
         self.dispatch("user_joinded_voice_channel", voice)
 
     def parse_user_left_voice_channel(self, data: Any):
-        self.cache.voice_participants_leaved(teamId=data['teamId'], channelId=data['channelId'],participantId=data['member']['id'])
+        self.cache.voice_participants_leaved(teamId=data['teamId'], channelId=data['channelId'],participantId=data['user']['id'])
         voice = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
         self.dispatch("user_left_voice_channel", voice)
 
