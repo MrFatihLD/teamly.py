@@ -40,6 +40,7 @@ from .message import Message
 from .cache import Cache
 from .todo import TodoItem
 from .channel import _channel_factory
+from .category import Category
 from .blog import Blog
 from .http import HTTPClient
 
@@ -241,8 +242,9 @@ class ConnectionState:
         print(json.dumps(data,indent=4, ensure_ascii=False))
 
     def parse_category_created(self, data: Any):
-        self.dispatch("category")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        team = self.cache.get_team(data['teamId'])
+        category = Category(state=self, team=team, data=data['category'])
+        self.dispatch("category", category)
 
     def parse_channels_priority_updated(self, data: Any):
         self.dispatch("channels_priority_updated")

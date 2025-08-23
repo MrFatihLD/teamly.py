@@ -88,6 +88,12 @@ class Category:
         else:
             return None
 
+    async def edit(self, name: str):
+        await self._state.http.update_category(teamId=self.team.id, categoryId=self.id, name=name)
+
+    async def update_permissions(self, roleId: str, allow: int, deny: int):
+        await self._state.http.update_category_role_permission(teamId=self.team.id, categoryId=self.id, roleId=roleId, allow=allow, deny=deny)
+
     def to_dict(self):
         payload = {
             "id": self.id,
@@ -100,3 +106,6 @@ class Category:
             "editedAt": self.edited_at
         }
         return payload
+
+    def __repr__(self) -> str:
+        return f"<Category id={self.id} name={self.name!r} teamId={self.team.id}>"
