@@ -230,16 +230,15 @@ class ConnectionState:
 
 
     def parse_categories_priority_updated(self, data: Any):
-        self.dispatch("categories_priority_updated")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        self.dispatch("categories_priority_updated", data)
 
     def parse_category_updated(self, data: Any):
-        self.dispatch("category_updated")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        team = self.cache.get_team(data['teamId'])
+        category = Category(state=self, team=team, data=data['category'])
+        self.dispatch("category_updated", category)
 
     def parse_category_deleted(self, data: Any):
-        self.dispatch("category_deleted")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        self.dispatch("category_deleted", data)
 
     def parse_category_created(self, data: Any):
         team = self.cache.get_team(data['teamId'])
@@ -247,8 +246,7 @@ class ConnectionState:
         self.dispatch("category", category)
 
     def parse_channels_priority_updated(self, data: Any):
-        self.dispatch("channels_priority_updated")
-        print(json.dumps(data,indent=4, ensure_ascii=False))
+        self.dispatch("channels_priority_updated", data)
 
 
     def parse_announcement_created(self, data: Any):
