@@ -207,13 +207,13 @@ class ConnectionState:
         self.dispatch("user_profile_updated", data)
 
     def parse_user_role_added(self, data: Any):
-        self.dispatch("user_role_added")
+        self.dispatch("user_role_added", data)
 
     def parse_user_role_removed(self, data: Any):
-        self.dispatch("user_role_removed")
+        self.dispatch("user_role_removed", data)
 
     def parse_user_updated_voice_metadata(self, data: Any):
-        self.dispatch("user_updated_voice_metadata")
+        self.dispatch("user_updated_voice_metadata", data)
 
 
 
