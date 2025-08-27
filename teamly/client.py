@@ -206,7 +206,7 @@ class Client:
         await self.http.close()
 
     def _get_state(self):
-        return ConnectionState(dispatch=self.dispatch,http=self.http, cache_size=self.cache_size)
+        return ConnectionState(dispatch=self.dispatch,http=self.http)
 
     @property
     def user(self) -> Optional[ClientUser]:

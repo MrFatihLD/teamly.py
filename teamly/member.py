@@ -26,39 +26,27 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from .user import _UserTag, User
+from .user import _UserTag
 from .types.member import Member as MemberPayload
-from typing import TYPE_CHECKING, Dict, List, Mapping, Any, cast
+from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
     from .state import ConnectionState
-    from .user import UserPayload
 
 
-class Member(User,_UserTag):
+class Member(_UserTag):
 
-    def __init__(self,*, state: ConnectionState, data: MemberPayload) -> None:
-        self._state: ConnectionState = state
-        self._update(data)
+    def __init__(self, state: ConnectionState, data: MemberPayload) -> None:
+        self._state: ConnectionError = state
 
-    def _update(self, data: Mapping):
-        super()._update(data)
+        self.id: str = data['id']
+        self.username: str = data['username']
+        self.permissions: str = data['permissions']
+        self.roles: List[str] = data['roles']
         self.joined_at: str = data['joinedAt']
-        self.roles: List[str] = data.get('roles', [])
-        self.teamId: str = data['teamId']
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, _UserTag) and other.id == self.id
-
-    @classmethod
-    def _new_member(cls,state: ConnectionState, data: UserPayload, teamId: str):
-
-        member_data: Dict[str,Any] = dict(data)
-        member_data['joinedAt'] = datetime.now(timezone.utc).isoformat(timespec='milliseconds').replace('+00:00','Z')
-        member_data['roles'] = []
-        member_data[teamId] = teamId
-
-        return cls(state=state, data=cast(MemberPayload, member_data))
+        return isinstance(other, _UserTag) and self.id == other.id
 
     def __repr__(self) -> str:
-        return f"<Member username={self.username} joined_at={self.joined_at} roles={self.roles} teamId={self.teamId}>"
+        return f"<Member id={self.id} username={self.username} joinedAt={self.joined_at}>"

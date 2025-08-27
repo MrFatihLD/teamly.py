@@ -24,11 +24,12 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from .user import User
 from typing import List, TypedDict
 
 
-class Member(User, TypedDict):
-    joinedAt: str
+class Member(TypedDict):
+    id: str
+    username: str
+    permissions: str
     roles: List[str]
-    teamId: str
+    joinedAt: str

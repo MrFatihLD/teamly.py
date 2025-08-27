@@ -37,7 +37,6 @@ from .announcement import Announcement
 from .application import ApplicationSubmission
 from .member import Member
 from .message import Message
-from .cache import Cache
 from .todo import TodoItem
 from .channel import _channel_factory
 from .category import Category
@@ -49,10 +48,9 @@ from typing import Dict, Callable, Any, Optional
 
 class ConnectionState:
 
-    def __init__(self, dispatch: Callable[...,Any],http: HTTPClient, cache_size: int) -> None:
+    def __init__(self, dispatch: Callable[...,Any],http: HTTPClient) -> None:
         self.http: HTTPClient = http
         self.dispatch: Callable[...,Any] = dispatch
-        self.cache_size: int = cache_size
 
         self.parsers: Dict[str, Callable[[Any], None]]
         self.parsers = parsers = {}
@@ -64,77 +62,41 @@ class ConnectionState:
 
     def clear(self):
         self._user: Optional[ClientUser] = None
-        self.cache: Cache = Cache(state=self, cach_size=self.cache_size)
 
-    async def __setup_before_ready(self, data: Any):
-        try:
-            await asyncio.wait_for(self.cache.setup_cache(data=data), timeout=20)
-        except asyncio.TimeoutError:
-            logger.warning("Cache setup timed out; using partial cache")
-        except Exception as e:
-            logger.exception(f"Cache setup failed: {e}")
-        self._user = self.cache._user
-
-        self.dispatch("ready")
 
     def parse_ready(self, data: Any):
         logger.info("Bot connected successfuly")
-        asyncio.create_task(self.__setup_before_ready(data), name="setup_ready")
+        self._user: Optional[ClientUser] = data['user']
+        self.dispatch("ready")
 
 
 
 
     def parse_channel_created(self, data: Dict[str,Any]):
-        factory = _channel_factory(data['channel']['type'])
-        team = self.cache.get_team(teamId=data['teamId'])
-        if factory:
-            channel = factory(state=self,team=team, data=data['channel'])
-            self.cache.add_channel(teamId=channel.team.id, channelId=channel.id, channel=channel)
-            self.dispatch('channel', channel)
+        self.dispatch('channel', data)
 
     def parse_channel_deleted(self, data: Any):
-        channel = self.cache.delete_channel(teamId=data['teamId'], channelId=data['channelId'])
-        self.dispatch('channel_deleted',channel)
+        self.dispatch('channel_deleted', data)
 
     def parse_channel_updated(self, data: Any):
-        factory = _channel_factory(data['channel']['type'])
-        team = self.cache.get_team(teamId=data['teamId'])
-        if factory:
-            channel = factory(state=self,team=team, data=data['channel'])
-            self.cache.update_channel(teamId=channel.team.id, channelId=channel.id, channel=channel)
-            self.dispatch('channel_updated', channel)
+        self.dispatch('channel_updated', data)
 
 
 
     def parse_message_send(self, data: Any):
-        channel = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
-        message = Message(state=self, channel=channel, data=data['message'])
-        self.cache.add_message(teamId=data['teamId'],channelId=data['channelId'], message=message)
-        self.dispatch("message",message)
+        self.dispatch("message", data)
 
     def parse_message_updated(self, data: Any):
-        channel = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
-        message = Message(state=self,channel=channel,data=data['message'])
-        self.cache.update_message(teamId=data['teamId'], channelId=data['channelId'], message=message) #noqa -> type: ignore
-        self.dispatch("message_updated", message)
+        self.dispatch("message_updated", data)
 
     def parse_message_deleted(self, data: Any):
-        message = self.cache.delete_message(teamId=data['teamId'], channelId=data['channelId'], messageId=data['messageId'])
-        self.dispatch("message_deleted", message)
+        self.dispatch("message_deleted", data)
 
     def parse_message_reaction_added(self, data: Any):
-        reaction = data
-        message = self.cache.get_message(teamId=data['teamId'],channelId=data['channelId'], messageId=data['messageId'])
-        if message:
-            reaction = Reaction(state=self, team=message.team, channel=message.channel, message=message, data=data)
-        self.dispatch("message_reaction", reaction)
+        self.dispatch("message_reaction", data)
 
     def parse_message_reaction_removed(self, data: Any):
-        reaction = data
-        message = self.cache.get_message(teamId=data['teamId'], channelId=data['channelId'], messageId=data['messageId'])
-        if message:
-            reaction = Reaction(state=self, team=message.team, channel=message.channel, message=message, data=data)
-        self.dispatch("message_reaction_removed", reaction)
+        self.dispatch("message_reaction_removed", data)
 
 
 
@@ -144,63 +106,43 @@ class ConnectionState:
 
 
     def parse_team_role_created(self, data: Any):
-        team = self.cache.get_team(teamId=data['teamId'])
-        if team:
-            role = Role(state=self,team=team,data=data['role'])
-            self.dispatch("team_role", role)
+        self.dispatch("team_role", data)
 
     def parse_team_role_deleted(self, data: Any):
         self.dispatch("team_role_deleted", data)
 
     def parse_team_roles_updated(self, data: Any):
-        team = self.cache.get_team(teamId=data['teamId'])
-        if team:
-            roles = [Role(state=self,team=team,data=role) for role in data['roles']]
-            self.dispatch("team_roles_updated", roles)
+        self.dispatch("team_roles_updated", data)
 
     def parse_team_updated(self, data: Any):
-        team = Team(state=self,data=data['team'])
-        self.cache.update_team(teamId=data['team']['id'], updated_team=team)
-        self.dispatch("team_updated", team)
+        self.dispatch("team_updated", data)
 
 
 
     def parse_todo_item_created(self, data: Any):
-        channel = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
-        todo_item = TodoItem(state=self,channel=channel, data=data['todo'])
-        self.dispatch("todo_item", todo_item)
+        self.dispatch("todo_item", data)
 
     def parse_todo_item_deleted(self, data: Any):
         self.dispatch("todo_item_deleted", data)
 
     def parse_todo_item_updated(self, data: Any):
-        channel = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
-        todo_item = TodoItem(state=self,channel=channel, data=data['todo'])
-        self.dispatch("todo_item_updated", todo_item)
+        self.dispatch("todo_item_updated", data)
 
 
 
 
     def parse_user_joined_team(self, data: Any):
-        member = Member._new_member(state=self, data=data['user'], teamId=data['teamId'])
-        self.cache.add_member(teamId=data['teamId'], member=member)
-        self.dispatch("user_joined_team", member)
+        self.dispatch("user_joined_team", data)
 
     def parse_user_left_team(self, data: Any):
-        member = data['member']
-        self.cache.delete_member(teamId=data['teamId'], memberId=data['member']['id'])
-        self.dispatch("user_left_team", member)
+        self.dispatch("user_left_team", data)
 
 
     def parse_user_joined_voice_channel(self, data: Any):
-        self.cache.voice_participants_joined(teamId=data['teamId'], channelId=data['channelId'],participantId=data['user']['id'])
-        voice = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
-        self.dispatch("user_joinded_voice_channel", voice)
+        self.dispatch("user_joinded_voice_channel", data)
 
     def parse_user_left_voice_channel(self, data: Any):
-        self.cache.voice_participants_leaved(teamId=data['teamId'], channelId=data['channelId'],participantId=data['user']['id'])
-        voice = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
-        self.dispatch("user_left_voice_channel", voice)
+        self.dispatch("user_left_voice_channel", data)
 
 
     def parse_user_profile_updated(self, data: Any):
@@ -219,9 +161,7 @@ class ConnectionState:
 
 
     def parse_blog_created(self, data: Any):
-        team = self.cache.get_team(teamId=data['teamId'])
-        blog = Blog(state=self,team=team, data=data['blog'])
-        self.dispatch("blog", blog)
+        self.dispatch("blog", data)
 
     def parse_blog_deleted(self, data: Any):
         self.dispatch("blog_deleted", data)
@@ -233,26 +173,20 @@ class ConnectionState:
         self.dispatch("categories_priority_updated", data)
 
     def parse_category_updated(self, data: Any):
-        team = self.cache.get_team(data['teamId'])
-        category = Category(state=self, team=team, data=data['category'])
-        self.dispatch("category_updated", category)
+        self.dispatch("category_updated", data)
 
     def parse_category_deleted(self, data: Any):
         self.dispatch("category_deleted", data)
 
     def parse_category_created(self, data: Any):
-        team = self.cache.get_team(data['teamId'])
-        category = Category(state=self, team=team, data=data['category'])
-        self.dispatch("category", category)
+        self.dispatch("category", data)
 
     def parse_channels_priority_updated(self, data: Any):
         self.dispatch("channels_priority_updated", data)
 
 
     def parse_announcement_created(self, data: Any):
-        channel = self.cache.get_channel(teamId=data['teamId'], channelId=data['channelId'])
-        announcement = Announcement(state=self,channel=channel, data=data['announcement'])
-        self.dispatch("announcement",announcement)
+        self.dispatch("announcement",data)
 
     def parse_announcement_deleted(self, data: Any):
         self.dispatch("announcement_deleted",data)
@@ -261,20 +195,13 @@ class ConnectionState:
 
 
     def parse_application_created(self, data: Any):
-        team = self.cache.get_team(teamId=data['teamId'])
-        if team:
-            app = ApplicationSubmission(state=self,team=team,data=data)
-            self.dispatch("application", app)
+        self.dispatch("application", data)
 
     def parse_application_updated(self, data: Any):
-        team = self.cache.get_team(teamId=data['teamId'])
-        if team:
-            app = ApplicationSubmission(state=self,team=team,data=data['application'])
-            self.dispatch("application_updated", app)
+        self.dispatch("application_updated", data)
 
 
 
 
     def parse_voice_channel_move(self, data: Any):
         self.dispatch("voice_channel_move",data)
-        print(json.dumps(data,indent=4, ensure_ascii=False))
