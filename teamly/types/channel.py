@@ -28,35 +28,16 @@ from .message import Message
 from .user import User
 from typing import Any, Dict, List, Optional, TypedDict
 
-class _BaseChannel(TypedDict):
+class TextChannel(TypedDict):
     id: str
     type: str
     teamId: str
     name: str
     description: Optional[str]
     createdBy: str
+    createdAt: str # datetime
     parentId: Optional[str]
     priority: int
-    createdAt: str
-    permissions: Dict[str,Any]
-    additionalData: Optional[Dict[str,Any]]
-
-class TextChannel(_BaseChannel):
+    permissions: Optional[Dict]
     rateLimitPerUser: int
-
-class DMChannel(TypedDict):
-    id: str
-    users: List[User]
-    channelId: str
-    createdAt: str
-    lastMessage: Message
-
-
-class VoiceChannel(_BaseChannel):
-    participants: Optional[List[str]]
-
-class AnnouncementChannel(_BaseChannel):
-    pass
-
-class TodoChannel(_BaseChannel):
-    pass
+    additionalData: Optional[Dict]

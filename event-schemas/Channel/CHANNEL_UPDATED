@@ -1,0 +1,36 @@
+{
+    "channel": {
+        "id": string,
+        "type": string,
+        "teamId": string,
+        "name": string,
+        "description": string | null,
+        "createdBy": {
+            "id": string,
+            "username": string,
+            "subdomain": string,
+            "profilePicture": url | null,
+            "banner": url | null,
+            "bot": bool,
+            "system": bool,
+            "webhook": bool,
+            "presence": int,
+            "badges": [],
+            "createdAt": datetime,
+            "lastOnline": null,
+            "flags": int,
+            "userStatus": {
+                "content": url | null,
+                "emojiId": string | null
+            },
+            "userRPC": {}
+        },
+        "createdAt": datetime,
+        "parentId": string | null,
+        "priority": int,
+        "permissions": {},
+        "rateLimitPerUser": int,
+        "additionalData": {}
+    },
+    "teamId": string
+}

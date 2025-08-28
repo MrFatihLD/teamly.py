@@ -23,309 +23,100 @@ SOFTWARE.
 '''
 
 from __future__ import annotations
+from typing import TYPE_CHECKING, Dict, Optional
 
-import teamly.abc
-
-
-from teamly import utils
-from .todo import TodoItem
 
 from .enums import ChannelType
-
 from .types.channel import (
-    TextChannel as TextChannelPayload,
-    DMChannel as DMChannelPayload,
-    VoiceChannel as VoiceChannelPayload,
-    AnnouncementChannel as AnnouncementChannelPayload,
-    TodoChannel as TodoChannelPayload
+    TextChannel as TextChannelPayload
 )
-from typing import TYPE_CHECKING, Dict, Any, List, Optional
 
 if TYPE_CHECKING:
     from .state import ConnectionState
-    from .team import Team
 
 
-__all__ = [
-    'TextChannel',
-    'DMChannel',
-    'VoiceChannel',
-    'AnnouncementChannel',
-    'TodoChannel',
-    'WatchStreamChannel'
-]
 
-@utils.immuteable
-class TextChannel(teamly.abc.TeamChannel, teamly.abc.MessageAble):
 
-    __slots__ = (
-        '_state',
-        'id',
-        'type',
-        'team',
-        'name',
-        'description',
-        'created_by',
-        'parent_id',
-        'priority',
-        'rate_limit_per_user',
-        'created_at',
-        '_permissions',
-        '_additional_data'
-    )
 
-    def __init__(
-        self,
-        *,
-        state: ConnectionState,
-        team: Team,
-        data: TextChannelPayload
-    ) -> None:
+class TextChannel:
+    """
+    Attributes
+    ---
+    id: :class:`str`
+    type: :class:`str`
+    team_id: :class:`str`
+    name: :class:`str`
+    description: :class:`Optional[str]`
+    created_by: :class:`str`
+    created_at: :class:`str`
+    parent_id: :class:`Optional[str]`
+    priority: :class:`int`
+    permissions: :class:`Optional[dict]`
+    rate_limit_per_user: :class:`int`
+    additional_data: :class:`Optional[dict]`
+    """
+
+
+    def __init__(self, state: ConnectionState, data: TextChannelPayload) -> None:
         self._state: ConnectionState = state
-        self.team: Team = team
-
         self.id: str = data['id']
         self.type: str = data['type']
+        self.team_id: str = data['teamId']
         self.name: str = data['name']
-
-        self.description: Optional[str] = data.get('description', None)
-        self.created_by: str = data.get('createdBy')
-        self.parent_id: Optional[str] = data.get('parentId', None)
+        self.description: Optional[str] = data.get('description')
+        self.created_by: str = data['createdBy']
+        self.created_at: str = data['createdAt']
+        self.parent_id: Optional[str] = data.get('parentId')
         self.priority: int = data['priority']
+        self.permissions: Optional[Dict] = data.get('permissions', {})
         self.rate_limit_per_user: int = data['rateLimitPerUser']
-        self.created_at: str = data['createdAt']
-        self._permissions: Dict[str,Any] = data['permissions'].get('role', {})
-        self._additional_data: Dict[str,Any] = data.get('additionalData', {})
-
-    def to_dict(self):
-        payload = {
-            "id": self.id,
-            "type": self.type,
-            "teamId": self.team.id,
-            "name": self.name,
-            "description": self.description,
-            "createdBy": self.created_by,
-            "parentId": self.parent_id,
-            "priority": self.priority,
-            "rateLimitPerUser": self.rate_limit_per_user,
-            "createdAt": self.created_at,
-        }
-        if self._permissions:
-            payload["permissions"] = self._permissions
-        if self._additional_data:
-            payload['addtionalData'] = self._additional_data
-
-        return payload
-
-    def __repr__(self) -> str:
-        return f"<TextChannel id={self.id} name={self.name!r} type={self.type} teamId={self.team.id}>"
-
-class DMChannel:
-
-    def __init__(self, state: ConnectionState, data: DMChannelPayload) -> None:
-        self._state: ConnectionState = state
-
-
-class VoiceChannel(teamly.abc.TeamChannel):
-
-    __slots__ = (
-        '_state',
-        'team',
-        'id',
-        'type',
-        'name',
-        'description',
-        'created_by',
-        'parent_id',
-        'priority',
-        '_participants',
-        'created_at',
-        'permissions',
-        'additional_data'
-    )
-
-    def __init__(
-        self,
-        *,
-        state: ConnectionState,
-        team: Team,
-        data: VoiceChannelPayload
-    ) -> None:
-        self._state: ConnectionState = state
-        self.team: Team = team
-        self._update(data)
-
-    def _update(self, data: VoiceChannelPayload):
-        self.id: str = data['id']
-        self.type: str = data['type']
-        self.name: str = data['name']
-
-        self.description: Optional[str] = data.get('description', None)
-        self.created_by: str = data.get('createdBy')
-        self.parent_id: Optional[str] = data.get('parentId', None)
-        self.priority: int = data['priority']
-        self._participants: List[Dict[str,str]] = data.get('participants', [])
-        self.created_at: str = data['createdAt']
-        self.permissions: Dict[str,Any] = data['permissions'].get('role', {})
-        self.additional_data: Dict[str,Any] = data.get('additionalData', {})
-
-    @property
-    def participants(self):
-        return [p.get('id') for p in self._participants if self._participants] if self._participants else []
-
-
-    def __repr__(self) -> str:
-        return f"<VoiceChannel id={self.id} name={self.name!r} type={self.type} teamId={self.team.id}>"
-
-
-class AnnouncementChannel:
-
-    __slots__ = (
-        '_state',
-        'team',
-        'id',
-        'type',
-        'name',
-        'description',
-        'created_by',
-        'parent_id',
-        'priority',
-        'rate_limit_per_user',
-        'created_at',
-        'permissions',
-        'additional_data'
-    )
-
-    def __init__(
-        self,
-        *,
-        state: ConnectionState,
-        team: Team,
-        data: AnnouncementChannelPayload
-    ) -> None:
-        self._state: ConnectionState = state
-        self.team: Team = team
-        self._update(data)
-
-    def _update(self, data: AnnouncementChannelPayload):
-        self.id: str = data['id']
-        self.type: str = data['type']
-        self.name: str = data['name']
-
-        self.description: Optional[str] = data.get('description', None)
-        self.created_by: str = data.get('createdBy')
-        self.parent_id: Optional[str] = data.get('parentId', None)
-        self.priority: int = data['priority']
-        self.created_at: str = data['createdAt']
-        self.permissions: Dict[str,Any] = data['permissions'].get('role', {})
-        self.additional_data: Dict[str,Any] = data.get('additionalData', {})
-
-    def __repr__(self) -> str:
-        return f"<VoiceChannel id={self.id} name={self.name!r} type={self.type} teamId={self.team.id}>"
-
-class TodoChannel:
-    def __init__(
-        self,
-        *,
-        state: ConnectionState,
-        team: Team,
-        data: TodoChannelPayload
-    ) -> None:
-        self._state: ConnectionState = state
-        self.team: Team = team
-        self._update(data)
-
-    def _update(self, data: TodoChannelPayload):
-        self.id: str = data['id']
-        self.type: str = data['type']
-        self.name: str = data['name']
-
-        self.description: Optional[str] = data.get('description', None)
-        self.created_by: str = data.get('createdBy')
-        self.parent_id: Optional[str] = data.get('parentId', None)
-        self.priority: int = data['priority']
-        self.created_at: str = data['createdAt']
-        self.permissions: Dict[str,Any] = data['permissions'].get('role', {})
-        self.additional_data: Dict[str,Any] = data.get('additionalData', {})
+        self.additional_data: Optional[Dict] = data.get('additionalData', {})
 
     def to_dict(self):
         return {
             "id": self.id,
             "type": self.type,
-            "teamId": self.team.id,
+            "teamId": self.team_id,
             "name": self.name,
             "description": self.description,
             "createdBy": self.created_by,
+            "createdAt": self.created_at,
             "parentId": self.parent_id,
             "priority": self.priority,
             "permissions": self.permissions,
+            "rateLimitPerUser": self.rate_limit_per_user,
             "additionalData": self.additional_data
         }
 
-    async def fetch_todoitems(self):
-        return self._state.http.get_todo_items(channelId=self.id)
+    async def edit(self, name: str, description: str = None):
+        payload = {"name": name, "description": description}
+        await self._state.http.update_channel(
+            teamId=self.team_id,
+            channelId=self.id,
+            payload=payload
+        )
 
-    async def create_todo(self, content: str):
-        if len(content) >= 256:
-            raise ValueError("Content is too long, max 256 characters")
+    async def update_role(self, roleId: str, /, allow: int, deny: int):
+        payload = {"allow": allow, "deny": deny}
+        await self._state.http.update_channel_permissions(
+            teamId=self.team_id,
+            channelId=self.id,
+            roleId=roleId,
+            payload=payload
+        )
 
-        await self._state.http.create_todo_item(channelId=self.id, content=content)
-
-    async def delete_todo(self, todoId: str):
-        return await self._state.http.delete_todo_item(channelId=self.id, todoId=todoId)
-
-    async def clone_todoitem(self, todoId: str):
-        clone = await self._state.http.clone_todo_item(channelId=self.id, todoId=todoId)
-        return TodoItem(state=self._state,channel=self,data=clone['todo'])
-
-
-    def __str__(self) -> str:
-        return self.name
-
-    def __repr__(self) -> str:
-        return f"<TodoChannel id={self.id} name={self.name!r} type={self.type} teamId={self.team.id}>"
-
-
-class WatchStreamChannel:
-    def __init__(
-        self,
-        *,
-        state: ConnectionState,
-        team: Team,
-        data: TodoChannelPayload
-    ) -> None:
-        self._state: ConnectionState = state
-        self.team: Team = team
-        self._update(data)
-
-    def _update(self, data: TodoChannelPayload):
-        self.id: str = data['id']
-        self.type: str = data['type']
-        self.name: str = data['name']
-
-        self.description: Optional[str] = data.get('description', None)
-        self.created_by: str = data.get('createdBy')
-        self.parent_id: Optional[str] = data.get('parentId', None)
-        self.priority: int = data['priority']
-        self.created_at: str = data['createdAt']
-        self.permissions: Dict[str,Any] = data['permissions'].get('role', {})
-        self.additional_data: Dict[str,Any] = data.get('additionalData', {})
+    async def delete(self):
+        await self._state.http.delete_channel(
+            teamId=self.team_id,
+            channelId=self.id
+        )
 
     def __repr__(self) -> str:
-        return f"<WatchStreamChannel id={self.id} name={self.name!r} type={self.type} teamId={self.team.id}>"
+        return f"<TextChannel id={self.id} name={self.name} type={self.type} teamId={self.team_id}>"
 
 
-@staticmethod
-def _channel_factory(type: str) -> Any | None:
+def _channel_factory(type: str):
     if ChannelType.TEXT == type:
         return TextChannel
-    elif ChannelType.VOICE == type:
-        return VoiceChannel
-    elif ChannelType.ANNOUNCEMENT == type:
-        return AnnouncementChannel
-    elif ChannelType.TODO == type:
-        return TodoChannel
-    elif ChannelType.WATCHSTREAM == type:
-        return WatchStreamChannel
     else:
         return None

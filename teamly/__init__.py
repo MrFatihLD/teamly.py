@@ -23,6 +23,7 @@ from .announcement import *
 from .application import *
 from .attachment import *
 from .blog import *
+from .types import *
 from .channel import *
 from .client import *
 from .color import *

@@ -22,9 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
-from __future__ import annotations
-
-
 from enum import Enum
 
 
@@ -34,21 +31,6 @@ class ChannelType(str, Enum):
     TODO = 'todo'
     WATCHSTREAM = 'watchstream'
     ANNOUNCEMENT = 'announcement'
-
-    def __str__(self) -> str:
-        return self.value
-
-
-class Status(int,Enum):
-    OFFLINE = 0
-    ONLINE = 1
-    IDLE = 2
-    DO_DO_DISTURB = 3
-
-class AppStatus(str, Enum):
-    PENDING = "pending"
-    APPROVED = "approved"
-    REJECTED = "rejected"
 
     def __str__(self) -> str:
         return self.value

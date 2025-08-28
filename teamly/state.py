@@ -28,6 +28,8 @@ import json
 
 from loguru import logger
 
+from teamly.types import channel
+
 
 from .reaction import Reaction
 from .user import ClientUser
@@ -72,14 +74,20 @@ class ConnectionState:
 
 
 
-    def parse_channel_created(self, data: Dict[str,Any]):
-        self.dispatch('channel', data)
-
-    def parse_channel_deleted(self, data: Any):
-        self.dispatch('channel_deleted', data)
+    def parse_channel_created(self, data: Any):
+        factory = _channel_factory(data['channel']['type'])
+        if factory:
+            channel = factory(state=self, data=data['channel'])
+            self.dispatch('channel', channel)
 
     def parse_channel_updated(self, data: Any):
-        self.dispatch('channel_updated', data)
+        factory = _channel_factory(data['channel']['type'])
+        if factory:
+            channel = factory(state=self, data=data['channel'])
+            self.dispatch('channel_updated', channel)
+
+    def parse_channel_deleted(self, data: Any):
+            self.dispatch('channel_deleted', data)
 
 
 
