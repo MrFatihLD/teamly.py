@@ -200,7 +200,6 @@ class HTTPClient:
         try:
             async with self._session.request(method, url, **kwargs) as response:
                 logger.debug("Sending request {!r} {} with {}", method, url, kwargs)
-
                 if response.status == 429:
                     retry_after = response.headers.get("Retry-After")
                     if retry_after is None:
@@ -394,7 +393,7 @@ class HTTPClient:
         return await self.request(r, json=payload)
 
     async def delete_todo_item(self, channelId: str, todoId: str):
-        r = Route("DELTE","/channels/{channelId}/todo/item/{todoId}", channelId=channelId, todoId=todoId)
+        r = Route("DELETE","/channels/{channelId}/todo/item/{todoId}", channelId=channelId, todoId=todoId)
         return await self.request(r)
 
     async def clone_todo_item(self, channelId: str, todoId: str):

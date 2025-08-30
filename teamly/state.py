@@ -128,13 +128,16 @@ class ConnectionState:
 
 
     def parse_todo_item_created(self, data: Any):
-        self.dispatch("todo_item", data)
+        todo = TodoItem(state=self, data=data['todo'])
+        self.dispatch("todo_item", todo)
+
+    def parse_todo_item_updated(self, data: Any):
+        todo = TodoItem(state=self, data=data['todo'])
+        self.dispatch("todo_item_updated", todo)
 
     def parse_todo_item_deleted(self, data: Any):
         self.dispatch("todo_item_deleted", data)
 
-    def parse_todo_item_updated(self, data: Any):
-        self.dispatch("todo_item_updated", data)
 
 
 
