@@ -10,7 +10,6 @@
         "parentId": string | null,
         "priority": int,
         "permissions": {},
-        "rateLimitPerUser": int,
         "additionalData": {}
     },
     "teamId": string

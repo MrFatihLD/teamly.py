@@ -1,0 +1,18 @@
+{
+    "channel": {
+        "id": string,
+        "type": string,
+        "teamId": string,
+        "name": string,
+        "description": string | null,
+        "createdBy": string,
+        "createdAt": datetime,
+        "parentId": string | null,
+        "participants": [], <- extra data
+        "userLimit": null, <- extra data
+        "priority": int,
+        "permissions": {},
+        "additionalData": {}
+    },
+    "teamId": string
+}

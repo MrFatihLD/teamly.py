@@ -27,9 +27,10 @@
         },
         "createdAt": datetime,
         "parentId": string | null,
+        "participants": [], <- extra data
+        "userLimit": null, <- extra data
         "priority": int,
         "permissions": {},
-        "rateLimitPerUser": int,
         "additionalData": {}
     },
     "teamId": string
