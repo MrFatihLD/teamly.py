@@ -177,7 +177,6 @@ class TodoChannel:
         todos = await self._state.http.get_todo_items(channelId=self.id)['todos']
         return [TodoItem(state=self._state, data=todo) for todo in todos]
 
-
     async def create_todo_item(self, content: str):
         await self._state.http.create_todo_item(channelId=self.id, content=content)
 
@@ -190,8 +189,14 @@ class TodoChannel:
     async def update_todo_item(self, todoId: str, content: str, completed: bool = False):
         await self._state.http.update_todo_item(channelId=self.id, todoId=todoId, content=content, completed=completed)
 
+
+
     def __repr__(self) -> str:
         return f"<TodoChannel id={self.id} name={self.name} type={self.type} teamId={self.team_id}>"
+
+
+class WatchStream:
+    pass
 
 
 def _channel_factory(type: str):
@@ -199,5 +204,7 @@ def _channel_factory(type: str):
         return TextChannel
     elif ChannelType.TODO == type:
         return TodoChannel
+    elif ChannelType.WATCHSTREAM == type:
+        return WatchStream
     else:
         return None
