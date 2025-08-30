@@ -15,15 +15,15 @@ async def on_ready():
 
 
 @client.event
-async def on_channel(channel):
-    print(json.dumps(channel, indent=4, ensure_ascii=False))
+async def on_todo_item(todo):
+    print(json.dumps(todo.to_dict(), indent=4, ensure_ascii=False))
 
 @client.event
-async def on_channel_updated(channel):
-    print(json.dumps(channel, indent=4, ensure_ascii=False))
+async def on_todo_item_updated(todo):
+    print(json.dumps(todo.to_dict(), indent=4, ensure_ascii=False))
 
 @client.event
-async def on_channel_deleted(data):
+async def on_todo_item_deleted(data):
     print(json.dumps(data, indent=4, ensure_ascii=False))
 
 
