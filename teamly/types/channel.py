@@ -41,3 +41,16 @@ class TextChannel(TypedDict):
     permissions: Optional[Dict]
     rateLimitPerUser: int
     additionalData: Optional[Dict]
+
+class TodoChannel(TypedDict):
+    id: str
+    type: str
+    teamId: str
+    name: str
+    description: Optional[str]
+    createdBy: str
+    createdAt: str # datetime
+    parentId: Optional[str]
+    priority: int
+    permissions: Optional[Dict]
+    additionalData: Optional[Dict]
