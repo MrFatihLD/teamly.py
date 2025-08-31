@@ -24,25 +24,14 @@ SOFTWARE.
 
 
 
-from typing import Optional, TypedDict
-
-class EmbedAuthor(TypedDict):
-    name: str
-    icon_url: str
-
-class EmbedMedia(TypedDict):
-    url: str
-
-class EmbedFooter(TypedDict):
-    text: str
-    icon_url: str
+from typing import Dict, Optional, TypedDict
 
 class Embed(TypedDict):
-    title: str
-    description: str
+    title: Optional[str]
+    description: Optional[str]
     url: Optional[str]
-    color: Optional[int]
-    author: EmbedAuthor
-    thumbnail: EmbedMedia
-    image: EmbedMedia
-    footer: EmbedFooter
+    color: Optional[str]
+    author: Optional[Dict]
+    thumbnail: Optional[Dict]
+    image: Optional[Dict]
+    footer: Optional[Dict]
