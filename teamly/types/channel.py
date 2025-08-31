@@ -54,3 +54,44 @@ class TodoChannel(TypedDict):
     priority: int
     permissions: Optional[Dict]
     additionalData: Optional[Dict]
+
+class WatchStream(TypedDict):
+    id: str
+    type: str
+    teamId: str
+    name: str
+    description: Optional[str]
+    createdBy: str
+    createdAt: str # datetime
+    parentId: Optional[str]
+    priority: int
+    permissions: Optional[Dict]
+    additionalData: Optional[Dict]
+
+class VoiceChannel(TypedDict):
+    id: str
+    type: str
+    teamId: str
+    name: str
+    description: Optional[str]
+    createdBy: str
+    createdAt: str # datetime
+    parentId: Optional[str]
+    participants: Dict
+    userLimit: Optional[int]
+    priority: int
+    permissions: Optional[Dict]
+    additionalData: Optional[Dict]
+
+class AnnouncementChannel(TypedDict):
+    id: str
+    type: str
+    teamId: str
+    name: str
+    description: Optional[str]
+    createdBy: str
+    createdAt: str # datetime
+    parentId: Optional[str]
+    priority: int
+    permissions: Optional[Dict]
+    additionalData: Optional[Dict]
