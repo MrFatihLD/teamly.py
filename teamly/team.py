@@ -24,10 +24,12 @@ SOFTWARE.
 
 from __future__ import annotations
 
+from teamly.channel import _channel_factory
+
 from .member import Member
 
 from .types.team import Team as TeamPayload
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Literal, Optional
 
 if TYPE_CHECKING:
     from .state import ConnectionState
@@ -86,14 +88,13 @@ class Team:
         }
         await self._state.http.update_team(teamId=self.id, payload=payload)
 
+    #Team
+
     async def add_role_to_member(self, userId: str, roleId: str):
         await self._state.http.add_role_to_member(teamId=self.id, userId=userId, roleId=roleId)
 
     async def remove_role_from_member(self, userId: str, roleId: str):
         await self._state.http.remove_role_from_member(teamId=self.id, userId=userId, roleId=roleId)
-
-    async def kick(self, userId: str):
-        await self._state.http.kick_member(teamId=self.id, userId=userId)
 
     async def get_member(self, userId: str):
         member = await self._state.http.get_member(teamId=self.id, userId=userId)['member']
@@ -107,6 +108,50 @@ class Team:
 
     async def ban(self, userId: str,/, reason: str = None):
         await self._state.http.ban(teamId=self.id, userId=userId, reason=reason)
+
+    async def kick(self, userId: str):
+        await self._state.http.kick_member(teamId=self.id, userId=userId)
+
+    #Channel
+
+    async def get_channels(self):
+        return await self._state.http.get_channels(teamId=self.id)
+
+    async def get_channelJ(self, channelId: str):
+        return await self._state.http.get_channel_by_Id(teamId=self.id, channelId=channelId)
+
+    async def create_channel(
+        self,
+        name: str,
+        type: Literal['text', 'voice', 'watchstream', 'todo', 'announcement'] = "text",
+        /,
+        additionalData: Dict[str, str] = None
+    ):
+        payload = {
+            "name": name,
+            "type": type,
+            "addtionalData": additionalData
+        }
+        await self._state.http.create_channel(teamId=self.id, payload=payload)
+
+    async def delete_channel(self, channelId: str):
+        await self._state.http.delete_channel(teamId=self.id, channelId=channelId)
+
+    async def update_channel(self, channelId: str, name: str, /, additionalData: Dict[str, str] = None):
+        payload = {"name": name, "additionalData": additionalData}
+        await self._state.http.update_channel(teamId=self.id, channelId=channelId, payload=payload)
+
+    async def update_channel_permissions(self, channelId: str, roleId, /, allow: int, deny: int):
+        payload = {"allow": allow, "deny": deny}
+        await self._state.http.update_channel_permissions(teamId=self.id, channelId=channelId, roleId=roleId, payload=payload)
+
+    async def duplicate_channel(self, channelId: str):
+        await self._state.http.duplicate_channel(teamId=self.id, channelId=channelId)
+
+
+    #Roles
+
+
 
     def __repr__(self) -> str:
         return f"<Team id={self.id} name={self.name!r} isVerified={self.is_verified} memberCount={self.member_count}>"

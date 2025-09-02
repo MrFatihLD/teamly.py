@@ -232,7 +232,7 @@ class HTTPClient:
     #Core Resources
 
     #Channels
-    async def get_channels(self, teamId: str):
+    async def get_channels(self, teamId: str) -> Dict[str, Any]:
         return await self.request(Route("GET","/teams/{teamId}/channels", teamId=teamId))
 
     async def create_channel(self, teamId: str, payload: Dict[str,Any]):

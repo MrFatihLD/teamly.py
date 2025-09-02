@@ -82,5 +82,9 @@ class Message:
     async def delete_reaction(self, emojiId: str):
         await self._state.http.delete_reaction_from_message(channelId=self.channel_id, messageId=self.id, emojiId=emojiId)
 
+    async def reply(self, content: str, embeds: Embed):
+        payload = {"content": content, "embeds": [embeds], "replyTo": self.id}
+        await self._state.http.create_message(channelId=self.channel_id, payload=payload)
+
     def __repr__(self) -> str:
         return f"<Message id={self.id} type={self.type} content={self.content} channelId={self.channel_id}>"
