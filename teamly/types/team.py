@@ -22,12 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
-from __future__ import annotations
-
-
 from typing import List, Optional, TypedDict, Dict
 
-class TeamPayload(TypedDict):
+class Team(TypedDict):
     id: str
     name: str
     profilePicture: Optional[str]
@@ -38,8 +35,8 @@ class TeamPayload(TypedDict):
     isSuspended: Optional[bool]
     createdBy: str
     defaultChannelId: Optional[str]
-    games: List[Dict[str,str]]
-    idDiscoverable: Optional[bool]
+    games: List[Dict]
+    isDiscoverable: Optional[bool]
     isTournament: bool
     discoverableInvite: Optional[str]
     createdAt: str
