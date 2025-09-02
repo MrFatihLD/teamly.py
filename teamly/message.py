@@ -50,3 +50,37 @@ class Message:
         self.nonce: Optional[str] = data.get('nonce')
         self.created_at: str = data['createdAt']
         self.mentions: Optional[Dict[str, List[Dict]]] = data.get('mentions', {})
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "channelId": self.channel_id,
+            "type": self.type,
+            "content": self.content,
+            "attachments": self.attachments,
+            "createdBy": self.created_by,
+            "editedAt": self.edited_at,
+            "replyTo": self.reply_to,
+            "embeds": [e.to_dict() for e in self.embeds] if self.embeds else [],
+            "emojis": self.emojis,
+            "reactions": self.reactions,
+            "nonce": self.nonce,
+            "createdAt": self.created_at,
+            "mentions": self.mentions
+        }
+
+    async def edit(self, content: str, embeds: Embed):
+        payload = {"content": content, "embeds": [embeds]}
+        await self._state.http.update_channel_message(channelId=self.channel_id, messageId=self.id, payload=payload)
+
+    async def delete(self):
+        await self._state.http.delete_message(channelId=self.channel_id, messageId=self.id)
+
+    async def react(self, emojiId: str):
+        await self._state.http.react_to_message(channelId=self.channel_id, messageId=self.id, emojiId=emojiId)
+
+    async def delete_reaction(self, emojiId: str):
+        await self._state.http.delete_reaction_from_message(channelId=self.channel_id, messageId=self.id, emojiId=emojiId)
+
+    def __repr__(self) -> str:
+        return f"<Message id={self.id} type={self.type} content={self.content} channelId={self.channel_id}>"
