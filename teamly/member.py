@@ -24,9 +24,6 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
-from .user import _UserTag
 from .types.member import Member as MemberPayload
 from typing import TYPE_CHECKING, List
 
@@ -34,19 +31,24 @@ if TYPE_CHECKING:
     from .state import ConnectionState
 
 
-class Member(_UserTag):
+class Member:
 
     def __init__(self, state: ConnectionState, data: MemberPayload) -> None:
-        self._state: ConnectionError = state
-
+        self._state: ConnectionState = state
         self.id: str = data['id']
         self.username: str = data['username']
         self.permissions: str = data['permissions']
-        self.roles: List[str] = data['roles']
+        self.roles: List[str] = data.get('roles', [])
         self.joined_at: str = data['joinedAt']
 
-    def __eq__(self, other: object) -> bool:
-        return isinstance(other, _UserTag) and self.id == other.id
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "username": self.username,
+            "permissions": self.permissions,
+            "roles": self.roles,
+            "joinedAt": self.joined_at
+        }
 
     def __repr__(self) -> str:
-        return f"<Member id={self.id} username={self.username} joinedAt={self.joined_at}>"
+        return f"<Member id={self.id} username={self.username!r} joinedAt={self.joined_at}>"
