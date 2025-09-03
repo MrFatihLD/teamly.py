@@ -24,8 +24,7 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from teamly.channel import _channel_factory
-
+import json
 from .member import Member
 
 from .types.team import Team as TeamPayload
@@ -151,7 +150,54 @@ class Team:
 
     #Roles
 
+    async def create_role(
+        self,
+        name: str,
+        permissions: int,
+        color: str,
+        color2: str = None,
+        isDisplayedSeparately: bool = None
+    ):
+        payload = {
+            "name": name,
+            "permissions": permissions,
+            "color": color,
+            "color2": color2,
+            "isDisplayedSeparately": isDisplayedSeparately
+        }
+        await self._state.http.create_role(teamId=self.id, payload=payload)
 
+    async def get_roles(self):
+        return await self._state.http.get_roles(teamId=self.id)
+
+    async def delete_role(self, roleId: str):
+        await self._state.http.delete_role(teamId=self.id, roleId=roleId)
+
+    async def clone_role(self, roleId: str):
+        await self._state.http.clone_role(teamId=self.id, roleId=roleId)
+
+    async def update_role_priorities(self, role_ids: List[str]):
+        payload = json.dumps(role_ids)
+        await self._state.http.update_role_priorities(teamId=self.id, payload=payload)
+
+    async def update_role(
+        self,
+        roleId: str,
+        *,
+        name: str,
+        permissions: int,
+        color: str,
+        color2: Optional[str] = None,
+        isDisplayedSeparately: Optional[bool] = None
+    ):
+        payload = {
+            "name": name,
+            "permissions": permissions,
+            "color": color,
+            "color2": color2,
+            "isDisplayedSeparately": isDisplayedSeparately
+        }
+        await self._state.http.update_role(teamId=self.id, roleId=roleId, payload=payload)
 
     def __repr__(self) -> str:
         return f"<Team id={self.id} name={self.name!r} isVerified={self.is_verified} memberCount={self.member_count}>"
