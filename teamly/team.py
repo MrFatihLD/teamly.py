@@ -24,11 +24,12 @@ SOFTWARE.
 
 from __future__ import annotations
 
+from ast import Bytes
 import json
 from .member import Member
 
 from .types.team import Team as TeamPayload
-from typing import TYPE_CHECKING, Dict, List, Literal, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional
 
 if TYPE_CHECKING:
     from .state import ConnectionState
@@ -87,7 +88,7 @@ class Team:
         }
         await self._state.http.update_team(teamId=self.id, payload=payload)
 
-    #Team
+    # Team
 
     async def add_role_to_member(self, userId: str, roleId: str):
         await self._state.http.add_role_to_member(teamId=self.id, userId=userId, roleId=roleId)
@@ -111,7 +112,7 @@ class Team:
     async def kick(self, userId: str):
         await self._state.http.kick_member(teamId=self.id, userId=userId)
 
-    #Channel
+    # Channel
 
     async def get_channels(self):
         return await self._state.http.get_channels(teamId=self.id)
@@ -148,7 +149,7 @@ class Team:
         await self._state.http.duplicate_channel(teamId=self.id, channelId=channelId)
 
 
-    #Roles
+    # Roles
 
     async def create_role(
         self,
@@ -198,6 +199,57 @@ class Team:
             "isDisplayedSeparately": isDisplayedSeparately
         }
         await self._state.http.update_role(teamId=self.id, roleId=roleId, payload=payload)
+
+
+    # Application
+
+    async def get_application_submissions(self):
+        return await self._state.http.get_application_submissions(teamId=self.id)
+
+    async def update_application_status(self, enable: bool):
+        await self._state.http.update_team_application_status(teamId=self.id, enable=enable)
+        pass
+
+    async def update_application_questions(self, description: str, questions: List[Dict[str, str]]):
+        payload = {"description": description, "questions": questions}
+        await self._state.http.update_team_application_questions(teamId=self.id, payload=payload)
+        pass
+
+    async def get_application(self, applicationId: str):
+        return await self._state.http.get_application_by_id(teamId=self.id, applicationId=applicationId)
+
+
+    # Reactions
+
+    async def get_custom_reactions(self):
+        return await self._state.http.get_team_custom_reactions(teamId=self.id)
+
+    async def create_custom_reaction(self, name: str, emoji: Any = None):
+        #await self._state.http.create_new_custom_reaction_for_team(teamId=self.id, name=name, emoji=emoji)
+        pass
+
+    async def update_custom_reaction(self, reactionId: str, /, name: str):
+        await self._state.http.update_custom_reaction(teamId=self.id, reactionId=reactionId, name=name)
+
+    async def delete_custom_reaction(self, reactionId: str):
+        await self._state.http.delete_custom_reaction(teamId=self.id, reactionId=reactionId)
+
+
+    # Blog
+
+    async def create_blog(self, title: str, content: str, /,heroImage: str = None):
+        payload = {
+            "title": title,
+            "content": content,
+            "heroImage": heroImage
+        }
+        await self._state.http.create_blog_post(teamId=self.id, payload=payload)
+
+    async def delete_blog(self, blogId: str):
+        await self._state.http.delete_blog_post(teamId=self.id, blogId=blogId)
+
+
+
 
     def __repr__(self) -> str:
         return f"<Team id={self.id} name={self.name!r} isVerified={self.is_verified} memberCount={self.member_count}>"
