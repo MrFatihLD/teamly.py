@@ -22,12 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
-from typing import Dict, Literal, Optional, TypedDict
+from typing import Any, Dict, Optional, TypedDict
 
-class CategoryPermissions(TypedDict):
-    roleId: str
-    allow: str
-    deny: str
 
 class Category(TypedDict):
     id: str
@@ -35,6 +31,6 @@ class Category(TypedDict):
     name: str
     createdBy: str
     priority: Optional[int]
-    permissions: Dict[Literal['role'],CategoryPermissions]
+    permissions: Dict[str,Any]
     createdAt: str
     editedAt: Optional[str]
