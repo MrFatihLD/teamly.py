@@ -24,51 +24,25 @@ SOFTWARE.
 
 from __future__ import annotations
 
+from .types.blog import Blog as BlogPayload
 from typing import TYPE_CHECKING, Optional
 
+
 if TYPE_CHECKING:
-    from teamly.state import ConnectionState
-    from .types.blog import Blog as BlogPayload
-    from .team import Team
-
-__all__ = [
-    "Blog"
-]
-
+    from .state import ConnectionState
 
 class Blog:
 
-    __slots__ = (
-        '_state',
-        'id',
-        'title',
-        'content',
-        'created_at',
-        'created_by',
-        'edited_at',
-        'team',
-        'hero_image'
-    )
-
-    def __init__(
-        self,
-        *,
-        state: ConnectionState,
-        team: Team,
-        data: BlogPayload
-    ) -> None:
+    def __init__(self, state: ConnectionState, data: BlogPayload) -> None:
         self._state: ConnectionState = state
-        self.team: Team = team
-
         self.id: str = data['id']
         self.title: str = data['title']
         self.content: str = data['content']
-
         self.created_at: str = data['createdAt']
         self.created_by: str = data['createdBy']
-        self.edited_at: Optional[str] = data.get('editedAt')
-        self.hero_image: Optional[str] = data.get('heroImage')
-
+        self.edited_at: Optional[str] = data.get('editedAt', None)
+        self.team_id: str = data['teamId']
+        self.hero_image: Optional[str] = data.get('heroImage', None)
 
     def to_dict(self):
         return {
@@ -78,9 +52,9 @@ class Blog:
             "createdAt": self.created_at,
             "createdBy": self.created_by,
             "editedAt": self.edited_at,
-            "teamId": self.team.id,
+            "teamId": self.team_id,
             "heroImage": self.hero_image
         }
 
     def __repr__(self) -> str:
-        return f"<Blog id={self.id} title={self.title!r} content={self.content!r}>"
+        return f"<Blog id={self.id} title={self.title!r} createdBy={self.created_by!r} teamId={self.team_id}>"
