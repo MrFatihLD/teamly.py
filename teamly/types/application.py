@@ -22,16 +22,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
-from __future__ import annotations
 
-from .user import User
-from teamly.enums import AppStatus
-from typing import Any, Dict, List, TypedDict
+from typing import Any, Dict, List, Literal, TypedDict
+
 
 class Application(TypedDict):
     id: str
     type: str
-    submittedBy: User
-    answers: List[Dict[str,Any]]
-    status: AppStatus
+    submittedBy: Dict[str, Any]
+    answers: List[Dict[str, Any]]
+    status: Literal['pending', 'approved', 'rejected']
     createdAt: str

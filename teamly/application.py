@@ -24,46 +24,42 @@ SOFTWARE.
 
 from __future__ import annotations
 
+from .types.application import Application as ApplicationPayload
 from typing import TYPE_CHECKING, Any, Dict, List, Literal
 
 if TYPE_CHECKING:
     from .state import ConnectionState
-    from .user import User
-    from .team import Team
-    from types.application import Application as ApplicationPayload
 
-class ApplicationSubmission:
+class Application:
 
     def __init__(
         self,
         state: ConnectionState,
-        *,
-        team: Team,
-        data: ApplicationPayload
+        data: ApplicationPayload,
+        teamId: str
     ) -> None:
         self._state: ConnectionState = state
-        self.team: Team = team
-
         self.id: str = data['id']
         self.type: str = data['type']
-        self._submitted_by: User = data['submittedBy']
-        self.answers: List[Dict[str,Any]] = data['answers']
-        self.status: Literal['pending','approved','rejected'] = data['status']
-        self._created_at: str = data['createdAt']
-
-    @property
-    def submittedBy(self):
-        return self._submitted_by
+        self.submitted_by: Dict[str, Any] = data['submittedBy']
+        self.answers: List[Dict[str, Any]] = data['answers']
+        self.status: Literal['pending', 'approved', 'rejected'] = data['status']
+        self.created_at: str = data['createdAt']
+        self.team_id: str = teamId
 
     def to_dict(self):
         return {
             "id": self.id,
             "type": self.type,
-            "submittedBy": self._submitted_by,
+            "submittedBy": self.submitted_by,
             "answers": self.answers,
             "status": self.status,
-            "createdAt": self._created_at
+            "createdAt": self.created_at
         }
 
-    async def update_status(self, status = Literal['accepted','rejected']):
-        await self._state.http.update_application_status(teamId=self.team.id, applicationId=self.id, status=status)
+    async def update_status(self, status: Literal['accepted', 'rejected']):
+        await self._state.http.update_application_status(teamId=self.team_id, applicationId=self.id, status=status)
+        pass
+
+    def __repr__(self) -> str:
+        return f"<Application id={self.id} submittedBy={self.submitted_by['id']} status={self.status!r}>"
