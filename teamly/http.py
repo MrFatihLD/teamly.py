@@ -435,7 +435,7 @@ class HTTPClient:
         r = Route("POST","/teams/{teamId}/applications/status", teamId=teamId)
         return await self.request(r, json=payload)
 
-    async def update_team_application_questions(self, teamId: str, payload: Dict[str, Any]):
+    async def update_team_application_questions(self, teamId: str, payload: Dict[str,Any]):
         r = Route("PATCH","/teams/{teamId}/applications", teamId=teamId)
         return await self.request(r, json=payload)
 
