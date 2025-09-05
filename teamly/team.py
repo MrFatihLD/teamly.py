@@ -26,6 +26,8 @@ from __future__ import annotations
 
 from ast import Bytes
 import json
+
+from aiohttp.client_reqrep import payload
 from .member import Member
 
 from .types.team import Team as TeamPayload
@@ -249,7 +251,50 @@ class Team:
         await self._state.http.delete_blog_post(teamId=self.id, blogId=blogId)
 
 
+    # Category
 
+    async def create_category(self, name: str):
+        await self._state.http.create_category(teamId=self.id, name=name)
+
+    async def update_category(self, categoryId: str, name: str):
+        await self._state.http.update_category(teamId=self.id, categoryId=categoryId, name=name)
+
+    async def update_category_role_permissions(self, categoryId: str, roleId: str, /, allow: int, deny: int):
+        await self._state.http.update_category_role_permission(teamId=self.id, categoryId=categoryId, roleId=roleId, allow=allow, deny=deny)
+
+    async def delete_category(self, categoryId: str):
+        await self._state.http.delete_category(teamId=self.id, categoryId=categoryId)
+
+    async def add_channel_to_category(self, categoryId: str, channelId: str):
+        await self._state.http.add_channel_to_category(teamId=self.id, categoryId=categoryId, channelId=channelId)
+
+    async def delete_channel_from_category(self, categoryId: str, channelId: str):
+        await self._state.http.delete_channel_from_category(teamId=self.id, categoryId=categoryId, channelId=channelId)
+
+    async def set_channel_priority_of_category(self, categoryId: str, channelIds: List[str]):
+        payload = {"channels": channelIds}
+        await self._state.http.set_channel_priority_of_category(teamId=self.id, categoryId=categoryId, payload=payload)
+
+    async def set_category_priority(self, categoryIds: List[str]):
+        payload = {"categories": categoryIds}
+        await self._state.http.set_team_category_priority(teamId=self.id, payload=payload)
+
+
+    # Announcement
+
+    async def get_announcements(self, channelId: str):
+        return await self._state.http.get_announcments(channelId=channelId)
+
+    async def create_announcement(self, channelId: str, title: str, content: str, /, tagEveryone: bool = False):
+        payload = {
+            "title": title,
+            "content": content,
+            "tagEveryone": tagEveryone
+        }
+        await self._state.http.create_announcment(channelId=channelId, payload=payload)
+
+    async def delete_announcement(self, channelId: str, announcementId: str):
+        await self._state.http.delete_announcement(channelId=channelId, announcementId=announcementId)
 
     def __repr__(self) -> str:
         return f"<Team id={self.id} name={self.name!r} isVerified={self.is_verified} memberCount={self.member_count}>"
