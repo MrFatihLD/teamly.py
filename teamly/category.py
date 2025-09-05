@@ -25,7 +25,7 @@ SOFTWARE.
 from __future__ import annotations
 
 from .types.category import Category as CategoryPayload
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 
 if TYPE_CHECKING:
@@ -35,4 +35,30 @@ if TYPE_CHECKING:
 class Category:
 
     def __init__(self, state: ConnectionState, data: CategoryPayload) -> None:
-        pass
+        self._state: ConnectionState = state
+        self.id: str = data['id']
+        self.team_id: str = data['teamId']
+        self.name: str = data['name']
+        self.created_by: str = data['createdBy']
+        self.priority: Optional[int] = data.get('priority')
+        self.permissions: Dict[str, Any] = data['permissions']
+        self.created_at: str = data['createdAt']
+        self.edited_at: Optional[str] = data.get('editedAt')
+
+    async def update(self, name: str):
+        await self._state.http.update_category(teamId=self.team_id, categoryId=self.id, name=name)
+
+    async def update_role_permissions(self, roleId: str, /, allow: int, deny: int):
+        await self._state.http.update_category_role_permission(teamId=self.team_id, categoryId=self.id, roleId=roleId, allow=allow, deny=deny)
+
+    async def delete(self):
+        await self._state.http.delete_category(teamId=self.team_id, categoryId=self.id)
+
+    async def set_channel_priority(self, channels: List[str]):
+        payload = {"channels": channels}
+        await self._state.http.set_channel_priority_of_category(teamId=self.team_id, categoryId=self.id, payload=payload)
+
+
+
+    def __repr__(self) -> str:
+        return f"<Category id={self.id} name={self.name!r} teamId={self.team_id}>"
