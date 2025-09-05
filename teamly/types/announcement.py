@@ -22,29 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
-from __future__ import annotations
 
-from typing import List, Optional, TypedDict
-
-from teamly.user import User
-
-class AnnouncementMedia(TypedDict):
-    url: str
-
-class AnnouncementEmojis(TypedDict):
-    emojiId: str
-
-class AnnouncementMentions(TypedDict):
-    users: List[str]
-
-class AnnouncementReactedUsers(TypedDict):
-    userId: str
-    timestamp: str
-
-class AnnouncementReactions(TypedDict):
-    emojiId: Optional[str]
-    count: Optional[int]
-    users: Optional[List[AnnouncementReactedUsers]]
+from typing import Any, Dict, List, Optional, TypedDict
 
 
 class Announcement(TypedDict):
@@ -52,10 +31,10 @@ class Announcement(TypedDict):
     channelId: str
     title: str
     content: str
-    createdBy: User
-    attachments: Optional[List[AnnouncementMedia]]
-    emojis: Optional[List[AnnouncementEmojis]]
-    mentions: AnnouncementMentions
-    reactions: List[AnnouncementReactions]
+    createdBy: Dict[str, Any]
+    attachments: Optional[Dict[str, str]]
+    emojis: Optional[List[Dict[str, str]]]
+    mentions: Optional[Dict[str, Any]]
+    reactions: Optional[List[Dict[str, Any]]]
     createdAt: str
     editedAt: Optional[str]

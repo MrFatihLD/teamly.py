@@ -24,74 +24,30 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from teamly.user import User
-from .types.announcement import (
-    Announcement as AnnouncementPayload,
-    AnnouncementEmojis,
-    AnnouncementMedia,
-    AnnouncementMentions,
-    AnnouncementReactions as AnnouncementReactionsPayload)
-from typing import TYPE_CHECKING, List, Optional
+from .types.announcement import Announcement as AnnouncementPayload
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
     from .state import ConnectionState
-    from .channel import AnnouncementChannel
 
 
 class Announcement:
 
-    __slots__ = (
-        "_state",
-        "channel",
-        "id",
-        "title",
-        "content",
-        "created_by",
-        "_attachments",
-        "_emojis",
-        "_mentions",
-        "_reactions",
-        "created_at",
-        "edited_at"
-    )
-
-    def __init__(
-        self,
-        *,
-        state: ConnectionState,
-        channel: AnnouncementChannel,
-        data: AnnouncementPayload
-    ) -> None:
+    def __init__(self, state: ConnectionState, data: AnnouncementPayload) -> None:
         self._state: ConnectionState = state
-        self.channel = channel
-
         self.id: str = data['id']
+        self.channel_id: str = data['channelId']
         self.title: str = data['title']
-        self.content: str = data['content']
-
-        self.created_by: User = User(state=self._state, data=data['createdBy'])
-        self._attachments: Optional[List[AnnouncementMedia]] = data.get('attachments')
-        self._emojis: Optional[List[AnnouncementEmojis]] = data.get('emojis')
-        self._mentions: Optional[AnnouncementMentions] = data.get('mentions')
-        self._reactions: Optional[List[AnnouncementReactionsPayload]] = data.get('reactions')
-
+        self.created_by: Dict[str, Any] = data['createdBy']
+        self.attachments: Optional[List[Dict]] = data.get('attachments', [])
+        self.emojis: Optional[List[Dict]] = data.get('emojis', [])
+        self.mentions: Optional[Dict] = data.get('mentions', {})
+        self.reactions: Optional[List[Dict]] = data.get('reactions', [])
         self.created_at: str = data['createdAt']
         self.edited_at: Optional[str] = data.get('editedAt')
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "channelId": self.channel.id,
-            "title": self.title,
-            "content": self.content,
-            "createdBy": self.created_by,
-            "attachments": self._attachments,
-            "emojis": self._emojis,
-            "mentions": self._mentions,
-            "reactions": self._reactions,
-            "createdAt": self.created_at,
-            "editedAt": self.edited_at
-        }
+    async def delete(self):
+        await self._state.http.delete_announcement(channelId=self.channel_id, announcementId=self.id)
 
     def __repr__(self) -> str:
-        return f"<Announcement id={self.id} title={self.title!r} channelId={self.channel.id}>"
+        return f"<Announcement id={self.id} title={self.title} channelId={self.channelId}>"
